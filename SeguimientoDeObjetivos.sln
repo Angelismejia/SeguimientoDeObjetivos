@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeguimientoDeObjetivos.Data
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeguimientoDeObjetivos.Services", "SeguimientoDeObjetivos.Services\SeguimientoDeObjetivos.Services.csproj", "{95B90A75-8B75-408D-A177-9E81C1A472DD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeguimientoDeObjetivos.UI", "SeguimientoDeObjetivos.UI\SeguimientoDeObjetivos.UI.csproj", "{027B80EC-2E38-4E4D-9934-E7F6C45A3845}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeguimientoDeObjetivos.Api", "SeguimientoDeObjetivos.Api\SeguimientoDeObjetivos.Api.csproj", "{F594EFA6-6187-4F6C-97EA-1584425A2FEF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,10 @@ Global
 		{95B90A75-8B75-408D-A177-9E81C1A472DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{95B90A75-8B75-408D-A177-9E81C1A472DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{95B90A75-8B75-408D-A177-9E81C1A472DD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{027B80EC-2E38-4E4D-9934-E7F6C45A3845}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{027B80EC-2E38-4E4D-9934-E7F6C45A3845}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{027B80EC-2E38-4E4D-9934-E7F6C45A3845}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{027B80EC-2E38-4E4D-9934-E7F6C45A3845}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F594EFA6-6187-4F6C-97EA-1584425A2FEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F594EFA6-6187-4F6C-97EA-1584425A2FEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F594EFA6-6187-4F6C-97EA-1584425A2FEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F594EFA6-6187-4F6C-97EA-1584425A2FEF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
