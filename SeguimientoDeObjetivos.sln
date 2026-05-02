@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeguimientoDeObjetivos.Entities", "SeguimientoDeObjetivos.Entities\SeguimientoDeObjetivos.Entities.csproj", "{A3A5BC97-8862-4809-A1FF-E646326C32BC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeguimientoDeObjetivos.Infrastructure", "SeguimientoDeObjetivos.Entities\SeguimientoDeObjetivos.Infrastructure.csproj", "{A3A5BC97-8862-4809-A1FF-E646326C32BC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeguimientoDeObjetivos.Data", "SeguimientoDeObjetivos.Data\SeguimientoDeObjetivos.Data.csproj", "{F394AE00-B18B-499F-B790-D9F2E9961A8F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeguimientoDeObjetivos.Domain", "SeguimientoDeObjetivos.Data\SeguimientoDeObjetivos.Domain.csproj", "{F394AE00-B18B-499F-B790-D9F2E9961A8F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeguimientoDeObjetivos.Services", "SeguimientoDeObjetivos.Services\SeguimientoDeObjetivos.Services.csproj", "{95B90A75-8B75-408D-A177-9E81C1A472DD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeguimientoDeObjetivos.Application", "SeguimientoDeObjetivos.Services\SeguimientoDeObjetivos.Application.csproj", "{95B90A75-8B75-408D-A177-9E81C1A472DD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeguimientoDeObjetivos.Api", "SeguimientoDeObjetivos.Api\SeguimientoDeObjetivos.Api.csproj", "{F594EFA6-6187-4F6C-97EA-1584425A2FEF}"
 EndProject

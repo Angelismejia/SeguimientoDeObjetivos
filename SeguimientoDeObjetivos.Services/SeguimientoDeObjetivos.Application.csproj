@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SeguimientoDeObjetivos.Entities\SeguimientoDeObjetivos.Entities.csproj" />
+    <ProjectReference Include="..\SeguimientoDeObjetivos.Data\SeguimientoDeObjetivos.Domain.csproj" />
   </ItemGroup>
 
 </Project>
