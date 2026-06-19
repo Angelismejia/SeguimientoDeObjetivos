@@ -4,12 +4,23 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeguimientoDeObjetivos.Api", "SeguimientoDeObjetivos.Api\SeguimientoDeObjetivos.Api.csproj", "{F594EFA6-6187-4F6C-97EA-1584425A2FEF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2FA9C61F-A6C0-4E18-8AE0-35F53C3012A9} = {2FA9C61F-A6C0-4E18-8AE0-35F53C3012A9}
+		{40A136EC-91CF-45AC-AA19-40191D144200} = {40A136EC-91CF-45AC-AA19-40191D144200}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeguimientoDeObjetivos.Domain", "SeguimientoDeObjetivos.Domain\SeguimientoDeObjetivos.Domain.csproj", "{C3F16E42-5DA0-4529-8F5C-A993D033FA55}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeguimientoDeObjetivos.Infraestructure", "SeguimientoDeObjetivos.Infraestructure\SeguimientoDeObjetivos.Infraestructure.csproj", "{2FA9C61F-A6C0-4E18-8AE0-35F53C3012A9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeguimientoDeObjetivos.Infrastructure", "SeguimientoDeObjetivos.Infrastructure\SeguimientoDeObjetivos.Infrastructure.csproj", "{2FA9C61F-A6C0-4E18-8AE0-35F53C3012A9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{40A136EC-91CF-45AC-AA19-40191D144200} = {40A136EC-91CF-45AC-AA19-40191D144200}
+		{C3F16E42-5DA0-4529-8F5C-A993D033FA55} = {C3F16E42-5DA0-4529-8F5C-A993D033FA55}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeguimientoDeObjetivos.Application", "SeguimientoDeObjetivos.Application\SeguimientoDeObjetivos.Application.csproj", "{40A136EC-91CF-45AC-AA19-40191D144200}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C3F16E42-5DA0-4529-8F5C-A993D033FA55} = {C3F16E42-5DA0-4529-8F5C-A993D033FA55}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
