@@ -1,25 +1,34 @@
+using Api.Middleware;
+using Application;
+using Infrastructure;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Registramos nuestro manejador global de errores
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+// Habilita el formato estandar ProblemDetails en las respuestas de error
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+// Activa el middleware que intercepta las excepciones no capturadas
+app.UseExceptionHandler();
+
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
