@@ -27,18 +27,16 @@ namespace Infrastructure.Repositories
                 .Where(t => t.ObjectiveId == objectiveId)
                 .ToListAsync();
 
-        public async Task<TaskItem> CreateAsync(TaskItem task)
+        public Task<TaskItem> CreateAsync(TaskItem task)
         {
             _context.Tasks.Add(task);
-            await _context.SaveChangesAsync();
-            return task;
+            return Task.FromResult(task);
         }
 
-        public async Task<TaskItem> UpdateAsync(TaskItem task)
+        public Task<TaskItem> UpdateAsync(TaskItem task)
         {
             _context.Tasks.Update(task);
-            await _context.SaveChangesAsync();
-            return task;
+            return Task.FromResult(task);
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -46,7 +44,6 @@ namespace Infrastructure.Repositories
             var task = await _context.Tasks.FindAsync(id);
             if (task is null) return false;
             _context.Tasks.Remove(task);
-            await _context.SaveChangesAsync();
             return true;
         }
     }

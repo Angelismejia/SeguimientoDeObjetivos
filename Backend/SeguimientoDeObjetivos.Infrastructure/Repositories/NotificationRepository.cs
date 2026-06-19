@@ -29,11 +29,10 @@ namespace Infrastructure.Repositories
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
 
-        public async Task<Notification> CreateAsync(Notification notification)
+        public Task<Notification> CreateAsync(Notification notification)
         {
             _context.Notifications.Add(notification);
-            await _context.SaveChangesAsync();
-            return notification;
+            return Task.FromResult(notification);
         }
 
         public async Task<bool> MarkAsReadAsync(int id)
@@ -41,7 +40,6 @@ namespace Infrastructure.Repositories
             var notification = await _context.Notifications.FindAsync(id);
             if (notification is null) return false;
             notification.IsRead = true;
-            await _context.SaveChangesAsync();
             return true;
         }
 
@@ -50,7 +48,6 @@ namespace Infrastructure.Repositories
             var notification = await _context.Notifications.FindAsync(id);
             if (notification is null) return false;
             _context.Notifications.Remove(notification);
-            await _context.SaveChangesAsync();
             return true;
         }
     }

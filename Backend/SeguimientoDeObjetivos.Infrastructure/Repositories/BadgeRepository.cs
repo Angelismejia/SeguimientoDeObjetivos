@@ -40,7 +40,6 @@ namespace Infrastructure.Repositories
                 EarnedAt = DateTime.UtcNow
             });
 
-            await _context.SaveChangesAsync();
             return true;
         }
     }

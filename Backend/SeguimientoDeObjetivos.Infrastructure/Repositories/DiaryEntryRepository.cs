@@ -23,18 +23,16 @@ namespace Infrastructure.Repositories
                 .OrderByDescending(d => d.EntryDate)
                 .ToListAsync();
 
-        public async Task<DiaryEntry> CreateAsync(DiaryEntry entry)
+        public Task<DiaryEntry> CreateAsync(DiaryEntry entry)
         {
             _context.DiaryEntries.Add(entry);
-            await _context.SaveChangesAsync();
-            return entry;
+            return Task.FromResult(entry);
         }
 
-        public async Task<DiaryEntry> UpdateAsync(DiaryEntry entry)
+        public Task<DiaryEntry> UpdateAsync(DiaryEntry entry)
         {
             _context.DiaryEntries.Update(entry);
-            await _context.SaveChangesAsync();
-            return entry;
+            return Task.FromResult(entry);
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -42,7 +40,6 @@ namespace Infrastructure.Repositories
             var entry = await _context.DiaryEntries.FindAsync(id);
             if (entry is null) return false;
             _context.DiaryEntries.Remove(entry);
-            await _context.SaveChangesAsync();
             return true;
         }
     }

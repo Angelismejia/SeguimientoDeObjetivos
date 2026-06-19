@@ -22,18 +22,16 @@ namespace Infrastructure.Repositories
                 .Where(c => c.UserId == userId)
                 .ToListAsync();
 
-        public async Task<Category> CreateAsync(Category category)
+        public Task<Category> CreateAsync(Category category)
         {
             _context.Categories.Add(category);
-            await _context.SaveChangesAsync();
-            return category;
+            return Task.FromResult(category);
         }
 
-        public async Task<Category> UpdateAsync(Category category)
+        public Task<Category> UpdateAsync(Category category)
         {
             _context.Categories.Update(category);
-            await _context.SaveChangesAsync();
-            return category;
+            return Task.FromResult(category);
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -41,7 +39,6 @@ namespace Infrastructure.Repositories
             var category = await _context.Categories.FindAsync(id);
             if (category is null) return false;
             _context.Categories.Remove(category);
-            await _context.SaveChangesAsync();
             return true;
         }
     }

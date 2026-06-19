@@ -1,4 +1,5 @@
 using Application.DTOs.Tasks;
+using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Domain.Entities;
@@ -9,35 +10,32 @@ namespace Application.Services
     public class TaskService : ITaskService
     {
         private readonly ITaskRepository _taskRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public TaskService(ITaskRepository taskRepository)
+        public TaskService(ITaskRepository taskRepository, IUnitOfWork unitOfWork)
         {
             _taskRepository = taskRepository;
+            _unitOfWork = unitOfWork;
         }
 
-        // devuelve todas las tareas de un usuario
         public async Task<IEnumerable<TaskDto>> GetByUserIdAsync(int userId)
         {
             var tasks = await _taskRepository.GetByUserIdAsync(userId);
             return tasks.Select(ToDto);
         }
 
-        // devuelve las tareas vinculadas a un objetivo específico
-        // útil para mostrar el progreso detallado de un objetivo en la UI
         public async Task<IEnumerable<TaskDto>> GetByObjectiveIdAsync(int objectiveId)
         {
             var tasks = await _taskRepository.GetByObjectiveIdAsync(objectiveId);
             return tasks.Select(ToDto);
         }
 
-        // devuelve una tarea por id
         public async Task<TaskDto?> GetByIdAsync(int id)
         {
             var task = await _taskRepository.GetByIdAsync(id);
             return task is null ? null : ToDto(task);
         }
 
-        // crea una tarea nueva
         public async Task<TaskDto> CreateAsync(int userId, CreateTaskDto dto)
         {
             var task = new TaskItem
@@ -52,16 +50,16 @@ namespace Application.Services
                 RecurrenceType = dto.RecurrenceType ?? RecurrenceType.None,
                 RepeatEveryWeeks = dto.RepeatEveryWeeks,
                 EndRepeatDate = dto.EndRepeatDate,
-                ObjectiveId = dto.ObjectiveId,   // nullable: la tarea puede no estar vinculada a un objetivo
-                CategoryId = dto.CategoryId,     // nullable: la tarea puede no tener categoría
-                UserId = userId                  // viene del controller, no del DTO
+                ObjectiveId = dto.ObjectiveId,
+                CategoryId = dto.CategoryId,
+                UserId = userId
             };
 
             var created = await _taskRepository.CreateAsync(task);
+            await _unitOfWork.SaveChangesAsync();
             return ToDto(created);
         }
 
-        // actualiza una tarea existente
         public async Task<TaskDto?> UpdateAsync(int id, UpdateTaskDto dto)
         {
             var task = await _taskRepository.GetByIdAsync(id);
@@ -82,22 +80,22 @@ namespace Application.Services
             task.CategoryId = dto.CategoryId;
             task.UpdatedAt = DateTime.UtcNow;
 
-            // si el status cambió a "Completed" y aún no tenía fecha de completado, la fija ahora
-            // el && task.CompletedAt is null evita sobreescribir la fecha si ya estaba completada
             if (dto.Status == TaskItemStatus.Completed && task.CompletedAt is null)
                 task.CompletedAt = DateTime.UtcNow;
 
             var updated = await _taskRepository.UpdateAsync(task);
+            await _unitOfWork.SaveChangesAsync();
             return ToDto(updated);
         }
 
-        // elimina una tarea
         public async Task<bool> DeleteAsync(int id)
         {
-            return await _taskRepository.DeleteAsync(id);
+            var deleted = await _taskRepository.DeleteAsync(id);
+            if (!deleted) return false;
+            await _unitOfWork.SaveChangesAsync();
+            return true;
         }
 
-        // convierte la entidad TaskItem al DTO de respuesta
         private static TaskDto ToDto(TaskItem t) => new()
         {
             Id = t.Id,

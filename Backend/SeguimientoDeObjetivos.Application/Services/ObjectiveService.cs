@@ -1,36 +1,34 @@
-using Application.DTOs.Objectives;          
+using Application.DTOs.Objectives;
+using Application.Interfaces;
 using Application.Interfaces.Repositories;
-using Application.Interfaces.Services;   
-using Domain.Entities;  
+using Application.Interfaces.Services;
+using Domain.Entities;
+
 namespace Application.Services
-
-
 {
     public class ObjectiveService : IObjectiveService
     {
         private readonly IObjectiveRepository _objectiveRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public ObjectiveService(IObjectiveRepository objectiveRepository)
+        public ObjectiveService(IObjectiveRepository objectiveRepository, IUnitOfWork unitOfWork)
         {
             _objectiveRepository = objectiveRepository;
+            _unitOfWork = unitOfWork;
         }
 
-        // devuelve todos los objetivos de un usuario
         public async Task<IEnumerable<ObjectiveDto>> GetByUserIdAsync(int userId)
         {
             var objectives = await _objectiveRepository.GetByUserIdAsync(userId);
             return objectives.Select(ToDto);
         }
 
-        // devuelve un objetivo por id
         public async Task<ObjectiveDto?> GetByIdAsync(int id)
         {
             var objective = await _objectiveRepository.GetByIdAsync(id);
             return objective is null ? null : ToDto(objective);
         }
 
-        // crea un objetivo nuevo
-        // el Status arranca en "Pending" y ProgressPercentage en 0 por defecto (definido en la entidad)
         public async Task<ObjectiveDto> CreateAsync(int userId, CreateObjectiveDto dto)
         {
             var objective = new Objective
@@ -40,15 +38,14 @@ namespace Application.Services
                 StartDate = dto.StartDate,
                 EndDate = dto.EndDate,
                 CategoryId = dto.CategoryId,
-                UserId = userId // viene del controller, no del DTO
+                UserId = userId
             };
 
             var created = await _objectiveRepository.CreateAsync(objective);
+            await _unitOfWork.SaveChangesAsync();
             return ToDto(created);
         }
 
-        // actualiza un objetivo existente
-        // aquí sí se puede cambiar el Status y ProgressPercentage porque el usuario tiene control sobre eso
         public async Task<ObjectiveDto?> UpdateAsync(int id, UpdateObjectiveDto dto)
         {
             var objective = await _objectiveRepository.GetByIdAsync(id);
@@ -58,22 +55,24 @@ namespace Application.Services
             objective.Description = dto.Description;
             objective.StartDate = dto.StartDate;
             objective.EndDate = dto.EndDate;
-            objective.Status = dto.Status;                       // puede cambiar a "InProgress", "Completed", etc.
-            objective.ProgressPercentage = dto.ProgressPercentage; // porcentaje actualizable manualmente
+            objective.Status = dto.Status;
+            objective.ProgressPercentage = dto.ProgressPercentage;
             objective.CategoryId = dto.CategoryId;
-            objective.UpdatedAt = DateTime.UtcNow;               // marca cuándo fue modificado
+            objective.UpdatedAt = DateTime.UtcNow;
 
             var updated = await _objectiveRepository.UpdateAsync(objective);
+            await _unitOfWork.SaveChangesAsync();
             return ToDto(updated);
         }
 
-        // elimina un objetivo
         public async Task<bool> DeleteAsync(int id)
         {
-            return await _objectiveRepository.DeleteAsync(id);
+            var deleted = await _objectiveRepository.DeleteAsync(id);
+            if (!deleted) return false;
+            await _unitOfWork.SaveChangesAsync();
+            return true;
         }
 
-        // convierte la entidad Objective al DTO de respuesta
         private static ObjectiveDto ToDto(Objective o) => new()
         {
             Id = o.Id,

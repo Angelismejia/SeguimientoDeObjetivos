@@ -22,18 +22,16 @@ namespace Infrastructure.Repositories
                 .Where(o => o.UserId == userId)
                 .ToListAsync();
 
-        public async Task<Objective> CreateAsync(Objective objective)
+        public Task<Objective> CreateAsync(Objective objective)
         {
             _context.Objectives.Add(objective);
-            await _context.SaveChangesAsync();
-            return objective;
+            return Task.FromResult(objective);
         }
 
-        public async Task<Objective> UpdateAsync(Objective objective)
+        public Task<Objective> UpdateAsync(Objective objective)
         {
             _context.Objectives.Update(objective);
-            await _context.SaveChangesAsync();
-            return objective;
+            return Task.FromResult(objective);
         }
 
         public async Task<bool> DeleteAsync(int id)
@@ -41,7 +39,6 @@ namespace Infrastructure.Repositories
             var objective = await _context.Objectives.FindAsync(id);
             if (objective is null) return false;
             _context.Objectives.Remove(objective);
-            await _context.SaveChangesAsync();
             return true;
         }
     }
