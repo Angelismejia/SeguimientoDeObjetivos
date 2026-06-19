@@ -1,6 +1,4 @@
 using Application.Interfaces.Repositories;
-using Application.Interfaces.Services;
-using Application.Services;
 using Infrastructure.Persistence;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +16,6 @@ namespace Infrastructure
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
-            // repositorios
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IObjectiveRepository, ObjectiveRepository>();
@@ -26,15 +23,6 @@ namespace Infrastructure
             services.AddScoped<IDiaryEntryRepository, DiaryEntryRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<IBadgeRepository, BadgeRepository>();
-
-            // servicios
-            services.AddScoped<IUserService, UserService>();
-            services.AddScoped<ICategoryService, CategoryService>();
-            services.AddScoped<IObjectiveService, ObjectiveService>();
-            services.AddScoped<ITaskService, TaskService>();
-            services.AddScoped<IDiaryEntryService, DiaryEntryService>();
-            services.AddScoped<INotificationService, NotificationService>();
-            services.AddScoped<IBadgeService, BadgeService>();
 
             return services;
         }

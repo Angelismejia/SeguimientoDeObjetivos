@@ -39,6 +39,48 @@ namespace Infrastructure.Persistence
             modelBuilder.Entity<TaskItem>()
                 .Property(t => t.RecurrenceType)
                 .HasConversion<string>();
+
+
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.Property(u => u.Name).HasMaxLength(100).IsRequired();
+                entity.Property(u => u.Email).HasMaxLength(255).IsRequired();
+                entity.HasIndex(u => u.Email).IsUnique();
+                entity.HasIndex(u => u.KeycloakUserId).IsUnique();
+            });
+
+            modelBuilder.Entity<Objective>(entity =>
+            {
+                entity.Property(o => o.Title).HasMaxLength(150).IsRequired();
+                entity.HasIndex(o => o.UserId);
+            });
+
+            modelBuilder.Entity<TaskItem>(entity =>
+            {
+                entity.Property(t => t.Title).HasMaxLength(150).IsRequired();
+                entity.HasIndex(t => t.UserId);
+                entity.HasIndex(t => t.ObjectiveId);
+            });
+
+            modelBuilder.Entity<DiaryEntry>(entity =>
+            {
+                entity.HasIndex(d => d.UserId);
+            });
+
+            modelBuilder.Entity<Notification>(entity =>
+            {
+                entity.HasIndex(n => n.UserId);
+            });
+
+            modelBuilder.Entity<Category>(entity =>
+            {
+                entity.Property(c => c.Name).HasMaxLength(100).IsRequired();
+                entity.HasIndex(c => c.UserId);
+            });
         }
+
+
+
+
     }
 }
