@@ -3,6 +3,7 @@ using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Domain.Entities;
+using Domain.Exceptions;
 
 namespace Application.Services
 {
@@ -23,10 +24,11 @@ namespace Application.Services
             return categories.Select(ToDto);
         }
 
-        public async Task<CategoryDto?> GetByIdAsync(int id)
+        public async Task<CategoryDto> GetByIdAsync(int id)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
-            return category is null ? null : ToDto(category);
+            if (category is null) throw new NotFoundException("Category", id);
+            return ToDto(category);
         }
 
         public async Task<CategoryDto> CreateAsync(int userId, CreateCategoryDto dto)
@@ -45,27 +47,26 @@ namespace Application.Services
             return ToDto(created);
         }
 
-        public async Task<CategoryDto?> UpdateAsync(int id, UpdateCategoryDto dto)
+        public async Task<CategoryDto> UpdateAsync(int id, UpdateCategoryDto dto)
         {
             var category = await _categoryRepository.GetByIdAsync(id);
-            if (category is null) return null;
+            if (category is null) throw new NotFoundException("Category", id);
 
             category.Name = dto.Name;
             category.Color = dto.Color;
             category.Icon = dto.Icon;
             category.IsDefault = dto.IsDefault;
 
-            var updated = await _categoryRepository.UpdateAsync(category);
+            await _categoryRepository.UpdateAsync(category);
             await _unitOfWork.SaveChangesAsync();
-            return ToDto(updated);
+            return ToDto(category);
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task DeleteAsync(int id)
         {
             var deleted = await _categoryRepository.DeleteAsync(id);
-            if (!deleted) return false;
+            if (!deleted) throw new NotFoundException("Category", id);
             await _unitOfWork.SaveChangesAsync();
-            return true;
         }
 
         private static CategoryDto ToDto(Category c) => new()

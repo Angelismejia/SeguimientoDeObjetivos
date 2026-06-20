@@ -3,6 +3,7 @@ using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Domain.Entities;
+using Domain.Exceptions;
 
 namespace Application.Services
 {
@@ -23,10 +24,11 @@ namespace Application.Services
             return objectives.Select(ToDto);
         }
 
-        public async Task<ObjectiveDto?> GetByIdAsync(int id)
+        public async Task<ObjectiveDto> GetByIdAsync(int id)
         {
             var objective = await _objectiveRepository.GetByIdAsync(id);
-            return objective is null ? null : ToDto(objective);
+            if (objective is null) throw new NotFoundException("Objective", id);
+            return ToDto(objective);
         }
 
         public async Task<ObjectiveDto> CreateAsync(int userId, CreateObjectiveDto dto)
@@ -46,10 +48,10 @@ namespace Application.Services
             return ToDto(created);
         }
 
-        public async Task<ObjectiveDto?> UpdateAsync(int id, UpdateObjectiveDto dto)
+        public async Task<ObjectiveDto> UpdateAsync(int id, UpdateObjectiveDto dto)
         {
             var objective = await _objectiveRepository.GetByIdAsync(id);
-            if (objective is null) return null;
+            if (objective is null) throw new NotFoundException("Objective", id);
 
             objective.Title = dto.Title;
             objective.Description = dto.Description;
@@ -60,17 +62,16 @@ namespace Application.Services
             objective.CategoryId = dto.CategoryId;
             objective.UpdatedAt = DateTime.UtcNow;
 
-            var updated = await _objectiveRepository.UpdateAsync(objective);
+            await _objectiveRepository.UpdateAsync(objective);
             await _unitOfWork.SaveChangesAsync();
-            return ToDto(updated);
+            return ToDto(objective);
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task DeleteAsync(int id)
         {
             var deleted = await _objectiveRepository.DeleteAsync(id);
-            if (!deleted) return false;
+            if (!deleted) throw new NotFoundException("Objective", id);
             await _unitOfWork.SaveChangesAsync();
-            return true;
         }
 
         private static ObjectiveDto ToDto(Objective o) => new()

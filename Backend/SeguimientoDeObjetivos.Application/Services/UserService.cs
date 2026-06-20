@@ -3,6 +3,7 @@ using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Domain.Entities;
+using Domain.Exceptions;
 
 namespace Application.Services
 {
@@ -23,10 +24,11 @@ namespace Application.Services
             return users.Select(ToDto);
         }
 
-        public async Task<UserDto?> GetByIdAsync(int id)
+        public async Task<UserDto> GetByIdAsync(int id)
         {
             var user = await _userRepository.GetByIdAsync(id);
-            return user is null ? null : ToDto(user);
+            if (user is null) throw new NotFoundException("User", id);
+            return ToDto(user);
         }
 
         public async Task<UserDto> CreateAsync(CreateUserDto dto)
@@ -43,27 +45,26 @@ namespace Application.Services
             return ToDto(created);
         }
 
-        public async Task<UserDto?> UpdateAsync(int id, UpdateUserDto dto)
+        public async Task<UserDto> UpdateAsync(int id, UpdateUserDto dto)
         {
             var user = await _userRepository.GetByIdAsync(id);
-            if (user is null) return null;
+            if (user is null) throw new NotFoundException("User", id);
 
             user.Name = dto.Name;
             user.Email = dto.Email;
             user.IsActive = dto.IsActive;
             user.UpdatedAt = DateTime.UtcNow;
 
-            var updated = await _userRepository.UpdateAsync(user);
+            await _userRepository.UpdateAsync(user);
             await _unitOfWork.SaveChangesAsync();
-            return ToDto(updated);
+            return ToDto(user);
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task DeleteAsync(int id)
         {
             var deleted = await _userRepository.DeleteAsync(id);
-            if (!deleted) return false;
+            if (!deleted) throw new NotFoundException("User", id);
             await _unitOfWork.SaveChangesAsync();
-            return true;
         }
 
         private static UserDto ToDto(User u) => new()

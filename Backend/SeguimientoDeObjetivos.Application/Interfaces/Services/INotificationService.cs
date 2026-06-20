@@ -6,9 +6,9 @@ namespace Application.Interfaces.Services
     {
         Task<IEnumerable<NotificationDto>> GetByUserIdAsync(int userId);
         Task<IEnumerable<NotificationDto>> GetUnreadByUserIdAsync(int userId);
-        Task<NotificationDto?> GetByIdAsync(int id);
+        Task<NotificationDto> GetByIdAsync(int id);
         Task<NotificationDto> CreateAsync(CreateNotificationDto dto);
-        Task<bool> MarkAsReadAsync(int id);
-        Task<bool> DeleteAsync(int id);
+        Task MarkAsReadAsync(int id);
+        Task DeleteAsync(int id);
     }
 }

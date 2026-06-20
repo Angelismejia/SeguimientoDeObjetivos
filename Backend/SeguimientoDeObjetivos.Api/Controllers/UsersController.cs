@@ -18,43 +18,33 @@ namespace Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetAll()
         {
-            var users = await _userService.GetAllAsync();
-            return Ok(users);
+            return Ok(await _userService.GetAllAsync());
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<UserDto>> GetById(int id)
         {
-            var user = await _userService.GetByIdAsync(id);
-            if (user is null) return NotFound();
-            return Ok(user);
+            return Ok(await _userService.GetByIdAsync(id));
         }
 
         [HttpPost]
         public async Task<ActionResult<UserDto>> Create(CreateUserDto dto)
         {
-         
             var created = await _userService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created    );
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
         [HttpPut("{id}")]
         public async Task<ActionResult<UserDto>> Update(int id, UpdateUserDto dto)
         {
-            
-            var updated = await _userService.UpdateAsync(id, dto);
-            if (updated is null) return NotFound();
-            return Ok(updated);
+            return Ok(await _userService.UpdateAsync(id, dto));
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var deleted = await _userService.DeleteAsync(id);
-            if (!deleted) return NotFound();
+            await _userService.DeleteAsync(id);
             return NoContent();
         }
-
-      
     }
 }

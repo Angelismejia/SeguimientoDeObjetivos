@@ -6,9 +6,9 @@ namespace Application.Interfaces.Services
     {
         Task<IEnumerable<TaskDto>> GetByUserIdAsync(int userId);
         Task<IEnumerable<TaskDto>> GetByObjectiveIdAsync(int objectiveId);
-        Task<TaskDto?> GetByIdAsync(int id);
+        Task<TaskDto> GetByIdAsync(int id);
         Task<TaskDto> CreateAsync(int userId, CreateTaskDto dto);
-        Task<TaskDto?> UpdateAsync(int id, UpdateTaskDto dto);
-        Task<bool> DeleteAsync(int id);
+        Task<TaskDto> UpdateAsync(int id, UpdateTaskDto dto);
+        Task DeleteAsync(int id);
     }
 }

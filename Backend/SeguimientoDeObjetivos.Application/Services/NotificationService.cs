@@ -3,6 +3,7 @@ using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Domain.Entities;
+using Domain.Exceptions;
 
 namespace Application.Services
 {
@@ -29,10 +30,11 @@ namespace Application.Services
             return notifications.Select(ToDto);
         }
 
-        public async Task<NotificationDto?> GetByIdAsync(int id)
+        public async Task<NotificationDto> GetByIdAsync(int id)
         {
             var notification = await _notificationRepository.GetByIdAsync(id);
-            return notification is null ? null : ToDto(notification);
+            if (notification is null) throw new NotFoundException("Notification", id);
+            return ToDto(notification);
         }
 
         public async Task<NotificationDto> CreateAsync(CreateNotificationDto dto)
@@ -52,20 +54,18 @@ namespace Application.Services
             return ToDto(created);
         }
 
-        public async Task<bool> MarkAsReadAsync(int id)
+        public async Task MarkAsReadAsync(int id)
         {
             var marked = await _notificationRepository.MarkAsReadAsync(id);
-            if (!marked) return false;
+            if (!marked) throw new NotFoundException("Notification", id);
             await _unitOfWork.SaveChangesAsync();
-            return true;
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task DeleteAsync(int id)
         {
             var deleted = await _notificationRepository.DeleteAsync(id);
-            if (!deleted) return false;
+            if (!deleted) throw new NotFoundException("Notification", id);
             await _unitOfWork.SaveChangesAsync();
-            return true;
         }
 
         private static NotificationDto ToDto(Notification n) => new()

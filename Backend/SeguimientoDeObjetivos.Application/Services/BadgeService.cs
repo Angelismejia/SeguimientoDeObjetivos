@@ -2,6 +2,7 @@ using Application.DTOs.Badges;
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
+using Domain.Exceptions;
 
 namespace Application.Services
 {
@@ -22,10 +23,11 @@ namespace Application.Services
             return badges.Select(ToDto);
         }
 
-        public async Task<BadgeDto?> GetByIdAsync(int id)
+        public async Task<BadgeDto> GetByIdAsync(int id)
         {
             var badge = await _badgeRepository.GetByIdAsync(id);
-            return badge is null ? null : ToDto(badge);
+            if (badge is null) throw new NotFoundException("Badge", id);
+            return ToDto(badge);
         }
 
         public async Task<IEnumerable<BadgeDto>> GetByUserIdAsync(int userId)

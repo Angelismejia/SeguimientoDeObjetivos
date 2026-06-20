@@ -3,6 +3,7 @@ using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Domain.Entities;
+using Domain.Exceptions;
 
 namespace Application.Services
 {
@@ -23,10 +24,11 @@ namespace Application.Services
             return entries.Select(ToDto);
         }
 
-        public async Task<DiaryEntryDto?> GetByIdAsync(int id)
+        public async Task<DiaryEntryDto> GetByIdAsync(int id)
         {
             var entry = await _diaryEntryRepository.GetByIdAsync(id);
-            return entry is null ? null : ToDto(entry);
+            if (entry is null) throw new NotFoundException("DiaryEntry", id);
+            return ToDto(entry);
         }
 
         public async Task<DiaryEntryDto> CreateAsync(int userId, CreateDiaryEntryDto dto)
@@ -44,27 +46,26 @@ namespace Application.Services
             return ToDto(created);
         }
 
-        public async Task<DiaryEntryDto?> UpdateAsync(int id, UpdateDiaryEntryDto dto)
+        public async Task<DiaryEntryDto> UpdateAsync(int id, UpdateDiaryEntryDto dto)
         {
             var entry = await _diaryEntryRepository.GetByIdAsync(id);
-            if (entry is null) return null;
+            if (entry is null) throw new NotFoundException("DiaryEntry", id);
 
             entry.Title = dto.Title;
             entry.Content = dto.Content;
             entry.EntryDate = dto.EntryDate;
             entry.UpdatedAt = DateTime.UtcNow;
 
-            var updated = await _diaryEntryRepository.UpdateAsync(entry);
+            await _diaryEntryRepository.UpdateAsync(entry);
             await _unitOfWork.SaveChangesAsync();
-            return ToDto(updated);
+            return ToDto(entry);
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task DeleteAsync(int id)
         {
             var deleted = await _diaryEntryRepository.DeleteAsync(id);
-            if (!deleted) return false;
+            if (!deleted) throw new NotFoundException("DiaryEntry", id);
             await _unitOfWork.SaveChangesAsync();
-            return true;
         }
 
         private static DiaryEntryDto ToDto(DiaryEntry d) => new()

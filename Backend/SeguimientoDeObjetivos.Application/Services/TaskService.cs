@@ -4,6 +4,7 @@ using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Domain.Entities;
 using Domain.Enums;
+using Domain.Exceptions;
 
 namespace Application.Services
 {
@@ -30,10 +31,11 @@ namespace Application.Services
             return tasks.Select(ToDto);
         }
 
-        public async Task<TaskDto?> GetByIdAsync(int id)
+        public async Task<TaskDto> GetByIdAsync(int id)
         {
             var task = await _taskRepository.GetByIdAsync(id);
-            return task is null ? null : ToDto(task);
+            if (task is null) throw new NotFoundException("Task", id);
+            return ToDto(task);
         }
 
         public async Task<TaskDto> CreateAsync(int userId, CreateTaskDto dto)
@@ -60,10 +62,10 @@ namespace Application.Services
             return ToDto(created);
         }
 
-        public async Task<TaskDto?> UpdateAsync(int id, UpdateTaskDto dto)
+        public async Task<TaskDto> UpdateAsync(int id, UpdateTaskDto dto)
         {
             var task = await _taskRepository.GetByIdAsync(id);
-            if (task is null) return null;
+            if (task is null) throw new NotFoundException("Task", id);
 
             task.Title = dto.Title;
             task.Description = dto.Description;
@@ -83,17 +85,16 @@ namespace Application.Services
             if (dto.Status == TaskItemStatus.Completed && task.CompletedAt is null)
                 task.CompletedAt = DateTime.UtcNow;
 
-            var updated = await _taskRepository.UpdateAsync(task);
+            await _taskRepository.UpdateAsync(task);
             await _unitOfWork.SaveChangesAsync();
-            return ToDto(updated);
+            return ToDto(task);
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task DeleteAsync(int id)
         {
             var deleted = await _taskRepository.DeleteAsync(id);
-            if (!deleted) return false;
+            if (!deleted) throw new NotFoundException("Task", id);
             await _unitOfWork.SaveChangesAsync();
-            return true;
         }
 
         private static TaskDto ToDto(TaskItem t) => new()
