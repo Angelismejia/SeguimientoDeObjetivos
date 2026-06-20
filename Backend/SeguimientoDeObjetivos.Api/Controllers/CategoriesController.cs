@@ -18,16 +18,13 @@ namespace Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CategoryDto>>> GetByUser([FromQuery] int userId)
         {
-            var categories = await _categoryService.GetByUserIdAsync(userId);
-            return Ok(categories);
+            return Ok(await _categoryService.GetByUserIdAsync(userId));
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<CategoryDto>> GetById(int id)
         {
-            var category = await _categoryService.GetByIdAsync(id);
-            if (category is null) return NotFound();
-            return Ok(category);
+            return Ok(await _categoryService.GetByIdAsync(id));
         }
 
         [HttpPost]
@@ -40,16 +37,13 @@ namespace Api.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<CategoryDto>> Update(int id, UpdateCategoryDto dto)
         {
-            var updated = await _categoryService.UpdateAsync(id, dto);
-            if (updated is null) return NotFound();
-            return Ok(updated);
+            return Ok(await _categoryService.UpdateAsync(id, dto));
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var deleted = await _categoryService.DeleteAsync(id);
-            if (!deleted) return NotFound();
+            await _categoryService.DeleteAsync(id);
             return NoContent();
         }
     }

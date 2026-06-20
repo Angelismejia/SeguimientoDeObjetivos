@@ -18,16 +18,13 @@ namespace Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ObjectiveDto>>> GetByUser([FromQuery] int userId)
         {
-            var objectives = await _objectiveService.GetByUserIdAsync(userId);
-            return Ok(objectives);
+            return Ok(await _objectiveService.GetByUserIdAsync(userId));
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<ObjectiveDto>> GetById(int id)
         {
-            var objective = await _objectiveService.GetByIdAsync(id);
-            if (objective is null) return NotFound();
-            return Ok(objective);
+            return Ok(await _objectiveService.GetByIdAsync(id));
         }
 
         [HttpPost]
@@ -40,16 +37,13 @@ namespace Api.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<ObjectiveDto>> Update(int id, UpdateObjectiveDto dto)
         {
-            var updated = await _objectiveService.UpdateAsync(id, dto);
-            if (updated is null) return NotFound();
-            return Ok(updated);
+            return Ok(await _objectiveService.UpdateAsync(id, dto));
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var deleted = await _objectiveService.DeleteAsync(id);
-            if (!deleted) return NotFound();
+            await _objectiveService.DeleteAsync(id);
             return NoContent();
         }
     }

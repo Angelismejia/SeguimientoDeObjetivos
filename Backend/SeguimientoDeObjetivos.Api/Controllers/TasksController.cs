@@ -10,7 +10,6 @@ namespace Api.Controllers
     {
         private readonly ITaskService _taskService;
 
-
         public TasksController(ITaskService taskService)
         {
             _taskService = taskService;
@@ -19,23 +18,19 @@ namespace Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TaskDto>>> GetByUser([FromQuery] int userId)
         {
-            var tasks = await _taskService.GetByUserIdAsync(userId);
-            return Ok(tasks);
+            return Ok(await _taskService.GetByUserIdAsync(userId));
         }
 
         [HttpGet("by-objective/{objectiveId}")]
         public async Task<ActionResult<IEnumerable<TaskDto>>> GetByObjective(int objectiveId)
         {
-            var tasks = await _taskService.GetByObjectiveIdAsync(objectiveId);
-            return Ok(tasks);
+            return Ok(await _taskService.GetByObjectiveIdAsync(objectiveId));
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<TaskDto>> GetById(int id)
         {
-            var task = await _taskService.GetByIdAsync(id);
-            if (task is null) return NotFound();
-            return Ok(task);
+            return Ok(await _taskService.GetByIdAsync(id));
         }
 
         [HttpPost]
@@ -48,16 +43,13 @@ namespace Api.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<TaskDto>> Update(int id, UpdateTaskDto dto)
         {
-            var updated = await _taskService.UpdateAsync(id, dto);
-            if (updated is null) return NotFound();
-            return Ok(updated);
+            return Ok(await _taskService.UpdateAsync(id, dto));
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var deleted = await _taskService.DeleteAsync(id);
-            if (!deleted) return NotFound();
+            await _taskService.DeleteAsync(id);
             return NoContent();
         }
     }

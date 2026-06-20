@@ -18,16 +18,13 @@ namespace Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DiaryEntryDto>>> GetByUser([FromQuery] int userId)
         {
-            var entries = await _diaryEntryService.GetByUserIdAsync(userId);
-            return Ok(entries);
+            return Ok(await _diaryEntryService.GetByUserIdAsync(userId));
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<DiaryEntryDto>> GetById(int id)
         {
-            var entry = await _diaryEntryService.GetByIdAsync(id);
-            if (entry is null) return NotFound();
-            return Ok(entry);
+            return Ok(await _diaryEntryService.GetByIdAsync(id));
         }
 
         [HttpPost]
@@ -40,16 +37,13 @@ namespace Api.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<DiaryEntryDto>> Update(int id, UpdateDiaryEntryDto dto)
         {
-            var updated = await _diaryEntryService.UpdateAsync(id, dto);
-            if (updated is null) return NotFound();
-            return Ok(updated);
+            return Ok(await _diaryEntryService.UpdateAsync(id, dto));
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var deleted = await _diaryEntryService.DeleteAsync(id);
-            if (!deleted) return NotFound();
+            await _diaryEntryService.DeleteAsync(id);
             return NoContent();
         }
     }

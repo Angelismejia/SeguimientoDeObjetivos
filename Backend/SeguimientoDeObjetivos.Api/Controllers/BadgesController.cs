@@ -18,30 +18,26 @@ namespace Api.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<BadgeDto>>> GetAll()
         {
-            var badges = await _badgeService.GetAllAsync();
-            return Ok(badges);
+            return Ok(await _badgeService.GetAllAsync());
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<BadgeDto>> GetById(int id)
         {
-            var badge = await _badgeService.GetByIdAsync(id);
-            if (badge is null) return NotFound();
-            return Ok(badge);
+            return Ok(await _badgeService.GetByIdAsync(id));
         }
 
         [HttpGet("by-user/{userId}")]
         public async Task<ActionResult<IEnumerable<BadgeDto>>> GetByUser(int userId)
         {
-            var badges = await _badgeService.GetByUserIdAsync(userId);
-            return Ok(badges);
+            return Ok(await _badgeService.GetByUserIdAsync(userId));
         }
 
         [HttpPost("assign")]
         public async Task<IActionResult> Assign([FromQuery] int userId, [FromQuery] int badgeId)
         {
-            var success = await _badgeService.AssignToUserAsync(userId, badgeId);
-            if (!success) return Conflict("El usuario ya tiene este badge.");
+            var assigned = await _badgeService.AssignToUserAsync(userId, badgeId);
+            if (!assigned) return Conflict("El usuario ya tiene este badge.");
             return NoContent();
         }
     }
