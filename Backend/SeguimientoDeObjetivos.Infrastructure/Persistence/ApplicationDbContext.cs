@@ -43,10 +43,12 @@ namespace Infrastructure.Persistence
 
             modelBuilder.Entity<User>(entity =>
             {
+                entity.Property(u => u.Username).HasMaxLength(100).IsRequired();
                 entity.Property(u => u.Name).HasMaxLength(100).IsRequired();
                 entity.Property(u => u.Email).HasMaxLength(255).IsRequired();
+                entity.Property(u => u.PasswordHash).IsRequired();
                 entity.HasIndex(u => u.Email).IsUnique();
-                entity.HasIndex(u => u.KeycloakUserId).IsUnique();
+                entity.HasIndex(u => u.Username).IsUnique();
             });
 
             modelBuilder.Entity<Objective>(entity =>

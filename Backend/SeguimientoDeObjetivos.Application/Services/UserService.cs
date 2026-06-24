@@ -4,6 +4,7 @@ using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Domain.Entities;
 using Domain.Exceptions;
+using BCrypt.Net;
 
 namespace Application.Services
 {
@@ -33,11 +34,14 @@ namespace Application.Services
 
         public async Task<UserDto> CreateAsync(CreateUserDto dto)
         {
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
             var user = new User
             {
-                KeycloakUserId = dto.KeycloakUserId,
+                Username = dto.Username,
                 Name = dto.Name,
-                Email = dto.Email
+                Email = dto.Email,
+                PasswordHash = passwordHash,
+                IsActive = true
             };
 
             var created = await _userRepository.CreateAsync(user);
@@ -70,7 +74,7 @@ namespace Application.Services
         private static UserDto ToDto(User u) => new()
         {
             Id = u.Id,
-            KeycloakUserId = u.KeycloakUserId,
+            Username = u.Username,
             Name = u.Name,
             Email = u.Email,
             IsActive = u.IsActive,

@@ -367,9 +367,14 @@ namespace SeguimientoDeObjetivos.Infraestructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<string>("KeycloakUserId")
+                    b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -384,7 +389,7 @@ namespace SeguimientoDeObjetivos.Infraestructure.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.HasIndex("KeycloakUserId")
+                    b.HasIndex("Username")
                         .IsUnique();
 
                     b.ToTable("Users");
