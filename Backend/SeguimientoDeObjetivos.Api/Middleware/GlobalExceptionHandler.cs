@@ -30,6 +30,18 @@ namespace Api.Middleware
                 return true;
             }
 
+            if (exception is InvalidOperationException businessError)
+            {
+                httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+                await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Bad Request",
+                    Detail = businessError.Message
+                }, cancellationToken);
+                return true;
+            }
+
             _logger.LogError(exception, "Error no manejado: {Message}", exception.Message);
 
             httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
