@@ -13,6 +13,8 @@ import { AuthService } from '../../core/services/auth.service';
 })
 export class AuthComponent implements OnInit {
   isRegister = false;
+  hideLogin = true;
+  hideRegister = true;
 
   loginForm: FormGroup;
   registerForm: FormGroup;
