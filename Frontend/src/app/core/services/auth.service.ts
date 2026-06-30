@@ -12,6 +12,7 @@ export class AuthService {
 
   constructor(private http: HttpClient, private router: Router) {}
 
+  login(data: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.url}/login`, data).pipe(
       tap(res => {
         localStorage.setItem('token', res.accessToken);
@@ -36,7 +37,7 @@ export class AuthService {
   }
 
   isLoggedIn(): boolean {
-    return !!this.getToken();ok p
+    return !!this.getToken();
   }
 
   getUserId(): number {
