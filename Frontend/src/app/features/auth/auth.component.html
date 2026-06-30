@@ -1,0 +1,72 @@
+<div class="page-bg">
+  <div class="card" [class.active]="isRegister">
+
+    <!-- FORMULARIO -->
+    <div class="form-col">
+
+      <div class="form-face login-face">
+        <img src="BetterMeLogo.png" alt="BetterMe" class="form-logo">
+        <h1>Iniciar Sesión</h1>
+        <p class="sub-line">
+          ¿No tienes cuenta?
+          <button class="link-btn" (click)="switchTo('register')">Regístrate</button>
+        </p>
+        <form [formGroup]="loginForm" (ngSubmit)="submitLogin()">
+          <div class="field">
+            <label>Usuario</label>
+            <input type="text" formControlName="username" placeholder="tu_usuario" autocomplete="username">
+          </div>
+          <div class="field">
+            <div class="label-row">
+              <label>Contraseña</label>
+              <button type="button" class="forgot-btn">¿Olvidaste tu contraseña?</button>
+            </div>
+            <input type="password" formControlName="password" placeholder="Mínimo 6 caracteres" autocomplete="current-password">
+          </div>
+          <p class="form-error" *ngIf="loginError">{{ loginError }}</p>
+          <button class="btn-main" type="submit" [disabled]="loginForm.invalid || loading">
+            {{ loading ? 'Ingresando...' : 'Entrar' }}
+          </button>
+        </form>
+      </div>
+
+      <div class="form-face register-face">
+        <img src="BetterMeLogo.png" alt="BetterMe" class="form-logo">
+        <h1>Crear Cuenta</h1>
+        <p class="sub-line">
+          ¿Ya tienes cuenta?
+          <button class="link-btn" (click)="switchTo('login')">Inicia sesión</button>
+        </p>
+        <form [formGroup]="registerForm" (ngSubmit)="submitRegister()">
+          <div class="field">
+            <label>Nombre completo</label>
+            <input type="text" formControlName="name" placeholder="Tu nombre" autocomplete="name">
+          </div>
+          <div class="field">
+            <label>Usuario</label>
+            <input type="text" formControlName="username" placeholder="Nombre de usuario" autocomplete="username">
+          </div>
+          <div class="field">
+            <label>Correo electrónico</label>
+            <input type="email" formControlName="email" placeholder="tu@correo.com" autocomplete="email">
+          </div>
+          <div class="field">
+            <label>Contraseña</label>
+            <input type="password" formControlName="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+          </div>
+          <p class="form-error" *ngIf="registerError">{{ registerError }}</p>
+          <button class="btn-main" type="submit" [disabled]="registerForm.invalid || loading">
+            {{ loading ? 'Creando...' : 'Registrarme' }}
+          </button>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- IMAGEN FIJA -->
+    <div class="image-col">
+      <img src="loginimagen.webp" alt="" class="illus-img">
+    </div>
+
+  </div>
+</div>

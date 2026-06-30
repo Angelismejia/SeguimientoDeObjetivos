@@ -1,0 +1,137 @@
+.login-page {
+  display: flex;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #5b4fcf 0%, #7c3aed 50%, #6d28d9 100%);
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* ── PANEL IZQUIERDO ──────────────────────────────── */
+.form-panel {
+  width: 420px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.form-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 40px 36px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+
+.back-brand {
+  display: inline-block;
+  margin-bottom: 28px;
+}
+
+.form-logo {
+  height: 48px;
+  width: 48px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #ede9fe;
+}
+
+h1 {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.5px;
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  font-size: 0.88rem;
+  color: #6b7280;
+  margin-bottom: 28px;
+}
+
+.link {
+  color: #5b4fcf;
+  font-weight: 600;
+  text-decoration: none;
+}
+.link:hover { text-decoration: underline; }
+
+/* ── CAMPOS ───────────────────────────────────────── */
+form { display: flex; flex-direction: column; gap: 18px; }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+
+label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+input {
+  padding: 11px 14px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  color: #111827;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  background: #fff;
+  font-family: inherit;
+}
+input::placeholder { color: #9ca3af; }
+input:focus {
+  border-color: #5b4fcf;
+  box-shadow: 0 0 0 3px rgba(91,79,207,0.12);
+}
+
+.error-msg {
+  font-size: 0.83rem;
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  padding: 8px 12px;
+  border-radius: 7px;
+  margin-top: -4px;
+}
+
+.btn-login {
+  margin-top: 4px;
+  padding: 13px;
+  border-radius: 8px;
+  border: none;
+  background: #5b4fcf;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+  font-family: inherit;
+}
+.btn-login:hover:not(:disabled) { background: #4c3fb5; transform: translateY(-1px); }
+.btn-login:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── PANEL DERECHO ────────────────────────────────── */
+.image-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  overflow: hidden;
+}
+
+.side-image {
+  max-height: 80vh;
+  max-width: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 20px 40px rgba(0,0,0,0.2));
+}
+
+/* ── RESPONSIVE ───────────────────────────────────── */
+@media (max-width: 768px) {
+  .login-page { flex-direction: column; justify-content: center; }
+  .form-panel { width: 100%; padding: 1.5rem; }
+  .image-panel { display: none; }
+}
