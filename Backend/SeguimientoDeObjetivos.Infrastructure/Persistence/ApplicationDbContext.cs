@@ -31,7 +31,7 @@ namespace Infrastructure.Persistence
             modelBuilder.Entity<TaskItem>()
                 .Property(t => t.Status)
                 .HasConversion<string>();
-
+    
             modelBuilder.Entity<TaskItem>()
                 .Property(t => t.Priority)
                 .HasConversion<string>();
