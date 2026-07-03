@@ -1,9 +1,59 @@
-<div class="under-construction">
-  <h2>Navbar</h2>
-  <img
-    src="https://img.freepik.com/fotos-premium/guapo-ingeniero-construccion-gato-sentado-ia-generativa_431161-21530.jpg"
-    alt="En construcción"
-    class="construction-cat"
-  />
-  <p class="construction-text">🚧 En construcción 🚧</p>
-</div>
+<header class="navbar">
+  <div class="navbar-inner">
+    <a class="brand" routerLink="/dashboard">
+      <img class="brand-img" src="BetterMeLogo.png" alt="BetterMe">
+    </a>
+
+    <nav class="nav-links">
+      @for (link of links; track link.path) {
+        <a
+          class="nav-link"
+          [routerLink]="link.path"
+          routerLinkActive="active"
+          [title]="link.label"
+        >
+          <span class="material-icons-round">{{ link.icon }}</span>
+          <span class="link-label">{{ link.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="nav-user">
+      <a class="user-chip" routerLink="/profile">
+        <span class="material-icons-round">account_circle</span>
+        <span class="user-name link-label">{{ name }}</span>
+      </a>
+      <button class="btn-logout" type="button" (click)="logout()">
+        <span class="material-icons-round">logout</span>
+      </button>
+    </div>
+
+    <button class="btn-burger" type="button" (click)="toggleMenu()">
+      <span class="material-icons-round">{{ menuOpen ? 'close' : 'menu' }}</span>
+    </button>
+  </div>
+
+  @if (menuOpen) {
+    <nav class="nav-links-mobile">
+      @for (link of links; track link.path) {
+        <a
+          class="nav-link"
+          [routerLink]="link.path"
+          routerLinkActive="active"
+          (click)="closeMenu()"
+        >
+          <span class="material-icons-round">{{ link.icon }}</span>
+          <span>{{ link.label }}</span>
+        </a>
+      }
+      <a class="nav-link" routerLink="/profile" routerLinkActive="active" (click)="closeMenu()">
+        <span class="material-icons-round">account_circle</span>
+        <span>{{ name }}</span>
+      </a>
+      <button class="nav-link nav-link-logout" type="button" (click)="logout()">
+        <span class="material-icons-round">logout</span>
+        <span>Cerrar sesión</span>
+      </button>
+    </nav>
+  }
+</header>
