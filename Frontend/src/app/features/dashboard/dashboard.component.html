@@ -1,13 +1,98 @@
-<div class="dashboard-welcome">
-  <h1>¡Hola, {{ name }}! 👋</h1>
-  <p>Bienvenido de vuelta a tu seguimiento de objetivos.</p>
-
-  <div class="under-construction">
-    <img
-      src="https://img.freepik.com/fotos-premium/guapo-ingeniero-construccion-gato-sentado-ia-generativa_431161-21530.jpg"
-      alt="En construcción"
-      class="construction-cat"
-    />
-    <p class="construction-text">🚧 En construcción 🚧</p>
+<div class="dashboard">
+  <div class="dashboard-header">
+    <h1>¡Hola, {{ name }}! 👋</h1>
+    <p>Bienvenido de vuelta a tu seguimiento de objetivos.</p>
   </div>
+
+  @if (loading()) {
+    <div class="state-msg">Cargando tu progreso...</div>
+  } @else if (loadError()) {
+    <div class="state-msg error">No se pudo cargar la información. Intenta de nuevo más tarde.</div>
+  } @else if (!hasObjectives()) {
+    <div class="empty-state">
+      <span class="material-icons-round empty-icon">track_changes</span>
+      <p>Todavía no tienes objetivos creados.</p>
+      <a class="btn-main" routerLink="/objectives">
+        <span class="material-icons-round btn-icon">add</span>
+        Crear mi primer objetivo
+      </a>
+    </div>
+  } @else {
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="material-icons-round stat-icon">track_changes</span>
+        <div class="stat-value">{{ totalObjectives() }}</div>
+        <div class="stat-label">Objetivos totales</div>
+      </div>
+      <div class="stat-card">
+        <span class="material-icons-round stat-icon">check_circle</span>
+        <div class="stat-value">{{ completedObjectives() }}</div>
+        <div class="stat-label">Completados</div>
+      </div>
+      <div class="stat-card">
+        <span class="material-icons-round stat-icon">task_alt</span>
+        <div class="stat-value">{{ pendingTasks() }}</div>
+        <div class="stat-label">Tareas pendientes</div>
+      </div>
+      <div class="stat-card" [class.alert]="overdueTasks() > 0">
+        <span class="material-icons-round stat-icon">event_busy</span>
+        <div class="stat-value">{{ overdueTasks() }}</div>
+        <div class="stat-label">Tareas vencidas</div>
+      </div>
+    </div>
+
+    <div class="content-grid">
+      <div class="panel chart-panel">
+        <h2>Estado de tus objetivos</h2>
+        <div class="chart-wrap">
+          <canvas baseChart
+            [data]="chartData()"
+            [options]="chartOptions"
+            type="doughnut">
+          </canvas>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Objetivos en progreso</h2>
+        @if (topObjectives().length === 0) {
+          <p class="panel-empty">No tienes objetivos en progreso ahora mismo.</p>
+        } @else {
+          <ul class="objective-list">
+            @for (obj of topObjectives(); track obj.id) {
+              <li class="objective-item">
+                <div class="objective-top">
+                  <span class="objective-title">{{ obj.title }}</span>
+                  <span class="objective-pct">{{ obj.progressPercentage }}%</span>
+                </div>
+                <div class="progress-track">
+                  <div class="progress-fill" [style.width.%]="obj.progressPercentage"></div>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+
+      <div class="panel">
+        <h2>Próximas tareas</h2>
+        @if (upcomingTasks().length === 0) {
+          <p class="panel-empty">No tienes tareas próximas.</p>
+        } @else {
+          <ul class="task-list">
+            @for (task of upcomingTasks(); track task.id) {
+              <li class="task-item" [class.overdue]="isOverdue(task)">
+                <span class="material-icons-round task-icon">
+                  {{ isOverdue(task) ? 'event_busy' : 'schedule' }}
+                </span>
+                <span class="task-title">{{ task.title }}</span>
+                <span class="task-date">{{ task.dueDate | date: 'd MMM' }}</span>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </div>
+  }
 </div>

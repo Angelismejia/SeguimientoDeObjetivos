@@ -169,6 +169,43 @@ input:focus {
 
 /* ── RESPONSIVE ───────────────────────────────────── */
 @media (max-width: 650px) {
-  .image-col { display: none; }
-  .card { grid-template-columns: 1fr; }
+  .page-bg { align-items: flex-start; padding: 1rem; }
+
+  .card {
+    height: auto;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .form-col { height: auto; }
+
+  /* En mobile se corta el crossfade y se muestra solo la cara activa,
+     así el alto lo define el contenido real en vez del position:absolute */
+  .form-face {
+    position: relative;
+    inset: auto;
+    transition: none;
+    transform: none !important;
+    padding: 32px 24px;
+    display: none;
+  }
+  .login-face { display: flex; }
+  .active .login-face { display: none; }
+  .active .register-face { display: flex; opacity: 1; pointer-events: all; }
+
+  .image-col {
+    height: auto;
+    padding: 20px 16px 28px;
+    background: #f5f3ff;
+  }
+  .illus-img {
+    width: 100%;
+    height: auto;
+    max-height: 60vh;
+    object-fit: contain;
+  }
+}
+
+@media (max-width: 380px) {
+  .form-face { padding: 28px 18px; }
 }

@@ -27,9 +27,9 @@
             </div>
           </div>
           <button type="button" class="forgot-btn">¿Olvidaste tu contraseña?</button>
-          <p class="form-error" *ngIf="loginError">{{ loginError }}</p>
-          <button class="btn-main" type="submit" [disabled]="loginForm.invalid || loading">
-            {{ loading ? 'Ingresando...' : 'Entrar' }}
+          <p class="form-error" *ngIf="loginError()">{{ loginError() }}</p>
+          <button class="btn-main" type="submit" [disabled]="loginForm.invalid || loading()">
+            {{ loading() ? 'Ingresando...' : 'Entrar' }}
           </button>
         </form>
       </div>
@@ -64,9 +64,9 @@
               </button>
             </div>
           </div>
-          <p class="form-error" *ngIf="registerError">{{ registerError }}</p>
-          <button class="btn-main" type="submit" [disabled]="registerForm.invalid || loading">
-            {{ loading ? 'Creando...' : 'Registrarme' }}
+          <p class="form-error" *ngIf="registerError()">{{ registerError() }}</p>
+          <button class="btn-main" type="submit" [disabled]="registerForm.invalid || loading()">
+            {{ loading() ? 'Creando...' : 'Registrarme' }}
           </button>
         </form>
       </div>
