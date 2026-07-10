@@ -18,8 +18,8 @@ export class TaskService {
     return this.http.get<TaskItem>(`${this.url}/${id}`);
   }
 
-  create(data: CreateTaskDto): Observable<TaskItem> {
-    return this.http.post<TaskItem>(this.url, data);
+  create(data: CreateTaskDto, userId: number): Observable<TaskItem> {
+    return this.http.post<TaskItem>(`${this.url}?userId=${userId}`, data);
   }
 
   update(id: number, data: UpdateTaskDto): Observable<TaskItem> {

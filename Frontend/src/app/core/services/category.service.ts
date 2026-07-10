@@ -15,8 +15,8 @@ export class CategoryService {
     return this.http.get<Category[]>(`${this.url}?userId=${userId}`);
   }
 
-  create(data: CreateCategoryDto): Observable<Category> {
-    return this.http.post<Category>(this.url, data);
+  create(data: CreateCategoryDto, userId: number): Observable<Category> {
+    return this.http.post<Category>(`${this.url}?userId=${userId}`, data);
   }
 
   update(id: number, data: UpdateCategoryDto): Observable<Category> {

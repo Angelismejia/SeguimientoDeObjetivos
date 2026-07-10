@@ -6,34 +6,56 @@ export interface TaskItem {
   id: number;
   title: string;
   description?: string;
-  status: TaskStatus;
+  emoji?: string;
+  color?: string;
+  scheduledDate: string;
+  scheduledTime?: string;
+  reminderMinutesBefore?: number;
   priority: TaskPriority;
+  status: TaskStatus;
+  isRecurring: boolean;
   recurrenceType: RecurrenceType;
-  scheduledDate?: string;
-  dueDate?: string;
+  repeatEveryWeeks?: number;
+  endRepeatDate?: string;
+  userId: number;
   objectiveId?: number;
   categoryId?: number;
-  userId: number;
   createdAt: string;
+  updatedAt?: string;
+  completedAt?: string;
 }
 
 export interface CreateTaskDto {
   title: string;
   description?: string;
+  emoji?: string;
+  color?: string;
+  scheduledDate: string;
+  scheduledTime?: string;
+  reminderMinutesBefore?: number;
   priority?: TaskPriority;
+  isRecurring?: boolean;
   recurrenceType?: RecurrenceType;
-  scheduledDate?: string;
-  dueDate?: string;
+  repeatEveryWeeks?: number;
+  endRepeatDate?: string;
   objectiveId?: number;
   categoryId?: number;
 }
 
 export interface UpdateTaskDto {
-  title?: string;
+  title: string;
   description?: string;
-  status?: TaskStatus;
-  priority?: TaskPriority;
+  emoji?: string;
+  color?: string;
+  scheduledDate: string;
+  scheduledTime?: string;
+  reminderMinutesBefore?: number;
+  priority: TaskPriority;
+  status: TaskStatus;
+  isRecurring: boolean;
   recurrenceType?: RecurrenceType;
-  scheduledDate?: string;
-  dueDate?: string;
+  repeatEveryWeeks?: number;
+  endRepeatDate?: string;
+  objectiveId?: number;
+  categoryId?: number;
 }

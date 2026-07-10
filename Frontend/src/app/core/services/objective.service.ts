@@ -18,8 +18,8 @@ export class ObjectiveService {
     return this.http.get<Objective>(`${this.url}/${id}`);
   }
 
-  create(data: CreateObjectiveDto): Observable<Objective> {
-    return this.http.post<Objective>(this.url, data);
+  create(data: CreateObjectiveDto, userId: number): Observable<Objective> {
+    return this.http.post<Objective>(`${this.url}?userId=${userId}`, data);
   }
 
   update(id: number, data: UpdateObjectiveDto): Observable<Objective> {
