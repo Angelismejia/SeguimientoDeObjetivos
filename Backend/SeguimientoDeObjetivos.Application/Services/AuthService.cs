@@ -13,16 +13,27 @@ namespace Application.Services
 {
     public class AuthService : IAuthService
     {
+        private static readonly (string Name, string Color, string Icon)[] DefaultCategories =
+        {
+            ("Trabajo", "#4f46e5", "work"),
+            ("Salud", "#16a34a", "favorite"),
+            ("Estudio", "#7c3aed", "school"),
+            ("Personal", "#ea580c", "home"),
+            ("Finanzas", "#0891b2", "savings")
+        };
+
         private readonly IUserRepository _userRepository;
+        private readonly ICategoryRepository _categoryRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly string _jwtSecret;
         private readonly string _jwtIssuer;
         private readonly string _jwtAudience;
         private readonly int _jwtExpirationMinutes;
 
-        public AuthService(IUserRepository userRepository, IUnitOfWork unitOfWork, IConfiguration configuration)
+        public AuthService(IUserRepository userRepository, ICategoryRepository categoryRepository, IUnitOfWork unitOfWork, IConfiguration configuration)
         {
             _userRepository = userRepository;
+            _categoryRepository = categoryRepository;
             _unitOfWork = unitOfWork;
             _jwtSecret = configuration["Jwt:Secret"] ?? throw new InvalidOperationException("JWT Secret not configured");
             _jwtIssuer = configuration["Jwt:Issuer"] ?? "SeguimientoObjetivos";
@@ -53,6 +64,19 @@ namespace Application.Services
             };
 
             _userRepository.Add(user);
+            await _unitOfWork.SaveChangesAsync();
+
+            foreach (var (name, color, icon) in DefaultCategories)
+            {
+                await _categoryRepository.CreateAsync(new Category
+                {
+                    Name = name,
+                    Color = color,
+                    Icon = icon,
+                    IsDefault = true,
+                    UserId = user.Id
+                });
+            }
             await _unitOfWork.SaveChangesAsync();
 
             var token = GenerateJwtToken(user);
