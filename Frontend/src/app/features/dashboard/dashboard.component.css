@@ -36,11 +36,13 @@
 .btn-main {
   margin-top: 8px;
   padding: 12px 24px;
+  border: none;
   border-radius: 8px;
   background: linear-gradient(135deg, #4f46e5, #7c3aed);
   color: #fff;
   font-weight: 700;
   font-size: 0.9rem;
+  cursor: pointer;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -77,8 +79,6 @@
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
-.chart-panel { grid-column: 1 / -1; }
-
 .panel {
   background: #fff;
   border-radius: 14px;
@@ -96,12 +96,83 @@
 .chart-wrap { height: 260px; }
 
 /* ── OBJETIVOS ────────────────────────────────────── */
-.objective-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px; }
+.panel-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.panel-header-row h2 { margin: 0; }
+.btn-add {
+  border: none;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #fff;
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.btn-add:hover { opacity: 0.9; }
+.btn-add .material-icons-round { font-size: 18px; }
+
+.objective-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 18px; max-height: 420px; overflow-y: auto; }
 .objective-top { display: flex; justify-content: space-between; margin-bottom: 6px; }
 .objective-title { font-size: 0.88rem; font-weight: 600; color: #374151; }
 .objective-pct { font-size: 0.82rem; font-weight: 700; color: #7c3aed; }
 .progress-track { height: 8px; border-radius: 4px; background: #ede9fe; overflow: hidden; }
 .progress-fill { height: 100%; background: linear-gradient(90deg, #4f46e5, #7c3aed); border-radius: 4px; }
+
+.objective-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.objective-actions { display: inline-flex; gap: 6px; margin-left: auto; }
+
+.category-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.chip-icon { font-size: 13px; }
+
+.status-badge {
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: #f3f4f6;
+  color: #4b5563;
+}
+.status-Pending { background: #f3f4f6; color: #4b5563; }
+.status-InProgress { background: #e0e7ff; color: #4338ca; }
+.status-Completed { background: #dcfce7; color: #15803d; }
+.status-Cancelled { background: #fee2e2; color: #b91c1c; }
+
+.btn-icon-only {
+  border: none;
+  background: #f3f4f6;
+  color: #4b5563;
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.btn-icon-only:hover { background: #e5e7eb; }
+.btn-icon-only.danger:hover { background: #fee2e2; color: #dc2626; }
+.btn-icon-only .material-icons-round { font-size: 16px; }
 
 /* ── TAREAS ───────────────────────────────────────── */
 .task-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
@@ -116,8 +187,280 @@
 .task-item.overdue { background: #fef2f2; }
 .task-item.overdue .task-icon { color: #dc2626; }
 .task-icon { color: #9ca3af; font-size: 20px; }
-.task-title { flex: 1; font-size: 0.85rem; color: #374151; }
+.task-title { flex: 1; font-size: 0.85rem; color: #374151; cursor: pointer; }
+.task-title:hover { text-decoration: underline; }
+.task-title.done { color: #9ca3af; text-decoration: line-through; }
 .task-date { font-size: 0.78rem; color: #6b7280; font-weight: 600; }
+.task-emoji { font-size: 1.1rem; line-height: 1; flex-shrink: 0; }
+
+.task-check {
+  border: none; background: transparent; padding: 0; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: #c7d2fe; flex-shrink: 0;
+}
+.task-check .material-icons-round { font-size: 22px; }
+.task-check:hover { color: #818cf8; }
+.task-check.checked { color: #16a34a; }
+
+/* ── CALENDARIO (vista semanal) ──────────────────────── */
+.calendar-panel { margin-bottom: 20px; }
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.calendar-header h2 { margin: 0; }
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.nav-btn {
+  border: none;
+  background: #f3f4f6;
+  color: #4b5563;
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.nav-btn:hover { background: #e5e7eb; }
+.calendar-month {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #111827;
+  text-transform: capitalize;
+  min-width: 110px;
+  text-align: center;
+}
+.today-btn {
+  border: none;
+  background: #ede9fe;
+  color: #6d28d9;
+  font-weight: 700;
+  font-size: 0.78rem;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.today-btn:hover { background: #ddd6fe; }
+
+.calendar-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+.calendar-day {
+  position: relative;
+  border: 1px solid #f3f4f6;
+  background: transparent;
+  border-radius: 10px;
+  padding: 10px 0 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.calendar-day:hover { background: #f9fafb; }
+.day-weekday {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: capitalize;
+}
+.day-number { font-size: 0.95rem; color: #374151; font-weight: 600; }
+.calendar-day.today .day-number {
+  color: #fff;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.calendar-day.selected { background: #ede9fe; border-color: #ddd6fe; }
+.day-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #818cf8;
+}
+.day-dot.overdue { background: #dc2626; }
+
+.calendar-selected {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #f3f4f6;
+}
+.calendar-selected-title {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+/* ── MODAL: formulario de objetivo ────────────────────── */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+.dialog-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+.dialog-title {
+  margin: 0 0 16px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #111827;
+}
+.objective-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+  flex: 1;
+}
+.field input,
+.field textarea,
+.field select {
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 400;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  color: #111827;
+}
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  outline: none;
+  border-color: #818cf8;
+}
+.field textarea { resize: vertical; }
+.field-row { display: flex; gap: 14px; }
+
+.form-error {
+  color: #dc2626;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+.dialog-actions button {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.btn-cancel { background: #f3f4f6; color: #374151; }
+.btn-cancel:hover { background: #e5e7eb; }
+.btn-confirm {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #fff;
+}
+.btn-confirm:hover { opacity: 0.9; }
+.btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── CALENDARIO GRANDE (modal mensual) ────────────────── */
+.expand-btn { margin-left: 4px; }
+
+.big-calendar-card { max-width: 820px; padding: 32px; }
+
+.calendar-month-title {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #111827;
+  text-transform: capitalize;
+}
+
+.month-weekday-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  margin: 20px 0 10px;
+}
+.month-weekday-row span {
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #9ca3af;
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.month-day {
+  position: relative;
+  border: 1px solid #f3f4f6;
+  background: transparent;
+  border-radius: 12px;
+  padding: 16px 0 18px;
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.month-day:hover { background: #f9fafb; }
+.month-day.other-month { opacity: 0.35; }
+.month-day .day-number { font-size: 1rem; color: #374151; font-weight: 600; }
+.month-day.today .day-number {
+  color: #fff;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.month-day.selected { background: #ede9fe; border-color: #ddd6fe; }
 
 /* ── RESPONSIVE ───────────────────────────────────── */
 @media (max-width: 900px) {
@@ -128,4 +471,7 @@
   .dashboard { padding: 24px 16px 40px; }
   .stats-row { grid-template-columns: 1fr 1fr; gap: 12px; }
   .stat-card { padding: 16px; }
+  .calendar-week { gap: 4px; }
+  .day-weekday { font-size: 0.6rem; }
+  .calendar-month { min-width: auto; }
 }

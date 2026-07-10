@@ -24,11 +24,6 @@ export const routes: Routes = [
     loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
   },
   {
-    path: 'objectives',
-    canActivate: [authGuard],
-    loadComponent: () => import('./features/objectives/objectives.component').then(m => m.ObjectivesComponent)
-  },
-  {
     path: 'tasks',
     canActivate: [authGuard],
     loadComponent: () => import('./features/tasks/tasks.component').then(m => m.TasksComponent)

@@ -12,33 +12,101 @@
     <div class="empty-state">
       <span class="material-icons-round empty-icon">track_changes</span>
       <p>Todavía no tienes objetivos creados.</p>
-      <a class="btn-main" routerLink="/objectives">
+      <button type="button" class="btn-main" (click)="openCreate()">
         <span class="material-icons-round btn-icon">add</span>
         Crear mi primer objetivo
-      </a>
+      </button>
     </div>
   } @else {
 
-    <div class="stats-row">
-      <div class="stat-card">
-        <span class="material-icons-round stat-icon">track_changes</span>
-        <div class="stat-value">{{ totalObjectives() }}</div>
-        <div class="stat-label">Objetivos totales</div>
+    <div class="panel calendar-panel">
+      <div class="calendar-header">
+        <h2>Calendario</h2>
+        <div class="calendar-nav">
+          <button type="button" class="nav-btn" (click)="prevWeek()">
+            <span class="material-icons-round">chevron_left</span>
+          </button>
+          <span class="calendar-month">{{ weekRangeLabel() }}</span>
+          <button type="button" class="nav-btn" (click)="nextWeek()">
+            <span class="material-icons-round">chevron_right</span>
+          </button>
+          <button type="button" class="today-btn" (click)="goToday()">Hoy</button>
+          <button type="button" class="nav-btn expand-btn" (click)="openBigCalendar()" title="Ver calendario completo">
+            <span class="material-icons-round">calendar_month</span>
+          </button>
+        </div>
       </div>
-      <div class="stat-card">
-        <span class="material-icons-round stat-icon">check_circle</span>
-        <div class="stat-value">{{ completedObjectives() }}</div>
-        <div class="stat-label">Completados</div>
+
+      <div class="calendar-week">
+        @for (day of weekDays(); track day.key) {
+          <button
+            type="button"
+            class="calendar-day"
+            [class.today]="day.isToday"
+            [class.selected]="selectedDate() === day.key"
+            (click)="selectDay(day.key)"
+          >
+            <span class="day-weekday">{{ day.weekdayShort }}</span>
+            <span class="day-number">{{ day.dayNumber }}</span>
+            @if (day.taskCount > 0) {
+              <span class="day-dot" [class.overdue]="day.hasOverdue"></span>
+            }
+          </button>
+        }
       </div>
-      <div class="stat-card">
-        <span class="material-icons-round stat-icon">task_alt</span>
-        <div class="stat-value">{{ pendingTasks() }}</div>
-        <div class="stat-label">Tareas pendientes</div>
-      </div>
-      <div class="stat-card" [class.alert]="overdueTasks() > 0">
-        <span class="material-icons-round stat-icon">event_busy</span>
-        <div class="stat-value">{{ overdueTasks() }}</div>
-        <div class="stat-label">Tareas vencidas</div>
+
+      <div class="calendar-selected">
+        <h3 class="calendar-selected-title">
+          {{ selectedDate() ? 'Tareas del día seleccionado' : 'Próximas tareas' }}
+        </h3>
+        @if (selectedDate()) {
+          @if (selectedDayTasks().length === 0) {
+            <p class="panel-empty">No tienes tareas para este día.</p>
+          } @else {
+            <ul class="task-list">
+              @for (task of selectedDayTasks(); track task.id) {
+                <li class="task-item" [class.overdue]="isOverdue(task)" [style.background]="task.color ? task.color + '33' : null">
+                  <button
+                    type="button"
+                    class="task-check"
+                    [class.checked]="task.status === 'Completed'"
+                    (click)="toggleTaskComplete(task)"
+                    title="Marcar como completada"
+                  >
+                    <span class="material-icons-round">{{ task.status === 'Completed' ? 'check_circle' : 'radio_button_unchecked' }}</span>
+                  </button>
+                  @if (task.emoji) {
+                    <span class="task-emoji">{{ task.emoji }}</span>
+                  }
+                  <span class="task-title" [class.done]="task.status === 'Completed'" (click)="goToTask(task)">{{ task.title }}</span>
+                </li>
+              }
+            </ul>
+          }
+        } @else if (upcomingTasks().length === 0) {
+          <p class="panel-empty">No tienes tareas próximas.</p>
+        } @else {
+          <ul class="task-list">
+            @for (task of upcomingTasks(); track task.id) {
+              <li class="task-item" [class.overdue]="isOverdue(task)" [style.background]="task.color ? task.color + '33' : null">
+                <button
+                  type="button"
+                  class="task-check"
+                  [class.checked]="task.status === 'Completed'"
+                  (click)="toggleTaskComplete(task)"
+                  title="Marcar como completada"
+                >
+                  <span class="material-icons-round">{{ task.status === 'Completed' ? 'check_circle' : 'radio_button_unchecked' }}</span>
+                </button>
+                @if (task.emoji) {
+                  <span class="task-emoji">{{ task.emoji }}</span>
+                }
+                <span class="task-title" [class.done]="task.status === 'Completed'" (click)="goToTask(task)">{{ task.title }}</span>
+                <span class="task-date">{{ task.scheduledDate | date: 'd MMM' }}</span>
+              </li>
+            }
+          </ul>
+        }
       </div>
     </div>
 
@@ -54,13 +122,18 @@
         </div>
       </div>
 
-      <div class="panel">
-        <h2>Objetivos en progreso</h2>
-        @if (topObjectives().length === 0) {
+      <div class="panel objectives-panel">
+        <div class="panel-header-row">
+          <h2>Tus objetivos</h2>
+          <button type="button" class="btn-add" (click)="openCreate()">
+            <span class="material-icons-round">add</span>
+          </button>
+        </div>
+        @if (objectives().length === 0) {
           <p class="panel-empty">No tienes objetivos en progreso ahora mismo.</p>
         } @else {
           <ul class="objective-list">
-            @for (obj of topObjectives(); track obj.id) {
+            @for (obj of objectives(); track obj.id) {
               <li class="objective-item">
                 <div class="objective-top">
                   <span class="objective-title">{{ obj.title }}</span>
@@ -69,25 +142,23 @@
                 <div class="progress-track">
                   <div class="progress-fill" [style.width.%]="obj.progressPercentage"></div>
                 </div>
-              </li>
-            }
-          </ul>
-        }
-      </div>
-
-      <div class="panel">
-        <h2>Próximas tareas</h2>
-        @if (upcomingTasks().length === 0) {
-          <p class="panel-empty">No tienes tareas próximas.</p>
-        } @else {
-          <ul class="task-list">
-            @for (task of upcomingTasks(); track task.id) {
-              <li class="task-item" [class.overdue]="isOverdue(task)">
-                <span class="material-icons-round task-icon">
-                  {{ isOverdue(task) ? 'event_busy' : 'schedule' }}
-                </span>
-                <span class="task-title">{{ task.title }}</span>
-                <span class="task-date">{{ task.dueDate | date: 'd MMM' }}</span>
+                <div class="objective-bottom">
+                  @if (categoryOf(obj); as cat) {
+                    <span class="category-chip" [style.background]="cat.color + '22'" [style.color]="cat.color">
+                      <span class="material-icons-round chip-icon">{{ cat.icon || 'label' }}</span>
+                      {{ cat.name }}
+                    </span>
+                  }
+                  <span class="status-badge" [class]="'status-' + obj.status">{{ statusLabel(obj.status) }}</span>
+                  <span class="objective-actions">
+                    <button type="button" class="btn-icon-only" (click)="openEdit(obj)" title="Editar">
+                      <span class="material-icons-round">edit</span>
+                    </button>
+                    <button type="button" class="btn-icon-only danger" (click)="askDelete(obj)" title="Eliminar">
+                      <span class="material-icons-round">delete</span>
+                    </button>
+                  </span>
+                </div>
               </li>
             }
           </ul>
@@ -96,3 +167,125 @@
     </div>
   }
 </div>
+
+@if (showForm()) {
+  <div class="dialog-overlay" (click)="closeForm()">
+    <div class="dialog-card form-card" (click)="$event.stopPropagation()">
+      <h2 class="dialog-title">{{ editingId() === null ? 'Nuevo objetivo' : 'Editar objetivo' }}</h2>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="objective-form">
+        <label class="field">
+          <span>Título *</span>
+          <input type="text" formControlName="title" placeholder="Ej. Aprender Angular" />
+        </label>
+
+        <label class="field">
+          <span>Descripción</span>
+          <textarea formControlName="description" rows="3" placeholder="Detalles del objetivo (opcional)"></textarea>
+        </label>
+
+        <label class="field">
+          <span>Categoría</span>
+          <select formControlName="categoryId">
+            <option [ngValue]="null">Sin categoría</option>
+            @for (cat of categories(); track cat.id) {
+              <option [ngValue]="cat.id">{{ cat.name }}</option>
+            }
+          </select>
+        </label>
+
+        <div class="field-row">
+          <label class="field">
+            <span>Fecha inicio</span>
+            <input type="date" formControlName="startDate" />
+          </label>
+          <label class="field">
+            <span>Fecha fin</span>
+            <input type="date" formControlName="endDate" />
+          </label>
+        </div>
+
+        @if (editingId() !== null) {
+          <div class="field-row">
+            <label class="field">
+              <span>Estado</span>
+              <select formControlName="status">
+                @for (s of statuses; track s) {
+                  <option [ngValue]="s">{{ statusLabel(s) }}</option>
+                }
+              </select>
+            </label>
+            <label class="field">
+              <span>Progreso ({{ form.value.progressPercentage }}%)</span>
+              <input type="range" min="0" max="100" formControlName="progressPercentage" />
+            </label>
+          </div>
+        }
+
+        @if (formError()) {
+          <p class="form-error">{{ formError() }}</p>
+        }
+
+        <div class="dialog-actions">
+          <button type="button" class="btn-cancel" (click)="closeForm()">Cancelar</button>
+          <button type="submit" class="btn-confirm" [disabled]="form.invalid || saving()">
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (showBigCalendar()) {
+  <div class="dialog-overlay" (click)="closeBigCalendar()">
+    <div class="dialog-card big-calendar-card" (click)="$event.stopPropagation()">
+      <div class="calendar-header">
+        <h2 class="calendar-month-title">{{ monthRangeLabel() }}</h2>
+        <div class="calendar-nav">
+          <button type="button" class="nav-btn" (click)="prevMonth()">
+            <span class="material-icons-round">chevron_left</span>
+          </button>
+          <button type="button" class="nav-btn" (click)="nextMonth()">
+            <span class="material-icons-round">chevron_right</span>
+          </button>
+          <button type="button" class="btn-icon-only" (click)="closeBigCalendar()" title="Cerrar">
+            <span class="material-icons-round">close</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="month-weekday-row">
+        <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
+      </div>
+
+      <div class="month-grid">
+        @for (day of monthDays(); track day.key) {
+          <button
+            type="button"
+            class="month-day"
+            [class.today]="day.isToday"
+            [class.selected]="selectedDate() === day.key"
+            [class.other-month]="!day.inMonth"
+            (click)="selectDayFromMonth(day.key)"
+          >
+            <span class="day-number">{{ day.dayNumber }}</span>
+            @if (day.taskCount > 0) {
+              <span class="day-dot" [class.overdue]="day.hasOverdue"></span>
+            }
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<app-confirm-dialog
+  [open]="!!deleteTarget()"
+  title="Eliminar objetivo"
+  [message]="'¿Seguro que quieres eliminar &quot;' + (deleteTarget()?.title ?? '') + '&quot;? Esta acción no se puede deshacer.'"
+  confirmText="Eliminar"
+  [danger]="true"
+  (confirmed)="confirmDelete()"
+  (cancelled)="cancelDelete()"
+></app-confirm-dialog>
