@@ -1,9 +1,14 @@
-<div class="under-construction">
-  <h2>Confirmar acción</h2>
-  <img
-    src="https://img.freepik.com/fotos-premium/guapo-ingeniero-construccion-gato-sentado-ia-generativa_431161-21530.jpg"
-    alt="En construcción"
-    class="construction-cat"
-  />
-  <p class="construction-text">🚧 En construcción 🚧</p>
-</div>
+@if (open) {
+  <div class="dialog-overlay" (click)="cancel()">
+    <div class="dialog-card" (click)="$event.stopPropagation()">
+      <h2 class="dialog-title">{{ title }}</h2>
+      <p class="dialog-message">{{ message }}</p>
+      <div class="dialog-actions">
+        <button type="button" class="btn-cancel" (click)="cancel()">{{ cancelText }}</button>
+        <button type="button" class="btn-confirm" [class.danger]="danger" (click)="confirm()">
+          {{ confirmText }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

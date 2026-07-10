@@ -1,59 +1,52 @@
-<header class="navbar">
-  <div class="navbar-inner">
-    <a class="brand" routerLink="/dashboard">
-      <img class="brand-img" src="BetterMeLogo.png" alt="BetterMe">
-    </a>
+<aside class="sidebar">
+  <a class="brand" routerLink="/dashboard">
+    <img class="brand-img" src="BetterMeLogo.png" alt="BetterMe">
+  </a>
 
-    <nav class="nav-links">
-      @for (link of links; track link.path) {
-        <a
-          class="nav-link"
-          [routerLink]="link.path"
-          routerLinkActive="active"
-          [title]="link.label"
-        >
-          <span class="material-icons-round">{{ link.icon }}</span>
-          <span class="link-label">{{ link.label }}</span>
-        </a>
-      }
-    </nav>
-
-    <div class="nav-user">
-      <a class="user-chip" routerLink="/profile">
-        <span class="material-icons-round">account_circle</span>
-        <span class="user-name link-label">{{ name }}</span>
+  <nav class="nav-links">
+    @for (link of links; track link.path) {
+      <a
+        class="nav-link"
+        [routerLink]="link.path"
+        routerLinkActive="active"
+        [title]="link.label"
+      >
+        <span class="material-icons-round">{{ link.icon }}</span>
+        <span class="link-label">{{ link.label }}</span>
       </a>
-      <button class="btn-logout" type="button" (click)="logout()">
-        <span class="material-icons-round">logout</span>
-      </button>
-    </div>
+    }
+  </nav>
+</aside>
 
-    <button class="btn-burger" type="button" (click)="toggleMenu()">
-      <span class="material-icons-round">{{ menuOpen ? 'close' : 'menu' }}</span>
-    </button>
-  </div>
-
-  @if (menuOpen) {
-    <nav class="nav-links-mobile">
-      @for (link of links; track link.path) {
-        <a
-          class="nav-link"
-          [routerLink]="link.path"
-          routerLinkActive="active"
-          (click)="closeMenu()"
-        >
-          <span class="material-icons-round">{{ link.icon }}</span>
-          <span>{{ link.label }}</span>
-        </a>
-      }
-      <a class="nav-link" routerLink="/profile" routerLinkActive="active" (click)="closeMenu()">
-        <span class="material-icons-round">account_circle</span>
-        <span>{{ name }}</span>
-      </a>
-      <button class="nav-link nav-link-logout" type="button" (click)="logout()">
-        <span class="material-icons-round">logout</span>
-        <span>Cerrar sesión</span>
-      </button>
-    </nav>
-  }
+<header class="mobile-topbar">
+  <a class="brand" routerLink="/dashboard">
+    <img class="brand-img" src="BetterMeLogo.png" alt="BetterMe">
+  </a>
+  <button class="btn-burger" type="button" (click)="toggleMenu()">
+    <span class="material-icons-round">{{ menuOpen ? 'close' : 'menu' }}</span>
+  </button>
 </header>
+
+@if (menuOpen) {
+  <nav class="nav-links-mobile">
+    @for (link of links; track link.path) {
+      <a
+        class="nav-link"
+        [routerLink]="link.path"
+        routerLinkActive="active"
+        (click)="closeMenu()"
+      >
+        <span class="material-icons-round">{{ link.icon }}</span>
+        <span>{{ link.label }}</span>
+      </a>
+    }
+    <a class="nav-link" routerLink="/profile" routerLinkActive="active" (click)="closeMenu()">
+      <span class="material-icons-round">account_circle</span>
+      <span>{{ name }}</span>
+    </a>
+    <button class="nav-link nav-link-logout" type="button" (click)="logout()">
+      <span class="material-icons-round">logout</span>
+      <span>Cerrar sesión</span>
+    </button>
+  </nav>
+}

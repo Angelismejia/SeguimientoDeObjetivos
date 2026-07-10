@@ -1,18 +1,19 @@
 import { Component, signal } from '@angular/core';
-import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
 import { AuthService } from './core/services/auth.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, NavbarComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NavbarComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
 export class App {
   protected readonly title = signal('Frontend');
   protected readonly showNavbar = signal(false);
+  protected readonly userName = signal('');
 
   constructor(private router: Router, private authService: AuthService) {
     this.updateNavbarVisibility();
@@ -23,5 +24,10 @@ export class App {
 
   private updateNavbarVisibility() {
     this.showNavbar.set(this.authService.isLoggedIn());
+    this.userName.set(this.authService.getName());
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 }

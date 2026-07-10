@@ -1,0 +1,35 @@
+.app-shell { display: flex; min-height: 100vh; }
+.app-main { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.app-content { flex: 1; min-width: 0; }
+
+.topbar {
+  display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+  height: 64px; padding: 0 24px; flex-shrink: 0;
+  background: #fff; border-bottom: 1px solid #e5e7eb;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+.topbar a { text-decoration: none; }
+
+.user-chip {
+  display: flex; align-items: center; gap: 8px; min-width: 0;
+  color: #374151; font-size: 0.85rem; font-weight: 600;
+  padding: 8px 10px; border-radius: 8px; transition: background 0.15s;
+}
+.user-chip:hover { background: #f3f4f6; }
+.user-chip .material-icons-round { font-size: 22px; flex-shrink: 0; color: #4f46e5; }
+.user-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px; }
+
+.btn-logout {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 7px; flex-shrink: 0;
+  background: transparent; border: 1.5px solid #e5e7eb;
+  color: #6b7280; cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-logout:hover { background: #f3f4f6; border-color: #d1d5db; }
+.btn-logout .material-icons-round { font-size: 18px; }
+
+@media (max-width: 680px) {
+  .app-shell { flex-direction: column; }
+  .topbar { display: none; }
+}
