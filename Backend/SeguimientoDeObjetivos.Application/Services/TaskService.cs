@@ -44,6 +44,8 @@ namespace Application.Services
             {
                 Title = dto.Title,
                 Description = dto.Description,
+                Emoji = dto.Emoji,
+                Color = dto.Color,
                 ScheduledDate = dto.ScheduledDate,
                 ScheduledTime = dto.ScheduledTime,
                 ReminderMinutesBefore = dto.ReminderMinutesBefore,
@@ -69,6 +71,8 @@ namespace Application.Services
 
             task.Title = dto.Title;
             task.Description = dto.Description;
+            task.Emoji = dto.Emoji;
+            task.Color = dto.Color;
             task.ScheduledDate = dto.ScheduledDate;
             task.ScheduledTime = dto.ScheduledTime;
             task.ReminderMinutesBefore = dto.ReminderMinutesBefore;
@@ -102,6 +106,8 @@ namespace Application.Services
             Id = t.Id,
             Title = t.Title,
             Description = t.Description,
+            Emoji = t.Emoji,
+            Color = t.Color,
             ScheduledDate = t.ScheduledDate,
             ScheduledTime = t.ScheduledTime,
             ReminderMinutesBefore = t.ReminderMinutesBefore,

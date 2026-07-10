@@ -9,6 +9,8 @@ namespace Domain.Entities
         public int Id { get; set; }
         public string Title { get; set; } = null!;
         public string? Description { get; set; }
+        public string? Emoji { get; set; }
+        public string? Color { get; set; }
         public DateTime ScheduledDate { get; set; }
         public TimeSpan? ScheduledTime { get; set; }
 

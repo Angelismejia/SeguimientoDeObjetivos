@@ -7,6 +7,8 @@ namespace Application.DTOs.Tasks
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
         public string? Description { get; set; }
+        public string? Emoji { get; set; }
+        public string? Color { get; set; }
         public DateTime ScheduledDate { get; set; }
         public TimeSpan? ScheduledTime { get; set; }
         public int? ReminderMinutesBefore { get; set; }

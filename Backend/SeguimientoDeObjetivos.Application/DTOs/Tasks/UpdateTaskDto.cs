@@ -12,6 +12,12 @@ namespace Application.DTOs.Tasks
         [MaxLength(500)]
         public string? Description { get; set; }
 
+        [MaxLength(10)]
+        public string? Emoji { get; set; }
+
+        [MaxLength(7)]
+        public string? Color { get; set; }
+
         [Required]
         public DateTime ScheduledDate { get; set; }
 

@@ -10,27 +10,28 @@
 
 /* ── CARD ─────────────────────────────────────────── */
 .card {
-  width: min(1200px, 92vw);
-  height: 600px;
-  display: grid;
-  grid-template-columns: 40% 60%;
-  overflow: hidden;
-  border-radius: 24px;
+  display: flex;
+  width: 1050px;
+  max-width: 100%;
+  border-radius: 20px;
   box-shadow: 0 24px 64px rgba(0,0,0,0.28);
+  overflow: hidden;
+  background: #fff;
 }
 
 /* ── COLUMNA FORMULARIO ───────────────────────────── */
 .form-col {
-  height: 100%;
-  overflow: hidden;
+  width: 40%;
+  flex-shrink: 0;
   position: relative;
-  background: #fff;
+  min-height: 600px;
+  overflow: hidden;
 }
 
 .form-face {
   position: absolute;
   inset: 0;
-  padding: 40px 44px;
+  padding: 52px 44px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -50,7 +51,7 @@
   pointer-events: none;
 }
 
-/* Register: entra desde la derecha */
+/* Register: entra desde la derecha con delay */
 .register-face {
   opacity: 0;
   transform: translateX(28px);
@@ -63,50 +64,81 @@
   pointer-events: all;
 }
 
-/* ── IMAGEN ───────────────────────────────────────── */
+/* Vuelta: register sale a la derecha, login entra desde la izquierda */
+.register-face {
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+.active .register-face {
+  transition: opacity 0.3s ease 0.2s, transform 0.3s ease 0.2s;
+}
+
+/* ── IMAGEN FIJA ──────────────────────────────────── */
 .image-col {
-  height: 100%;
+  flex: 1;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
+  position: relative;
 }
 .illus-img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
+  object-position: left center;
   display: block;
+}
+
+/* Imagen A: empieza visible, se desvanece al minuto */
+.img-a {
+  opacity: 1;
+  animation: fadeA 120s infinite;
+}
+
+/* Imagen B: empieza invisible, aparece al minuto */
+.img-b {
+  opacity: 0;
+  animation: fadeB 120s infinite;
+}
+
+@keyframes fadeA {
+  0%, 48%   { opacity: 1; }
+  50%, 98%  { opacity: 0; }
+  100%      { opacity: 1; }
+}
+
+@keyframes fadeB {
+  0%, 48%   { opacity: 0; }
+  50%, 98%  { opacity: 1; }
+  100%      { opacity: 0; }
 }
 
 /* ── ENCABEZADO ───────────────────────────────────── */
 .form-logo {
-  width: 80px; height: 80px;
+  width: 110px; height: 110px;
   border-radius: 50%; object-fit: cover;
   border: 3px solid #ede9fe;
-  display: block; margin: 0 auto 12px;
+  display: block; margin: 0 auto 18px;
 }
 h1 {
-  font-size: 1.6rem; font-weight: 800;
+  font-size: 1.75rem; font-weight: 800;
   color: #111827; letter-spacing: -0.5px;
-  text-align: center; margin-bottom: 4px;
+  text-align: center; margin-bottom: 6px;
 }
 .sub-line {
-  font-size: 0.82rem; color: #9ca3af;
-  text-align: center; margin: 0 0 18px;
+  font-size: 0.85rem; color: #9ca3af;
+  text-align: center; margin: 0 0 24px;
 }
 .link-btn {
   background: none; border: none;
   color: #4f46e5; font-weight: 700;
-  font-size: 0.82rem; cursor: pointer;
+  font-size: 0.8rem; cursor: pointer;
   padding: 0; font-family: inherit;
 }
 .link-btn:hover { text-decoration: underline; }
 
 /* ── CAMPOS ───────────────────────────────────────── */
-form { display: flex; flex-direction: column; gap: 12px; }
-.field { display: flex; flex-direction: column; gap: 5px; }
+form { display: flex; flex-direction: column; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
 .label-row { display: flex; justify-content: space-between; align-items: center; }
 label { font-size: 0.8rem; font-weight: 600; color: #374151; }
 
@@ -114,32 +146,14 @@ label { font-size: 0.8rem; font-weight: 600; color: #374151; }
   background: none; border: none;
   color: #4f46e5; font-size: 0.74rem; font-weight: 600;
   cursor: pointer; padding: 0; font-family: inherit;
-  align-self: flex-start;
-  margin-top: -4px;
 }
 .forgot-btn:hover { text-decoration: underline; }
 
-.input-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-.input-wrap input { padding-right: 40px; }
-.eye-btn {
-  position: absolute;
-  right: 10px;
-  background: none; border: none;
-  cursor: pointer; padding: 0;
-  color: #9ca3af;
-  display: flex; align-items: center;
-}
-.eye-btn:hover { color: #4f46e5; }
-
 input {
-  padding: 10px 13px;
+  padding: 12px 40px 12px 14px;
   border: 1.5px solid #e5e7eb;
   border-radius: 8px;
-  font-size: 0.9rem; color: #111827;
+  font-size: 0.92rem; color: #111827;
   background: #fff; outline: none; font-family: inherit;
   width: 100%; box-sizing: border-box;
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -150,14 +164,26 @@ input:focus {
   box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
 }
 
+.input-wrap {
+  position: relative;
+}
+
+.eye-btn {
+  position: absolute; top: 50%; right: 12px;
+  transform: translateY(-50%);
+  background: none; border: none;
+  cursor: pointer; padding: 0;
+  display: flex; align-items: center;
+}
+
 .form-error {
   font-size: 0.77rem; color: #dc2626;
   background: #fef2f2; border: 1px solid #fecaca;
-  padding: 6px 10px; border-radius: 7px;
+  padding: 7px 11px; border-radius: 7px;
 }
 
 .btn-main {
-  margin-top: 4px; padding: 12px; border: none;
+  margin-top: 6px; padding: 13px; border: none;
   border-radius: 8px;
   background: linear-gradient(135deg, #4f46e5, #7c3aed);
   color: #fff; font-size: 0.9rem; font-weight: 700;
@@ -169,43 +195,6 @@ input:focus {
 
 /* ── RESPONSIVE ───────────────────────────────────── */
 @media (max-width: 650px) {
-  .page-bg { align-items: flex-start; padding: 1rem; }
-
-  .card {
-    height: auto;
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto;
-  }
-
-  .form-col { height: auto; }
-
-  /* En mobile se corta el crossfade y se muestra solo la cara activa,
-     así el alto lo define el contenido real en vez del position:absolute */
-  .form-face {
-    position: relative;
-    inset: auto;
-    transition: none;
-    transform: none !important;
-    padding: 32px 24px;
-    display: none;
-  }
-  .login-face { display: flex; }
-  .active .login-face { display: none; }
-  .active .register-face { display: flex; opacity: 1; pointer-events: all; }
-
-  .image-col {
-    height: auto;
-    padding: 20px 16px 28px;
-    background: #f5f3ff;
-  }
-  .illus-img {
-    width: 100%;
-    height: auto;
-    max-height: 60vh;
-    object-fit: contain;
-  }
-}
-
-@media (max-width: 380px) {
-  .form-face { padding: 28px 18px; }
+  .image-col { display: none; }
+  .form-col { width: 100%; }
 }
