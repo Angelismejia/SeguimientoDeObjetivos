@@ -1,9 +1,123 @@
-<div class="under-construction">
-  <h1>Categorías</h1>
-  <img
-    src="https://img.freepik.com/fotos-premium/guapo-ingeniero-construccion-gato-sentado-ia-generativa_431161-21530.jpg"
-    alt="En construcción"
-    class="construction-cat"
-  />
-  <p class="construction-text">🚧 En construcción 🚧</p>
+<div class="categories-page">
+  <div class="page-header">
+    <div>
+      <h1>Categorías</h1>
+      <p>Organiza tus objetivos y tareas por tema.</p>
+    </div>
+    <button type="button" class="btn-main" (click)="openCreate()">
+      <span class="material-icons-round btn-icon">add</span>
+      Nueva categoría
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="state-msg">Cargando categorías...</div>
+  } @else if (loadError()) {
+    <div class="state-msg error">No se pudo cargar la información. Intenta de nuevo más tarde.</div>
+  } @else if (categories().length === 0) {
+    <div class="empty-state">
+      <span class="material-icons-round empty-icon">category</span>
+      <p>Todavía no tienes categorías creadas.</p>
+      <button type="button" class="btn-main" (click)="openCreate()">
+        <span class="material-icons-round btn-icon">add</span>
+        Crear mi primera categoría
+      </button>
+    </div>
+  } @else {
+    <ul class="category-grid">
+      @for (cat of categories(); track cat.id) {
+        <li class="category-card">
+          <span class="category-icon" [style.background]="(cat.color || '#4f46e5') + '1a'" [style.color]="cat.color || '#4f46e5'">
+            <span class="material-icons-round">{{ cat.icon || 'label' }}</span>
+          </span>
+          <span class="category-name">{{ cat.name }}</span>
+          <span class="category-actions">
+            <button type="button" class="btn-icon-only" (click)="openEdit(cat)" title="Editar">
+              <span class="material-icons-round">edit</span>
+            </button>
+            <button type="button" class="btn-icon-only danger" (click)="askDelete(cat)" title="Eliminar">
+              <span class="material-icons-round">delete</span>
+            </button>
+          </span>
+        </li>
+      }
+    </ul>
+  }
 </div>
+
+@if (showForm()) {
+  <div class="dialog-overlay" (click)="closeForm()">
+    <div class="dialog-card form-card" (click)="$event.stopPropagation()">
+      <h2 class="dialog-title">{{ editingId() === null ? 'Nueva categoría' : 'Editar categoría' }}</h2>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="category-form">
+        <label class="field">
+          <span>Nombre *</span>
+          <input type="text" formControlName="name" placeholder="Ej. Salud, Estudio, Finanzas" />
+        </label>
+
+        <div class="field">
+          <span>Color</span>
+          <div class="color-row">
+            <input type="color" formControlName="color" class="color-input" />
+            @for (c of colorPresets; track c) {
+              <button
+                type="button"
+                class="color-swatch"
+                [class.selected]="form.value.color === c"
+                [style.background]="c"
+                (click)="pickColor(c)"
+              ></button>
+            }
+          </div>
+        </div>
+
+        <div class="field">
+          <span>Ícono</span>
+          <div class="icon-grid">
+            @for (i of icons; track i) {
+              <button
+                type="button"
+                class="icon-option"
+                [class.selected]="form.value.icon === i"
+                (click)="pickIcon(i)"
+                [title]="i"
+              >
+                <span class="material-icons-round">{{ i }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="preview-row">
+          <span>Vista previa:</span>
+          <span class="category-icon" [style.background]="(form.value.color || '#4f46e5') + '1a'" [style.color]="form.value.color || '#4f46e5'">
+            <span class="material-icons-round">{{ form.value.icon || 'label' }}</span>
+          </span>
+          <span class="preview-name">{{ form.value.name || 'Nombre de la categoría' }}</span>
+        </div>
+
+        @if (formError()) {
+          <p class="form-error">{{ formError() }}</p>
+        }
+
+        <div class="dialog-actions">
+          <button type="button" class="btn-cancel" (click)="closeForm()">Cancelar</button>
+          <button type="submit" class="btn-confirm" [disabled]="form.invalid || saving()">
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<app-confirm-dialog
+  [open]="!!deleteTarget()"
+  title="Eliminar categoría"
+  [message]="'¿Seguro que quieres eliminar &quot;' + (deleteTarget()?.name ?? '') + '&quot;? Esta acción no se puede deshacer.'"
+  confirmText="Eliminar"
+  [danger]="true"
+  (confirmed)="confirmDelete()"
+  (cancelled)="cancelDelete()"
+></app-confirm-dialog>
