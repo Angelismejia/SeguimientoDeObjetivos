@@ -1,5 +1,6 @@
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
+using Infrastructure.BackgroundServices;
 using Infrastructure.Persistence;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,8 @@ namespace Infrastructure
             services.AddScoped<IDiaryEntryRepository, DiaryEntryRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<IBadgeRepository, BadgeRepository>();
+
+            services.AddHostedService<TaskReminderBackgroundService>();
 
             return services;
         }
