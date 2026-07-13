@@ -22,6 +22,7 @@ namespace Application.DTOs.Tasks
         public DateTime ScheduledDate { get; set; }
 
         public TimeSpan? ScheduledTime { get; set; }
+        public TimeSpan? EndTime { get; set; }
 
         [Range(0, 1440)]
         public int? ReminderMinutesBefore { get; set; }

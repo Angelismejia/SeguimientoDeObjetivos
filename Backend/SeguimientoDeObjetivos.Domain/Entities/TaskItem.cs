@@ -13,6 +13,7 @@ namespace Domain.Entities
         public string? Color { get; set; }
         public DateTime ScheduledDate { get; set; }
         public TimeSpan? ScheduledTime { get; set; }
+        public TimeSpan? EndTime { get; set; }
 
         public int? ReminderMinutesBefore { get; set; }
         public TaskPriority Priority { get; set; } = TaskPriority.Medium;

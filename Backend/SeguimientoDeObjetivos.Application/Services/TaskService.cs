@@ -48,6 +48,7 @@ namespace Application.Services
                 Color = dto.Color,
                 ScheduledDate = dto.ScheduledDate,
                 ScheduledTime = dto.ScheduledTime,
+                EndTime = dto.EndTime,
                 ReminderMinutesBefore = dto.ReminderMinutesBefore,
                 Priority = dto.Priority,
                 IsRecurring = dto.IsRecurring,
@@ -75,6 +76,7 @@ namespace Application.Services
             task.Color = dto.Color;
             task.ScheduledDate = dto.ScheduledDate;
             task.ScheduledTime = dto.ScheduledTime;
+            task.EndTime = dto.EndTime;
             task.ReminderMinutesBefore = dto.ReminderMinutesBefore;
             task.Priority = dto.Priority;
             task.Status = dto.Status;
@@ -110,6 +112,7 @@ namespace Application.Services
             Color = t.Color,
             ScheduledDate = t.ScheduledDate,
             ScheduledTime = t.ScheduledTime,
+            EndTime = t.EndTime,
             ReminderMinutesBefore = t.ReminderMinutesBefore,
             Priority = t.Priority,
             Status = t.Status,
