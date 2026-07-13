@@ -1,7 +1,6 @@
 import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
@@ -10,7 +9,7 @@ import { ObjectiveService } from '../../core/services/objective.service';
 import { TaskService } from '../../core/services/task.service';
 import { CategoryService } from '../../core/services/category.service';
 import { Objective, ObjectiveStatus } from '../../core/models/objective.model';
-import { TaskItem } from '../../core/models/task.model';
+import { TaskItem, TaskStatus, TaskPriority, RecurrenceType } from '../../core/models/task.model';
 import { Category } from '../../core/models/category.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 
@@ -45,7 +44,7 @@ export class DashboardComponent implements OnInit {
 
   // ── Calendario (vista semanal) ──────────────────────
   weekCursor = signal(this.startOfWeek(new Date()));
-  selectedDate = signal<string | null>(null);
+  selectedDate = signal<string | null>(this.dateKey(new Date()));
 
   weekDays = computed(() => {
     const weekStart = this.weekCursor();
@@ -198,13 +197,28 @@ export class DashboardComponent implements OnInit {
 
   form: FormGroup;
 
+  // ── Tareas: form modal ───────────────────────────────
+  showTaskForm = signal(false);
+  editingTaskId = signal<number | null>(null);
+  taskFormError = signal('');
+  savingTask = signal(false);
+  deleteTaskTarget = signal<TaskItem | null>(null);
+
+  taskStatuses: TaskStatus[] = ['Pending', 'InProgress', 'Completed', 'Skipped'];
+  taskPriorities: TaskPriority[] = ['Low', 'Medium', 'High'];
+  recurrenceTypes: RecurrenceType[] = ['None', 'Daily', 'Weekly', 'Monthly', 'Yearly'];
+
+  pastelColors = ['#c7d2fe', '#bbf7d0', '#fecaca', '#fed7aa', '#fef08a', '#bae6fd', '#f5d0fe', '#e5e7eb'];
+  emojis = ['📌', '✅', '📅', '💪', '📚', '💼', '🏠', '🛒', '🎯', '💡', '🧹', '🍎', '💊', '🎨', '🎮', '✈️', '💰', '🧘', '🐾', '📝'];
+
+  taskForm: FormGroup;
+
   constructor(
     private fb: FormBuilder,
     private auth: AuthService,
     private objectiveService: ObjectiveService,
     private taskService: TaskService,
-    private categoryService: CategoryService,
-    private router: Router
+    private categoryService: CategoryService
   ) {
     this.name = this.auth.getName();
     this.form = this.fb.group({
@@ -228,6 +242,20 @@ export class DashboardComponent implements OnInit {
       } else if (Number(progress) < 100 && this.form.get('status')?.value === 'Completed') {
         this.form.get('status')?.setValue('InProgress', { emitEvent: false });
       }
+    });
+
+    this.taskForm = this.fb.group({
+      title: ['', Validators.required],
+      description: [''],
+      emoji: [''],
+      color: ['#c7d2fe'],
+      scheduledDate: ['', Validators.required],
+      priority: ['Medium' as TaskPriority],
+      categoryId: [null],
+      objectiveId: [null],
+      isRecurring: [false],
+      recurrenceType: ['None' as RecurrenceType],
+      status: ['Pending' as TaskStatus]
     });
   }
 
@@ -289,15 +317,13 @@ export class DashboardComponent implements OnInit {
     return !!task.scheduledDate && new Date(task.scheduledDate) < new Date();
   }
 
-  goToTask(task: TaskItem): void {
-    this.router.navigate(['/tasks'], { queryParams: { taskId: task.id } });
-  }
-
   toggleTaskComplete(task: TaskItem): void {
     const newStatus = task.status === 'Completed' ? 'Pending' : 'Completed';
     this.taskService.update(task.id, {
       title: task.title,
       description: task.description,
+      emoji: task.emoji,
+      color: task.color,
       scheduledDate: task.scheduledDate,
       priority: task.priority,
       status: newStatus,
@@ -313,6 +339,186 @@ export class DashboardComponent implements OnInit {
         if (updated.objectiveId) {
           this.recomputeObjectiveProgress(updated.objectiveId, updatedTasks);
         }
+      }
+    });
+  }
+
+  // ── Tareas: CRUD ──────────────────────────────────────
+  taskPriorityLabel(priority: TaskPriority): string {
+    switch (priority) {
+      case 'Low': return 'Baja';
+      case 'Medium': return 'Media';
+      case 'High': return 'Alta';
+    }
+  }
+
+  taskStatusLabel(status: TaskStatus): string {
+    switch (status) {
+      case 'Pending': return 'Pendiente';
+      case 'InProgress': return 'En progreso';
+      case 'Completed': return 'Completada';
+      case 'Skipped': return 'Omitida';
+    }
+  }
+
+  recurrenceLabel(type: RecurrenceType): string {
+    switch (type) {
+      case 'None': return 'No se repite';
+      case 'Daily': return 'Diaria';
+      case 'Weekly': return 'Semanal';
+      case 'Monthly': return 'Mensual';
+      case 'Yearly': return 'Anual';
+    }
+  }
+
+  pickTaskColor(color: string): void {
+    this.taskForm.patchValue({ color });
+  }
+
+  pickTaskEmoji(emoji: string): void {
+    this.taskForm.patchValue({ emoji });
+  }
+
+  openCreateTask(): void {
+    this.editingTaskId.set(null);
+    this.taskFormError.set('');
+    this.taskForm.reset({
+      title: '',
+      description: '',
+      emoji: '',
+      color: '#c7d2fe',
+      scheduledDate: this.selectedDate() ?? this.dateKey(new Date()),
+      priority: 'Medium',
+      categoryId: null,
+      objectiveId: null,
+      isRecurring: false,
+      recurrenceType: 'None',
+      status: 'Pending'
+    });
+    this.showTaskForm.set(true);
+  }
+
+  openEditTask(task: TaskItem): void {
+    this.editingTaskId.set(task.id);
+    this.taskFormError.set('');
+    this.taskForm.reset({
+      title: task.title,
+      description: task.description ?? '',
+      emoji: task.emoji ?? '',
+      color: task.color ?? '#c7d2fe',
+      scheduledDate: task.scheduledDate?.substring(0, 10) ?? '',
+      priority: task.priority,
+      categoryId: task.categoryId ?? null,
+      objectiveId: task.objectiveId ?? null,
+      isRecurring: task.isRecurring,
+      recurrenceType: task.recurrenceType,
+      status: task.status
+    });
+    this.showTaskForm.set(true);
+  }
+
+  closeTaskForm(): void {
+    this.showTaskForm.set(false);
+  }
+
+  submitTask(): void {
+    if (this.taskForm.invalid) return;
+    this.savingTask.set(true);
+    this.taskFormError.set('');
+
+    const v = this.taskForm.value;
+    const categoryId = v.categoryId ? Number(v.categoryId) : undefined;
+    const objectiveId = v.objectiveId ? Number(v.objectiveId) : undefined;
+    const editingTaskId = this.editingTaskId();
+
+    if (editingTaskId === null) {
+      this.taskService.create({
+        title: v.title,
+        description: v.description || undefined,
+        emoji: v.emoji || undefined,
+        color: v.color || undefined,
+        scheduledDate: v.scheduledDate,
+        priority: v.priority,
+        isRecurring: v.isRecurring,
+        recurrenceType: v.recurrenceType,
+        categoryId,
+        objectiveId
+      }, this.auth.getUserId()).subscribe({
+        next: created => {
+          const updatedTasks = [...this.allTasks(), created];
+          this.allTasks.set(updatedTasks);
+          this.computeStats(this.objectives(), updatedTasks);
+          this.savingTask.set(false);
+          this.showTaskForm.set(false);
+          if (created.objectiveId) {
+            this.recomputeObjectiveProgress(created.objectiveId, updatedTasks);
+          }
+        },
+        error: () => {
+          this.savingTask.set(false);
+          this.taskFormError.set('No se pudo crear la tarea. Intenta de nuevo.');
+        }
+      });
+    } else {
+      const previousObjectiveId = this.allTasks().find(t => t.id === editingTaskId)?.objectiveId;
+      this.taskService.update(editingTaskId, {
+        title: v.title,
+        description: v.description || undefined,
+        emoji: v.emoji || undefined,
+        color: v.color || undefined,
+        scheduledDate: v.scheduledDate,
+        priority: v.priority,
+        status: v.status,
+        isRecurring: v.isRecurring,
+        recurrenceType: v.recurrenceType,
+        categoryId,
+        objectiveId
+      }).subscribe({
+        next: updated => {
+          const updatedTasks = this.allTasks().map(t => t.id === updated.id ? updated : t);
+          this.allTasks.set(updatedTasks);
+          this.computeStats(this.objectives(), updatedTasks);
+          this.savingTask.set(false);
+          this.showTaskForm.set(false);
+          if (updated.objectiveId) {
+            this.recomputeObjectiveProgress(updated.objectiveId, updatedTasks);
+          }
+          if (previousObjectiveId && previousObjectiveId !== updated.objectiveId) {
+            this.recomputeObjectiveProgress(previousObjectiveId, updatedTasks);
+          }
+        },
+        error: () => {
+          this.savingTask.set(false);
+          this.taskFormError.set('No se pudo guardar la tarea. Intenta de nuevo.');
+        }
+      });
+    }
+  }
+
+  askDeleteTask(task: TaskItem): void {
+    this.deleteTaskTarget.set(task);
+  }
+
+  cancelDeleteTask(): void {
+    this.deleteTaskTarget.set(null);
+  }
+
+  confirmDeleteTask(): void {
+    const target = this.deleteTaskTarget();
+    if (!target) return;
+    this.taskService.delete(target.id).subscribe({
+      next: () => {
+        const remaining = this.allTasks().filter(t => t.id !== target.id);
+        this.allTasks.set(remaining);
+        this.computeStats(this.objectives(), remaining);
+        this.deleteTaskTarget.set(null);
+        if (target.objectiveId) {
+          this.recomputeObjectiveProgress(target.objectiveId, remaining);
+        }
+      },
+      error: () => {
+        this.deleteTaskTarget.set(null);
+        this.loadError.set(true);
       }
     });
   }

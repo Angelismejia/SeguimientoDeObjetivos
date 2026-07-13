@@ -56,9 +56,14 @@
       </div>
 
       <div class="calendar-selected">
-        <h3 class="calendar-selected-title">
-          {{ selectedDate() ? 'Tareas del día seleccionado' : 'Próximas tareas' }}
-        </h3>
+        <div class="panel-header-row">
+          <h3 class="calendar-selected-title">
+            {{ selectedDate() ? 'Tareas del día seleccionado' : 'Próximas tareas' }}
+          </h3>
+          <button type="button" class="btn-add" (click)="openCreateTask()" title="Nueva tarea">
+            <span class="material-icons-round">add</span>
+          </button>
+        </div>
         @if (selectedDate()) {
           @if (selectedDayTasks().length === 0) {
             <p class="panel-empty">No tienes tareas para este día.</p>
@@ -78,7 +83,12 @@
                   @if (task.emoji) {
                     <span class="task-emoji">{{ task.emoji }}</span>
                   }
-                  <span class="task-title" [class.done]="task.status === 'Completed'" (click)="goToTask(task)">{{ task.title }}</span>
+                  <span class="task-title" [class.done]="task.status === 'Completed'" (click)="openEditTask(task)">{{ task.title }}</span>
+                  <span class="task-actions">
+                    <button type="button" class="btn-icon-only danger" (click)="askDeleteTask(task)" title="Eliminar">
+                      <span class="material-icons-round">delete</span>
+                    </button>
+                  </span>
                 </li>
               }
             </ul>
@@ -101,8 +111,13 @@
                 @if (task.emoji) {
                   <span class="task-emoji">{{ task.emoji }}</span>
                 }
-                <span class="task-title" [class.done]="task.status === 'Completed'" (click)="goToTask(task)">{{ task.title }}</span>
+                <span class="task-title" [class.done]="task.status === 'Completed'" (click)="openEditTask(task)">{{ task.title }}</span>
                 <span class="task-date">{{ task.scheduledDate | date: 'd MMM' }}</span>
+                <span class="task-actions">
+                  <button type="button" class="btn-icon-only danger" (click)="askDeleteTask(task)" title="Eliminar">
+                    <span class="material-icons-round">delete</span>
+                  </button>
+                </span>
               </li>
             }
           </ul>
@@ -237,6 +252,137 @@
   </div>
 }
 
+@if (showTaskForm()) {
+  <div class="dialog-overlay" (click)="closeTaskForm()">
+    <div class="dialog-card form-card" (click)="$event.stopPropagation()">
+      <h2 class="dialog-title">{{ editingTaskId() === null ? 'Nueva tarea' : 'Editar tarea' }}</h2>
+
+      <form [formGroup]="taskForm" (ngSubmit)="submitTask()" class="task-form">
+        <label class="field">
+          <span>Título *</span>
+          <input type="text" formControlName="title" placeholder="Ej. Estudiar 30 minutos" />
+        </label>
+
+        <label class="field">
+          <span>Descripción</span>
+          <textarea formControlName="description" rows="3" placeholder="Detalles de la tarea (opcional)"></textarea>
+        </label>
+
+        <div class="field">
+          <span>Emoji</span>
+          <div class="emoji-grid">
+            <button
+              type="button"
+              class="emoji-option"
+              [class.selected]="!taskForm.value.emoji"
+              (click)="pickTaskEmoji('')"
+              title="Sin emoji"
+            >—</button>
+            @for (e of emojis; track e) {
+              <button
+                type="button"
+                class="emoji-option"
+                [class.selected]="taskForm.value.emoji === e"
+                (click)="pickTaskEmoji(e)"
+              >{{ e }}</button>
+            }
+          </div>
+        </div>
+
+        <div class="field">
+          <span>Color</span>
+          <div class="color-row">
+            @for (c of pastelColors; track c) {
+              <button
+                type="button"
+                class="color-swatch"
+                [class.selected]="taskForm.value.color === c"
+                [style.background]="c"
+                (click)="pickTaskColor(c)"
+              ></button>
+            }
+          </div>
+        </div>
+
+        <div class="field-row">
+          <label class="field">
+            <span>Fecha *</span>
+            <input type="date" formControlName="scheduledDate" />
+          </label>
+          <label class="field">
+            <span>Prioridad</span>
+            <select formControlName="priority">
+              @for (p of taskPriorities; track p) {
+                <option [ngValue]="p">{{ taskPriorityLabel(p) }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        <div class="field-row">
+          <label class="field">
+            <span>Categoría</span>
+            <select formControlName="categoryId">
+              <option [ngValue]="null">Sin categoría</option>
+              @for (cat of categories(); track cat.id) {
+                <option [ngValue]="cat.id">{{ cat.name }}</option>
+              }
+            </select>
+          </label>
+          <label class="field">
+            <span>Objetivo</span>
+            <select formControlName="objectiveId">
+              <option [ngValue]="null">Sin objetivo</option>
+              @for (obj of objectives(); track obj.id) {
+                <option [ngValue]="obj.id">{{ obj.title }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        <div class="field-row">
+          <label class="field checkbox-field">
+            <input type="checkbox" formControlName="isRecurring" />
+            <span>Tarea recurrente</span>
+          </label>
+          @if (taskForm.value.isRecurring) {
+            <label class="field">
+              <span>Frecuencia</span>
+              <select formControlName="recurrenceType">
+                @for (r of recurrenceTypes; track r) {
+                  <option [ngValue]="r">{{ recurrenceLabel(r) }}</option>
+                }
+              </select>
+            </label>
+          }
+        </div>
+
+        @if (editingTaskId() !== null) {
+          <label class="field">
+            <span>Estado</span>
+            <select formControlName="status">
+              @for (s of taskStatuses; track s) {
+                <option [ngValue]="s">{{ taskStatusLabel(s) }}</option>
+              }
+            </select>
+          </label>
+        }
+
+        @if (taskFormError()) {
+          <p class="form-error">{{ taskFormError() }}</p>
+        }
+
+        <div class="dialog-actions">
+          <button type="button" class="btn-cancel" (click)="closeTaskForm()">Cancelar</button>
+          <button type="submit" class="btn-confirm" [disabled]="taskForm.invalid || savingTask()">
+            {{ savingTask() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
 @if (showBigCalendar()) {
   <div class="dialog-overlay" (click)="closeBigCalendar()">
     <div class="dialog-card big-calendar-card" (click)="$event.stopPropagation()">
@@ -288,4 +434,14 @@
   [danger]="true"
   (confirmed)="confirmDelete()"
   (cancelled)="cancelDelete()"
+></app-confirm-dialog>
+
+<app-confirm-dialog
+  [open]="!!deleteTaskTarget()"
+  title="Eliminar tarea"
+  [message]="'¿Seguro que quieres eliminar &quot;' + (deleteTaskTarget()?.title ?? '') + '&quot;? Esta acción no se puede deshacer.'"
+  confirmText="Eliminar"
+  [danger]="true"
+  (confirmed)="confirmDeleteTask()"
+  (cancelled)="cancelDeleteTask()"
 ></app-confirm-dialog>
