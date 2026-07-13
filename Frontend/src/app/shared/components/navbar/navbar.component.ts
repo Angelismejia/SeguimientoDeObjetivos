@@ -14,7 +14,6 @@ export class NavbarComponent {
 
   links = [
     { path: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
-    { path: '/tasks', label: 'Tareas', icon: 'task_alt' },
     { path: '/categories', label: 'Categorías', icon: 'category' },
     { path: '/diary', label: 'Diario', icon: 'menu_book' },
     { path: '/notifications', label: 'Alertas', icon: 'notifications' },
