@@ -22,31 +22,28 @@
   <a class="brand" routerLink="/dashboard">
     <img class="brand-img" src="BetterMeLogo.png" alt="BetterMe">
   </a>
-  <button class="btn-burger" type="button" (click)="toggleMenu()">
-    <span class="material-icons-round">{{ menuOpen ? 'close' : 'menu' }}</span>
-  </button>
+  <span class="mobile-topbar-actions">
+    <a class="btn-logout-mobile" routerLink="/notifications" routerLinkActive="active" title="Alertas">
+      <span class="material-icons-round">notifications</span>
+      @if (unreadCount() > 0) {
+        <span class="bell-badge">{{ unreadCount() > 9 ? '9+' : unreadCount() }}</span>
+      }
+    </a>
+    <button class="btn-logout-mobile" type="button" (click)="logout()" title="Cerrar sesión">
+      <span class="material-icons-round">logout</span>
+    </button>
+  </span>
 </header>
 
-@if (menuOpen) {
-  <nav class="nav-links-mobile">
-    @for (link of links; track link.path) {
-      <a
-        class="nav-link"
-        [routerLink]="link.path"
-        routerLinkActive="active"
-        (click)="closeMenu()"
-      >
-        <span class="material-icons-round">{{ link.icon }}</span>
-        <span>{{ link.label }}</span>
-      </a>
-    }
-    <a class="nav-link" routerLink="/profile" routerLinkActive="active" (click)="closeMenu()">
-      <span class="material-icons-round">account_circle</span>
-      <span>{{ name }}</span>
+<nav class="tab-bar">
+  @for (link of links; track link.path) {
+    <a class="tab-link" [routerLink]="link.path" routerLinkActive="active">
+      <span class="material-icons-round">{{ link.icon }}</span>
+      <span class="tab-label">{{ link.label }}</span>
     </a>
-    <button class="nav-link nav-link-logout" type="button" (click)="logout()">
-      <span class="material-icons-round">logout</span>
-      <span>Cerrar sesión</span>
-    </button>
-  </nav>
-}
+  }
+  <a class="tab-link" routerLink="/profile" routerLinkActive="active">
+    <span class="material-icons-round">account_circle</span>
+    <span class="tab-label">Perfil</span>
+  </a>
+</nav>

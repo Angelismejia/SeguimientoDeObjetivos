@@ -14,8 +14,12 @@ export class NotificationService {
     return this.http.get<Notification[]>(`${this.url}?userId=${userId}`);
   }
 
+  getUnread(userId: number): Observable<Notification[]> {
+    return this.http.get<Notification[]>(`${this.url}/unread?userId=${userId}`);
+  }
+
   markAsRead(id: number): Observable<void> {
-    return this.http.put<void>(`${this.url}/${id}/read`, {});
+    return this.http.patch<void>(`${this.url}/${id}/read`, {});
   }
 
   delete(id: number): Observable<void> {

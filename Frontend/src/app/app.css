@@ -10,6 +10,26 @@
 }
 .topbar a { text-decoration: none; }
 
+.btn-bell {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 7px; flex-shrink: 0;
+  background: transparent; border: 1.5px solid #e5e7eb;
+  color: #6b7280; cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-bell:hover { background: #f3f4f6; border-color: #d1d5db; }
+.btn-bell.active { color: #4f46e5; border-color: #c7d2fe; background: #eef2ff; }
+.btn-bell .material-icons-round { font-size: 18px; }
+
+.bell-badge {
+  position: absolute; top: -4px; right: -4px;
+  min-width: 16px; height: 16px; padding: 0 3px;
+  border-radius: 999px; background: #dc2626; color: #fff;
+  font-size: 0.6rem; font-weight: 700; line-height: 16px; text-align: center;
+  border: 2px solid #fff;
+}
+
 .user-chip {
   display: flex; align-items: center; gap: 8px; min-width: 0;
   color: #374151; font-size: 0.85rem; font-weight: 600;
@@ -32,4 +52,5 @@
 @media (max-width: 680px) {
   .app-shell { flex-direction: column; }
   .topbar { display: none; }
+  .app-content { padding-bottom: 60px; }
 }
