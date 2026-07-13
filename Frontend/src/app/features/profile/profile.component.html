@@ -30,5 +30,158 @@
     @if (uploadError()) {
       <p class="upload-status error">{{ uploadError() }}</p>
     }
+
+    <div class="stats-row">
+      <div class="stat-item">
+        <span class="stat-value">{{ following().length }}</span>
+        <span class="stat-label">Siguiendo</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value">{{ followers().length }}</span>
+        <span class="stat-label">Seguidores</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value streak-value">
+          <span class="material-icons-round streak-icon">local_fire_department</span>
+          {{ streak() }}
+        </span>
+        <span class="stat-label">Racha del día</span>
+      </div>
+    </div>
+
+    @if (receivedInvitations().length > 0) {
+      <div class="invitations-section">
+        <h2>Invitaciones de racha compartida</h2>
+        <ul class="invitation-list">
+          @for (inv of receivedInvitations(); track inv.id) {
+            <li class="invitation-card">
+              @if (invitationPhotoUrl(inv)) {
+                <img [src]="invitationPhotoUrl(inv)" alt="" class="invitation-photo" />
+              } @else {
+                <span class="material-icons-round invitation-photo-placeholder">account_circle</span>
+              }
+              <div class="invitation-info">
+                <span class="invitation-name">{{ inv.fromName }}</span>
+                <span class="invitation-username">&#64;{{ inv.fromUsername }}</span>
+              </div>
+              <span class="invitation-actions">
+                <button type="button" class="btn-icon-only accept" (click)="acceptInvite(inv)" title="Aceptar">
+                  <span class="material-icons-round">check</span>
+                </button>
+                <button type="button" class="btn-icon-only danger" (click)="rejectInvite(inv)" title="Rechazar">
+                  <span class="material-icons-round">close</span>
+                </button>
+              </span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    <div class="friends-section">
+      <h2>Amigos</h2>
+      <div class="friends-row">
+        @for (friend of following(); track friend.id) {
+          <button type="button" class="friend-avatar" (click)="openFriendAction(friend)" [title]="friend.name">
+            <span class="friend-avatar-img">
+              @if (friendPhotoUrl(friend)) {
+                <img [src]="friendPhotoUrl(friend)" alt="" />
+              } @else {
+                <span class="material-icons-round">account_circle</span>
+              }
+              @if (streakWith(friend.id); as fireStreak) {
+                <span class="friend-streak-badge">
+                  <span class="material-icons-round">local_fire_department</span>
+                  {{ fireStreak }}
+                </span>
+              }
+            </span>
+            <span class="friend-name">{{ friend.username }}</span>
+          </button>
+        }
+        <button type="button" class="friend-avatar add-friend" (click)="openAddFriend()" title="Agregar amigo">
+          <span class="material-icons-round">add</span>
+        </button>
+      </div>
+    </div>
   }
 </div>
+
+@if (showAddFriend()) {
+  <div class="dialog-overlay" (click)="closeAddFriend()">
+    <div class="dialog-card" (click)="$event.stopPropagation()">
+      <h2 class="dialog-title">Agregar amigo</h2>
+
+      <form [formGroup]="addFriendForm" (ngSubmit)="search()" class="search-form">
+        <input type="text" formControlName="username" placeholder="Buscar por username" />
+        <button type="submit" class="btn-confirm" [disabled]="addFriendForm.invalid || searching()">
+          {{ searching() ? 'Buscando...' : 'Buscar' }}
+        </button>
+      </form>
+
+      @if (searchError()) {
+        <p class="form-error">{{ searchError() }}</p>
+      }
+
+      @if (foundUser(); as found) {
+        <div class="found-user">
+          <span class="material-icons-round">account_circle</span>
+          <div class="found-user-info">
+            <span class="found-user-name">{{ found.name }}</span>
+            <span class="found-user-username">&#64;{{ found.username }}</span>
+          </div>
+          <button type="button" class="btn-confirm" (click)="follow()">Seguir</button>
+        </div>
+      }
+
+      <div class="dialog-actions">
+        <button type="button" class="btn-cancel" (click)="closeAddFriend()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (friendAction(); as friend) {
+  <div class="dialog-overlay" (click)="closeFriendAction()">
+    <div class="dialog-card" (click)="$event.stopPropagation()">
+      <h2 class="dialog-title">{{ friend.name }}</h2>
+      <p class="profile-username">&#64;{{ friend.username }}</p>
+
+      @if (streakWith(friend.id); as fireStreak) {
+        <div class="found-user">
+          <span class="material-icons-round streak-icon">local_fire_department</span>
+          <div class="found-user-info">
+            <span class="found-user-name">Racha compartida</span>
+            <span class="found-user-username">{{ fireStreak }} días seguidos</span>
+          </div>
+        </div>
+      } @else if (hasPendingInvite(friend.id)) {
+        <p class="upload-status">Ya le mandaste una invitación de racha, está pendiente.</p>
+      } @else {
+        <button type="button" class="btn-confirm full-width" (click)="inviteToStreak()">
+          <span class="material-icons-round">local_fire_department</span>
+          Invitar a racha compartida
+        </button>
+      }
+
+      @if (friendActionError()) {
+        <p class="form-error">{{ friendActionError() }}</p>
+      }
+
+      <div class="dialog-actions split">
+        <button type="button" class="btn-cancel danger-text" (click)="askUnfollowFromAction()">Dejar de seguir</button>
+        <button type="button" class="btn-cancel" (click)="closeFriendAction()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}
+
+<app-confirm-dialog
+  [open]="!!unfollowTarget()"
+  title="Dejar de seguir"
+  [message]="'¿Seguro que quieres dejar de seguir a &quot;' + (unfollowTarget()?.username ?? '') + '&quot;?'"
+  confirmText="Dejar de seguir"
+  [danger]="true"
+  (confirmed)="confirmUnfollow()"
+  (cancelled)="cancelUnfollow()"
+></app-confirm-dialog>

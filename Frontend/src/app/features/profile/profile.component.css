@@ -88,3 +88,164 @@
 @media (max-width: 480px) {
   .profile-header { flex-direction: column; text-align: center; }
 }
+
+/* ── STATS ─────────────────────────────────────────── */
+.stats-row {
+  display: flex;
+  background: #fff;
+  border-radius: 14px;
+  margin-top: 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+.stat-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 18px 8px;
+  border-right: 1px solid #f3f4f6;
+}
+.stat-item:last-child { border-right: none; }
+.stat-value { font-size: 1.3rem; font-weight: 800; color: #111827; }
+.stat-label { font-size: 0.74rem; color: #6b7280; font-weight: 600; }
+.streak-value { display: flex; align-items: center; gap: 3px; }
+.streak-icon { font-size: 20px; color: #f97316; }
+
+/* ── AMIGOS ────────────────────────────────────────── */
+.friends-section { margin-top: 20px; }
+.friends-section h2 { font-size: 1rem; font-weight: 700; color: #111827; margin: 0 0 12px; }
+
+.friends-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.friend-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 64px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+.friend-avatar-img {
+  position: relative;
+  display: block;
+  width: 56px; height: 56px;
+}
+.friend-avatar-img img,
+.friend-avatar-img .material-icons-round,
+.friend-avatar.add-friend .material-icons-round {
+  width: 56px; height: 56px; border-radius: 50%;
+  object-fit: cover;
+  background: #f3f4f6;
+}
+.friend-avatar-img .material-icons-round,
+.friend-avatar.add-friend .material-icons-round {
+  font-size: 40px; color: #c7d2fe; display: flex; align-items: center; justify-content: center;
+}
+.friend-name { font-size: 0.7rem; color: #6b7280; font-weight: 600; max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.friend-avatar.add-friend .material-icons-round {
+  background: #ede9fe; color: #7c3aed;
+  border: 2px dashed #c7d2fe;
+}
+
+.friend-streak-badge {
+  position: absolute; bottom: -2px; right: -4px;
+  display: flex; align-items: center; gap: 1px;
+  background: #fff7ed; color: #c2410c;
+  border: 2px solid #fff;
+  border-radius: 999px; padding: 1px 5px 1px 3px;
+  font-size: 0.65rem; font-weight: 800;
+}
+.friend-streak-badge .material-icons-round {
+  width: auto; height: auto; background: none;
+  font-size: 12px; color: #f97316;
+}
+
+/* ── INVITACIONES DE RACHA ─────────────────────────────── */
+.invitations-section { margin-top: 20px; }
+.invitations-section h2 { font-size: 1rem; font-weight: 700; color: #111827; margin: 0 0 12px; }
+
+.invitation-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.invitation-card {
+  display: flex; align-items: center; gap: 10px;
+  background: #fff; border-radius: 12px; padding: 12px 14px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+.invitation-photo { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.invitation-photo-placeholder { font-size: 40px; color: #c7d2fe; flex-shrink: 0; }
+.invitation-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.invitation-name { font-size: 0.86rem; font-weight: 700; color: #111827; }
+.invitation-username { font-size: 0.76rem; color: #7c3aed; }
+.invitation-actions { display: inline-flex; gap: 6px; flex-shrink: 0; }
+.btn-icon-only.accept { color: #16a34a; }
+.btn-icon-only.accept:hover { background: #dcfce7; }
+
+/* ── MODAL: agregar amigo ─────────────────────────────── */
+.dialog-overlay {
+  position: fixed; inset: 0;
+  background: rgba(17, 24, 39, 0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 16px;
+}
+.dialog-card {
+  background: #fff; border-radius: 14px; padding: 24px;
+  max-width: 420px; width: 100%; max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+.dialog-title { margin: 0 0 16px; font-size: 1.1rem; font-weight: 800; color: #111827; }
+
+.search-form { display: flex; gap: 8px; }
+.search-form input {
+  flex: 1; font-family: inherit; font-size: 0.9rem;
+  padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; color: #111827;
+}
+.search-form input:focus { outline: none; border-color: #818cf8; }
+
+.form-error { color: #dc2626; font-size: 0.85rem; margin: 12px 0 0; }
+
+.found-user {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 16px; padding: 12px; border-radius: 10px; background: #f9fafb;
+}
+.found-user .material-icons-round { font-size: 36px; color: #c7d2fe; }
+.found-user-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.found-user-name { font-size: 0.88rem; font-weight: 700; color: #111827; }
+.found-user-username { font-size: 0.78rem; color: #7c3aed; }
+
+.dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+.dialog-actions.split { justify-content: space-between; }
+.dialog-actions button,
+.search-form button,
+.found-user button {
+  border: none; border-radius: 8px; padding: 10px 16px; font-weight: 700; font-size: 0.85rem; cursor: pointer;
+}
+.btn-cancel { background: #f3f4f6; color: #374151; }
+.btn-cancel:hover { background: #e5e7eb; }
+.btn-cancel.danger-text { color: #dc2626; }
+.btn-cancel.danger-text:hover { background: #fee2e2; }
+.btn-confirm { background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff; }
+.btn-confirm:hover { opacity: 0.9; }
+.btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-confirm.full-width {
+  width: 100%; margin-top: 16px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+
+.btn-icon-only {
+  border: none; background: #f3f4f6; color: #4b5563;
+  border-radius: 8px; width: 28px; height: 28px;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.btn-icon-only:hover { background: #e5e7eb; }
+.btn-icon-only.danger:hover { background: #fee2e2; color: #dc2626; }
+.btn-icon-only .material-icons-round { width: auto; height: auto; background: none; font-size: 16px; }

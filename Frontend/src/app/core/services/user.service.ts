@@ -14,6 +14,10 @@ export class UserService {
     return this.http.get<User>(`${this.url}/${id}`);
   }
 
+  getByUsername(username: string): Observable<User> {
+    return this.http.get<User>(`${this.url}/by-username/${username}`);
+  }
+
   uploadPhoto(id: number, file: File): Observable<User> {
     const formData = new FormData();
     formData.append('file', file);
