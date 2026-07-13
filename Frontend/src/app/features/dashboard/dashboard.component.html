@@ -72,8 +72,9 @@
                     type="button"
                     class="task-check"
                     [class.checked]="task.status === 'Completed'"
+                    [disabled]="task.status !== 'Completed' && isFuture(task)"
                     (click)="toggleTaskComplete(task)"
-                    title="Marcar como completada"
+                    [title]="task.status !== 'Completed' && isFuture(task) ? 'No podés completar una tarea programada para el futuro' : 'Marcar como completada'"
                   >
                     <span class="material-icons-round">{{ task.status === 'Completed' ? 'check_circle' : 'radio_button_unchecked' }}</span>
                   </button>
@@ -216,12 +217,17 @@
         <div class="field-row">
           <label class="field">
             <span>Categoría</span>
-            <select formControlName="categoryId">
-              <option [ngValue]="null">Sin categoría</option>
-              @for (cat of categories(); track cat.id) {
-                <option [ngValue]="cat.id">{{ cat.name }}</option>
-              }
-            </select>
+            <div class="field-with-add">
+              <select formControlName="categoryId">
+                <option [ngValue]="null">Sin categoría</option>
+                @for (cat of categories(); track cat.id) {
+                  <option [ngValue]="cat.id">{{ cat.name }}</option>
+                }
+              </select>
+              <button type="button" class="btn-inline-add" (click)="openCategoryForm()" title="Nueva categoría">
+                <span class="material-icons-round">add</span>
+              </button>
+            </div>
           </label>
           <label class="field">
             <span>Objetivo</span>
@@ -270,6 +276,63 @@
           <button type="button" class="btn-cancel" (click)="closeTaskForm()">Cancelar</button>
           <button type="submit" class="btn-confirm" [disabled]="taskForm.invalid || savingTask()">
             {{ savingTask() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (showCategoryForm()) {
+  <div class="dialog-overlay" (click)="closeCategoryForm()">
+    <div class="dialog-card form-card" (click)="$event.stopPropagation()">
+      <h2 class="dialog-title">Nueva categoría</h2>
+
+      <form [formGroup]="categoryForm" (ngSubmit)="submitCategory()" class="task-form">
+        <label class="field">
+          <span>Nombre *</span>
+          <input type="text" formControlName="name" placeholder="Ej. Trabajo" />
+        </label>
+
+        <div class="field">
+          <span>Ícono</span>
+          <div class="emoji-grid">
+            @for (icon of categoryIcons; track icon) {
+              <button
+                type="button"
+                class="emoji-option"
+                [class.selected]="categoryForm.value.icon === icon"
+                (click)="pickCategoryIcon(icon)"
+              >
+                <span class="material-icons-round">{{ icon }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="field">
+          <span>Color</span>
+          <div class="color-row">
+            @for (c of categoryColorPresets; track c) {
+              <button
+                type="button"
+                class="color-swatch"
+                [class.selected]="categoryForm.value.color === c"
+                [style.background]="c"
+                (click)="pickCategoryColor(c)"
+              ></button>
+            }
+          </div>
+        </div>
+
+        @if (categoryFormError()) {
+          <p class="form-error">{{ categoryFormError() }}</p>
+        }
+
+        <div class="dialog-actions">
+          <button type="button" class="btn-cancel" (click)="closeCategoryForm()">Cancelar</button>
+          <button type="submit" class="btn-confirm" [disabled]="categoryForm.invalid || savingCategory()">
+            {{ savingCategory() ? 'Guardando...' : 'Guardar' }}
           </button>
         </div>
       </form>

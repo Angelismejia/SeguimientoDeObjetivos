@@ -224,6 +224,8 @@
 .task-check .material-icons-round { font-size: 22px; }
 .task-check:hover { color: #818cf8; }
 .task-check.checked { color: #16a34a; }
+.task-check:disabled { color: #e5e7eb; cursor: not-allowed; }
+.task-check:disabled:hover { color: #e5e7eb; }
 
 .task-item .task-actions { display: inline-flex; gap: 4px; margin-left: auto; flex-shrink: 0; }
 
@@ -395,6 +397,17 @@
 }
 .field textarea { resize: vertical; }
 .field-row { display: flex; gap: 14px; }
+
+.field-with-add { display: flex; gap: 8px; }
+.field-with-add select { flex: 1; }
+.btn-inline-add {
+  flex-shrink: 0; width: 38px; height: 38px;
+  border: none; border-radius: 8px;
+  background: #ede9fe; color: #7c3aed; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.btn-inline-add:hover { background: #ddd6fe; }
+.btn-inline-add .material-icons-round { font-size: 20px; }
 
 .task-form { display: flex; flex-direction: column; gap: 14px; }
 .checkbox-field { flex-direction: row; align-items: center; gap: 8px; }

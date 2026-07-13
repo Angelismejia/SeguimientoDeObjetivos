@@ -222,6 +222,20 @@ export class DashboardComponent implements OnInit {
 
   taskForm: FormGroup;
 
+  // ── Categoría rápida (embebida en el form de tarea) ────
+  showCategoryForm = signal(false);
+  savingCategory = signal(false);
+  categoryFormError = signal('');
+  categoryForm: FormGroup;
+
+  categoryIcons = [
+    'label', 'work', 'school', 'fitness_center', 'restaurant', 'favorite',
+    'home', 'savings', 'book', 'music_note', 'self_improvement',
+    'medical_services', 'palette', 'code', 'sports_esports', 'pets',
+    'flight', 'shopping_cart', 'brush', 'directions_run'
+  ];
+  categoryColorPresets = ['#4f46e5', '#7c3aed', '#dc2626', '#ea580c', '#d97706', '#16a34a', '#0891b2', '#2563eb', '#db2777', '#64748b'];
+
   constructor(
     private fb: FormBuilder,
     private auth: AuthService,
@@ -246,10 +260,58 @@ export class DashboardComponent implements OnInit {
       recurrenceType: ['None' as RecurrenceType],
       status: ['Pending' as TaskStatus]
     });
+
+    this.categoryForm = this.fb.group({
+      name: ['', Validators.required],
+      color: ['#4f46e5'],
+      icon: ['label']
+    });
   }
 
   ngOnInit(): void {
     this.loadAll();
+  }
+
+  openCategoryForm(): void {
+    this.categoryFormError.set('');
+    this.categoryForm.reset({ name: '', color: '#4f46e5', icon: 'label' });
+    this.showCategoryForm.set(true);
+  }
+
+  closeCategoryForm(): void {
+    this.showCategoryForm.set(false);
+  }
+
+  pickCategoryColor(color: string): void {
+    this.categoryForm.patchValue({ color });
+  }
+
+  pickCategoryIcon(icon: string): void {
+    this.categoryForm.patchValue({ icon });
+  }
+
+  submitCategory(): void {
+    if (this.categoryForm.invalid) return;
+    this.savingCategory.set(true);
+    this.categoryFormError.set('');
+
+    const v = this.categoryForm.value;
+    this.categoryService.create({
+      name: v.name,
+      color: v.color,
+      icon: v.icon
+    }, this.auth.getUserId()).subscribe({
+      next: created => {
+        this.categories.set([...this.categories(), created]);
+        this.taskForm.patchValue({ categoryId: created.id });
+        this.savingCategory.set(false);
+        this.showCategoryForm.set(false);
+      },
+      error: () => {
+        this.savingCategory.set(false);
+        this.categoryFormError.set('No se pudo crear la categoría. Intenta de nuevo.');
+      }
+    });
   }
 
   private loadAll(): void {
@@ -295,6 +357,13 @@ export class DashboardComponent implements OnInit {
     return !!task.scheduledDate && new Date(task.scheduledDate) < new Date();
   }
 
+  isFuture(task: TaskItem): boolean {
+    if (!task.scheduledDate) return false;
+    const taskDate = this.parseDateKey(task.scheduledDate.substring(0, 10));
+    const today = this.parseDateKey(this.dateKey(new Date()));
+    return taskDate > today;
+  }
+
   timeRangeLabel(task: TaskItem): string {
     if (!task.scheduledTime) return '';
     const start = task.scheduledTime.substring(0, 5);
@@ -302,6 +371,7 @@ export class DashboardComponent implements OnInit {
   }
 
   toggleTaskComplete(task: TaskItem): void {
+    if (task.status !== 'Completed' && this.isFuture(task)) return;
     const newStatus = task.status === 'Completed' ? 'Pending' : 'Completed';
     this.taskService.update(task.id, {
       title: task.title,
