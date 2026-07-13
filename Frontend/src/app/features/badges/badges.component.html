@@ -1,9 +1,31 @@
-<div class="under-construction">
-  <h1>Logros</h1>
-  <img
-    src="https://img.freepik.com/fotos-premium/guapo-ingeniero-construccion-gato-sentado-ia-generativa_431161-21530.jpg"
-    alt="En construcción"
-    class="construction-cat"
-  />
-  <p class="construction-text">🚧 En construcción 🚧</p>
+<div class="badges-page">
+  <div class="page-header">
+    <h1>Insignias</h1>
+    <p>Los logros que fuiste desbloqueando en el camino.</p>
+  </div>
+
+  @if (loading()) {
+    <div class="state-msg">Cargando insignias...</div>
+  } @else if (loadError()) {
+    <div class="state-msg error">No se pudo cargar la información. Intenta de nuevo más tarde.</div>
+  } @else if (allBadges().length === 0) {
+    <div class="empty-state">
+      <span class="material-icons-round empty-icon">workspace_premium</span>
+      <p>Todavía no hay insignias creadas en la app.</p>
+    </div>
+  } @else {
+    <ul class="badge-grid">
+      @for (badge of allBadges(); track badge.id) {
+        <li class="badge-card" [class.earned]="isEarned(badge)">
+          <span class="badge-icon">
+            <span class="material-icons-round">{{ isEarned(badge) ? (badge.icon || 'workspace_premium') : 'lock' }}</span>
+          </span>
+          <span class="badge-name">{{ badge.name }}</span>
+          @if (badge.description) {
+            <span class="badge-description">{{ badge.description }}</span>
+          }
+        </li>
+      }
+    </ul>
+  }
 </div>
