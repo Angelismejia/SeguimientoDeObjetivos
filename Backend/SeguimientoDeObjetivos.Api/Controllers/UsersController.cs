@@ -25,10 +25,16 @@ namespace Api.Controllers
             return Ok(await _userService.GetAllAsync());
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<ActionResult<UserDto>> GetById(int id)
         {
             return Ok(await _userService.GetByIdAsync(id));
+        }
+
+        [HttpGet("by-username/{username}")]
+        public async Task<ActionResult<UserDto>> GetByUsername(string username)
+        {
+            return Ok(await _userService.GetByUsernameAsync(username));
         }
 
         [HttpPost]

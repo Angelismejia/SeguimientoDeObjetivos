@@ -32,6 +32,13 @@ namespace Application.Services
             return ToDto(user);
         }
 
+        public async Task<UserDto> GetByUsernameAsync(string username)
+        {
+            var user = await _userRepository.GetByUsernameAsync(username);
+            if (user is null) throw new NotFoundException("User", username);
+            return ToDto(user);
+        }
+
         public async Task<UserDto> CreateAsync(CreateUserDto dto)
         {
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
