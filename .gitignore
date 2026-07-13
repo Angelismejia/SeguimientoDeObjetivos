@@ -362,3 +362,7 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /SeguimientoDeObjetivos.UI
+
+# User-uploaded files (runtime data, not source)
+Backend/SeguimientoDeObjetivos.Api/wwwroot/uploads/*
+!Backend/SeguimientoDeObjetivos.Api/wwwroot/uploads/.gitkeep
