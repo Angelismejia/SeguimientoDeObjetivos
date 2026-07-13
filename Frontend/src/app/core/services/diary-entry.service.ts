@@ -18,8 +18,8 @@ export class DiaryEntryService {
     return this.http.get<DiaryEntry>(`${this.url}/${id}`);
   }
 
-  create(data: CreateDiaryEntryDto): Observable<DiaryEntry> {
-    return this.http.post<DiaryEntry>(this.url, data);
+  create(data: CreateDiaryEntryDto, userId: number): Observable<DiaryEntry> {
+    return this.http.post<DiaryEntry>(`${this.url}?userId=${userId}`, data);
   }
 
   update(id: number, data: UpdateDiaryEntryDto): Observable<DiaryEntry> {

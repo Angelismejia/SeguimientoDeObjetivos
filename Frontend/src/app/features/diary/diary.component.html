@@ -1,9 +1,97 @@
-<div class="under-construction">
-  <h1>Diario</h1>
-  <img
-    src="https://img.freepik.com/fotos-premium/guapo-ingeniero-construccion-gato-sentado-ia-generativa_431161-21530.jpg"
-    alt="En construcción"
-    class="construction-cat"
-  />
-  <p class="construction-text">🚧 En construcción 🚧</p>
+<div class="diary-page">
+  <div class="page-header">
+    <div>
+      <h1>Diario</h1>
+      <p>Un espacio para anotar cómo te fue en el día.</p>
+    </div>
+    <button type="button" class="btn-main" (click)="openCreate()">
+      <span class="material-icons-round btn-icon">add</span>
+      Nueva entrada
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="state-msg">Cargando tu diario...</div>
+  } @else if (loadError()) {
+    <div class="state-msg error">No se pudo cargar la información. Intenta de nuevo más tarde.</div>
+  } @else if (entries().length === 0) {
+    <div class="empty-state">
+      <span class="material-icons-round empty-icon">menu_book</span>
+      <p>Todavía no tienes entradas en tu diario.</p>
+      <button type="button" class="btn-main" (click)="openCreate()">
+        <span class="material-icons-round btn-icon">add</span>
+        Escribir mi primera entrada
+      </button>
+    </div>
+  } @else {
+    <ul class="entry-list">
+      @for (entry of entries(); track entry.id) {
+        <li class="entry-card">
+          <div class="entry-top">
+            <div class="entry-heading">
+              @if (entry.title) {
+                <span class="entry-title">{{ entry.title }}</span>
+              }
+              <span class="entry-date">{{ entry.entryDate | date: "EEEE d 'de' MMMM, yyyy" }}</span>
+            </div>
+            <span class="entry-actions">
+              <button type="button" class="btn-icon-only" (click)="openEdit(entry)" title="Editar">
+                <span class="material-icons-round">edit</span>
+              </button>
+              <button type="button" class="btn-icon-only danger" (click)="askDelete(entry)" title="Eliminar">
+                <span class="material-icons-round">delete</span>
+              </button>
+            </span>
+          </div>
+          <p class="entry-content">{{ entry.content }}</p>
+        </li>
+      }
+    </ul>
+  }
 </div>
+
+@if (showForm()) {
+  <div class="dialog-overlay" (click)="closeForm()">
+    <div class="dialog-card form-card" (click)="$event.stopPropagation()">
+      <h2 class="dialog-title">{{ editingId() === null ? 'Nueva entrada' : 'Editar entrada' }}</h2>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="entry-form">
+        <label class="field">
+          <span>Fecha *</span>
+          <input type="date" formControlName="entryDate" />
+        </label>
+
+        <label class="field">
+          <span>Título</span>
+          <input type="text" formControlName="title" placeholder="Opcional" />
+        </label>
+
+        <label class="field">
+          <span>¿Cómo te fue hoy? *</span>
+          <textarea formControlName="content" rows="8" placeholder="Escribí lo que quieras..."></textarea>
+        </label>
+
+        @if (formError()) {
+          <p class="form-error">{{ formError() }}</p>
+        }
+
+        <div class="dialog-actions">
+          <button type="button" class="btn-cancel" (click)="closeForm()">Cancelar</button>
+          <button type="submit" class="btn-confirm" [disabled]="form.invalid || saving()">
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<app-confirm-dialog
+  [open]="!!deleteTarget()"
+  title="Eliminar entrada"
+  [message]="'¿Seguro que quieres eliminar esta entrada del diario? Esta acción no se puede deshacer.'"
+  confirmText="Eliminar"
+  [danger]="true"
+  (confirmed)="confirmDelete()"
+  (cancelled)="cancelDelete()"
+></app-confirm-dialog>
