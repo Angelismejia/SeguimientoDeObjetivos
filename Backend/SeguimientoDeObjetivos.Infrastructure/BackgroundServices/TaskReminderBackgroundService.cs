@@ -44,12 +44,10 @@ namespace Infrastructure.BackgroundServices
 
             var today = DateTime.Today;
             var now = DateTime.Now.TimeOfDay;
-            var windowStart = now - CheckInterval;
 
             var dueTasks = await db.Tasks
                 .Where(t => t.ScheduledDate.Date == today
                     && t.ScheduledTime != null
-                    && t.ScheduledTime > windowStart
                     && t.ScheduledTime <= now
                     && t.Status != TaskItemStatus.Completed
                     && t.Status != TaskItemStatus.Skipped)
