@@ -10,6 +10,7 @@ export interface TaskItem {
   color?: string;
   scheduledDate: string;
   scheduledTime?: string;
+  endTime?: string;
   reminderMinutesBefore?: number;
   priority: TaskPriority;
   status: TaskStatus;
@@ -32,6 +33,7 @@ export interface CreateTaskDto {
   color?: string;
   scheduledDate: string;
   scheduledTime?: string;
+  endTime?: string;
   reminderMinutesBefore?: number;
   priority?: TaskPriority;
   isRecurring?: boolean;
@@ -49,6 +51,7 @@ export interface UpdateTaskDto {
   color?: string;
   scheduledDate: string;
   scheduledTime?: string;
+  endTime?: string;
   reminderMinutesBefore?: number;
   priority: TaskPriority;
   status: TaskStatus;

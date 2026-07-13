@@ -119,6 +119,8 @@
 .btn-add .material-icons-round { font-size: 18px; }
 
 .objective-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 18px; max-height: 420px; overflow-y: auto; }
+.objective-item { cursor: pointer; border-radius: 10px; padding: 6px; margin: -6px; transition: background 0.15s; }
+.objective-item:hover { background: #f9fafb; }
 .objective-top { display: flex; justify-content: space-between; margin-bottom: 6px; }
 .objective-title { font-size: 0.88rem; font-weight: 600; color: #374151; }
 .objective-pct { font-size: 0.82rem; font-weight: 700; color: #7c3aed; }
@@ -425,6 +427,17 @@
 }
 .btn-confirm:hover { opacity: 0.9; }
 .btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── MODAL: detalle de objetivo ───────────────────────── */
+.detail-card { max-width: 560px; }
+.detail-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.detail-header .dialog-title { margin: 0; }
+.detail-description { color: #6b7280; font-size: 0.88rem; margin: 8px 0 0; }
+
+.detail-progress { margin: 18px 0; }
+.progress-track.big { height: 12px; border-radius: 6px; }
+
+.detail-tasks-title { font-size: 0.9rem; font-weight: 700; color: #111827; margin: 0 0 12px; }
 
 /* ── CALENDARIO GRANDE (modal mensual) ────────────────── */
 .expand-btn { margin-left: 4px; }

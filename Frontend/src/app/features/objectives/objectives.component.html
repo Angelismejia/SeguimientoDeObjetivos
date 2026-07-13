@@ -1,0 +1,197 @@
+<div class="objectives-page">
+  <div class="page-header">
+    <div>
+      <h1>Objetivos</h1>
+      <p>Tus hábitos y metas, con su racha y avance.</p>
+    </div>
+    <button type="button" class="btn-main" (click)="openCreate()">
+      <span class="material-icons-round btn-icon">add</span>
+      Nuevo objetivo
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="state-msg">Cargando objetivos...</div>
+  } @else if (loadError()) {
+    <div class="state-msg error">No se pudo cargar la información. Intenta de nuevo más tarde.</div>
+  } @else if (objectives().length === 0) {
+    <div class="empty-state">
+      <span class="material-icons-round empty-icon">track_changes</span>
+      <p>Todavía no tienes objetivos creados.</p>
+      <button type="button" class="btn-main" (click)="openCreate()">
+        <span class="material-icons-round btn-icon">add</span>
+        Crear mi primer objetivo
+      </button>
+    </div>
+  } @else {
+    <ul class="habit-list">
+      @for (obj of objectives(); track obj.id) {
+        <li class="habit-card" (click)="openObjectiveDetail(obj)">
+          <span class="habit-icon" [style.background]="(categoryOf(obj)?.color ?? '#4f46e5') + '22'" [style.color]="categoryOf(obj)?.color ?? '#4f46e5'">
+            <span class="material-icons-round">{{ categoryOf(obj)?.icon || 'track_changes' }}</span>
+          </span>
+
+          <div class="habit-main">
+            <span class="habit-title">{{ obj.title }}</span>
+            <span class="habit-meta">
+              <span class="material-icons-round streak-icon">local_fire_department</span>
+              {{ streakFor(obj.id) }}-day streak · {{ obj.progressPercentage }}%
+            </span>
+          </div>
+
+          <div class="habit-heatmap">
+            @for (cell of heatmapFor(obj.id); track cell.key) {
+              <span class="heatmap-cell" [class.filled]="cell.completed" [style.background]="cell.completed ? (categoryOf(obj)?.color ?? '#4f46e5') : null"></span>
+            }
+          </div>
+
+          <span class="habit-actions">
+            <button type="button" class="btn-icon-only" (click)="openEdit(obj); $event.stopPropagation()" title="Editar">
+              <span class="material-icons-round">edit</span>
+            </button>
+            <button type="button" class="btn-icon-only danger" (click)="askDelete(obj); $event.stopPropagation()" title="Eliminar">
+              <span class="material-icons-round">delete</span>
+            </button>
+          </span>
+        </li>
+      }
+    </ul>
+  }
+</div>
+
+@if (showForm()) {
+  <div class="dialog-overlay" (click)="closeForm()">
+    <div class="dialog-card form-card" (click)="$event.stopPropagation()">
+      <h2 class="dialog-title">{{ editingId() === null ? 'Nuevo objetivo' : 'Editar objetivo' }}</h2>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="objective-form">
+        <label class="field">
+          <span>Título *</span>
+          <input type="text" formControlName="title" placeholder="Ej. Aprender Angular" />
+        </label>
+
+        <label class="field">
+          <span>Descripción</span>
+          <textarea formControlName="description" rows="3" placeholder="Detalles del objetivo (opcional)"></textarea>
+        </label>
+
+        <label class="field">
+          <span>Categoría</span>
+          <select formControlName="categoryId">
+            <option [ngValue]="null">Sin categoría</option>
+            @for (cat of categories(); track cat.id) {
+              <option [ngValue]="cat.id">{{ cat.name }}</option>
+            }
+          </select>
+        </label>
+
+        <div class="field-row">
+          <label class="field">
+            <span>Fecha inicio</span>
+            <input type="date" formControlName="startDate" />
+          </label>
+          <label class="field">
+            <span>Fecha fin</span>
+            <input type="date" formControlName="endDate" />
+          </label>
+        </div>
+
+        @if (editingId() !== null) {
+          <div class="field-row">
+            <label class="field">
+              <span>Estado</span>
+              <select formControlName="status">
+                @for (s of statuses; track s) {
+                  <option [ngValue]="s">{{ statusLabel(s) }}</option>
+                }
+              </select>
+            </label>
+            <label class="field">
+              <span>Progreso ({{ form.value.progressPercentage }}%)</span>
+              <input type="range" min="0" max="100" formControlName="progressPercentage" />
+            </label>
+          </div>
+        }
+
+        @if (formError()) {
+          <p class="form-error">{{ formError() }}</p>
+        }
+
+        <div class="dialog-actions">
+          <button type="button" class="btn-cancel" (click)="closeForm()">Cancelar</button>
+          <button type="submit" class="btn-confirm" [disabled]="form.invalid || saving()">
+            {{ saving() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (viewingObjective(); as obj) {
+  <div class="dialog-overlay" (click)="closeObjectiveDetail()">
+    <div class="dialog-card detail-card" (click)="$event.stopPropagation()">
+      <div class="detail-header">
+        <h2 class="dialog-title">{{ obj.title }}</h2>
+        <button type="button" class="btn-icon-only" (click)="closeObjectiveDetail()" title="Cerrar">
+          <span class="material-icons-round">close</span>
+        </button>
+      </div>
+
+      @if (obj.description) {
+        <p class="detail-description">{{ obj.description }}</p>
+      }
+
+      <div class="detail-streak">
+        <span class="material-icons-round streak-icon">local_fire_department</span>
+        {{ streakFor(obj.id) }} días seguidos
+      </div>
+
+      <div class="detail-progress">
+        <div class="objective-top">
+          <span class="objective-pct">{{ obj.progressPercentage }}%</span>
+          <span class="status-badge" [class]="'status-' + obj.status">{{ statusLabel(obj.status) }}</span>
+        </div>
+        <div class="progress-track big">
+          <div class="progress-fill" [style.width.%]="obj.progressPercentage"></div>
+        </div>
+      </div>
+
+      <h3 class="detail-tasks-title">Tareas de este objetivo</h3>
+      @if (viewingObjectiveTasks().length === 0) {
+        <p class="panel-empty">Todavía no hay tareas vinculadas a este objetivo.</p>
+      } @else {
+        <ul class="task-list">
+          @for (task of viewingObjectiveTasks(); track task.id) {
+            <li class="task-item" [class.overdue]="isOverdue(task)" [style.background]="task.color ? task.color + '33' : null">
+              <button
+                type="button"
+                class="task-check"
+                [class.checked]="task.status === 'Completed'"
+                (click)="toggleTaskComplete(task)"
+                title="Marcar como completada"
+              >
+                <span class="material-icons-round">{{ task.status === 'Completed' ? 'check_circle' : 'radio_button_unchecked' }}</span>
+              </button>
+              @if (task.emoji) {
+                <span class="task-emoji">{{ task.emoji }}</span>
+              }
+              <span class="task-title" [class.done]="task.status === 'Completed'">{{ task.title }}</span>
+              <span class="task-date">{{ task.scheduledDate | date: 'd MMM' }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+}
+
+<app-confirm-dialog
+  [open]="!!deleteTarget()"
+  title="Eliminar objetivo"
+  [message]="'¿Seguro que quieres eliminar &quot;' + (deleteTarget()?.title ?? '') + '&quot;? Esta acción no se puede deshacer.'"
+  confirmText="Eliminar"
+  [danger]="true"
+  (confirmed)="confirmDelete()"
+  (cancelled)="cancelDelete()"
+></app-confirm-dialog>

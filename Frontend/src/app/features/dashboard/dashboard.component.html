@@ -8,15 +8,6 @@
     <div class="state-msg">Cargando tu progreso...</div>
   } @else if (loadError()) {
     <div class="state-msg error">No se pudo cargar la información. Intenta de nuevo más tarde.</div>
-  } @else if (!hasObjectives()) {
-    <div class="empty-state">
-      <span class="material-icons-round empty-icon">track_changes</span>
-      <p>Todavía no tienes objetivos creados.</p>
-      <button type="button" class="btn-main" (click)="openCreate()">
-        <span class="material-icons-round btn-icon">add</span>
-        Crear mi primer objetivo
-      </button>
-    </div>
   } @else {
 
     <div class="panel calendar-panel">
@@ -84,6 +75,9 @@
                     <span class="task-emoji">{{ task.emoji }}</span>
                   }
                   <span class="task-title" [class.done]="task.status === 'Completed'" (click)="openEditTask(task)">{{ task.title }}</span>
+                  @if (task.scheduledTime) {
+                    <span class="task-date">{{ timeRangeLabel(task) }}</span>
+                  }
                   <span class="task-actions">
                     <button type="button" class="btn-icon-only danger" (click)="askDeleteTask(task)" title="Eliminar">
                       <span class="material-icons-round">delete</span>
@@ -112,7 +106,7 @@
                   <span class="task-emoji">{{ task.emoji }}</span>
                 }
                 <span class="task-title" [class.done]="task.status === 'Completed'" (click)="openEditTask(task)">{{ task.title }}</span>
-                <span class="task-date">{{ task.scheduledDate | date: 'd MMM' }}</span>
+                <span class="task-date">{{ task.scheduledDate | date: 'd MMM' }}{{ task.scheduledTime ? ' · ' + timeRangeLabel(task) : '' }}</span>
                 <span class="task-actions">
                   <button type="button" class="btn-icon-only danger" (click)="askDeleteTask(task)" title="Eliminar">
                     <span class="material-icons-round">delete</span>
@@ -125,132 +119,18 @@
       </div>
     </div>
 
-    <div class="content-grid">
-      <div class="panel chart-panel">
-        <h2>Estado de tus objetivos</h2>
-        <div class="chart-wrap">
-          <canvas baseChart
-            [data]="chartData()"
-            [options]="chartOptions"
-            type="doughnut">
-          </canvas>
-        </div>
-      </div>
-
-      <div class="panel objectives-panel">
-        <div class="panel-header-row">
-          <h2>Tus objetivos</h2>
-          <button type="button" class="btn-add" (click)="openCreate()">
-            <span class="material-icons-round">add</span>
-          </button>
-        </div>
-        @if (objectives().length === 0) {
-          <p class="panel-empty">No tienes objetivos en progreso ahora mismo.</p>
-        } @else {
-          <ul class="objective-list">
-            @for (obj of objectives(); track obj.id) {
-              <li class="objective-item">
-                <div class="objective-top">
-                  <span class="objective-title">{{ obj.title }}</span>
-                  <span class="objective-pct">{{ obj.progressPercentage }}%</span>
-                </div>
-                <div class="progress-track">
-                  <div class="progress-fill" [style.width.%]="obj.progressPercentage"></div>
-                </div>
-                <div class="objective-bottom">
-                  @if (categoryOf(obj); as cat) {
-                    <span class="category-chip" [style.background]="cat.color + '22'" [style.color]="cat.color">
-                      <span class="material-icons-round chip-icon">{{ cat.icon || 'label' }}</span>
-                      {{ cat.name }}
-                    </span>
-                  }
-                  <span class="status-badge" [class]="'status-' + obj.status">{{ statusLabel(obj.status) }}</span>
-                  <span class="objective-actions">
-                    <button type="button" class="btn-icon-only" (click)="openEdit(obj)" title="Editar">
-                      <span class="material-icons-round">edit</span>
-                    </button>
-                    <button type="button" class="btn-icon-only danger" (click)="askDelete(obj)" title="Eliminar">
-                      <span class="material-icons-round">delete</span>
-                    </button>
-                  </span>
-                </div>
-              </li>
-            }
-          </ul>
-        }
+    <div class="panel chart-panel">
+      <h2>Estado de tus objetivos</h2>
+      <div class="chart-wrap">
+        <canvas baseChart
+          [data]="chartData()"
+          [options]="chartOptions"
+          type="doughnut">
+        </canvas>
       </div>
     </div>
   }
 </div>
-
-@if (showForm()) {
-  <div class="dialog-overlay" (click)="closeForm()">
-    <div class="dialog-card form-card" (click)="$event.stopPropagation()">
-      <h2 class="dialog-title">{{ editingId() === null ? 'Nuevo objetivo' : 'Editar objetivo' }}</h2>
-
-      <form [formGroup]="form" (ngSubmit)="submit()" class="objective-form">
-        <label class="field">
-          <span>Título *</span>
-          <input type="text" formControlName="title" placeholder="Ej. Aprender Angular" />
-        </label>
-
-        <label class="field">
-          <span>Descripción</span>
-          <textarea formControlName="description" rows="3" placeholder="Detalles del objetivo (opcional)"></textarea>
-        </label>
-
-        <label class="field">
-          <span>Categoría</span>
-          <select formControlName="categoryId">
-            <option [ngValue]="null">Sin categoría</option>
-            @for (cat of categories(); track cat.id) {
-              <option [ngValue]="cat.id">{{ cat.name }}</option>
-            }
-          </select>
-        </label>
-
-        <div class="field-row">
-          <label class="field">
-            <span>Fecha inicio</span>
-            <input type="date" formControlName="startDate" />
-          </label>
-          <label class="field">
-            <span>Fecha fin</span>
-            <input type="date" formControlName="endDate" />
-          </label>
-        </div>
-
-        @if (editingId() !== null) {
-          <div class="field-row">
-            <label class="field">
-              <span>Estado</span>
-              <select formControlName="status">
-                @for (s of statuses; track s) {
-                  <option [ngValue]="s">{{ statusLabel(s) }}</option>
-                }
-              </select>
-            </label>
-            <label class="field">
-              <span>Progreso ({{ form.value.progressPercentage }}%)</span>
-              <input type="range" min="0" max="100" formControlName="progressPercentage" />
-            </label>
-          </div>
-        }
-
-        @if (formError()) {
-          <p class="form-error">{{ formError() }}</p>
-        }
-
-        <div class="dialog-actions">
-          <button type="button" class="btn-cancel" (click)="closeForm()">Cancelar</button>
-          <button type="submit" class="btn-confirm" [disabled]="form.invalid || saving()">
-            {{ saving() ? 'Guardando...' : 'Guardar' }}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-}
 
 @if (showTaskForm()) {
   <div class="dialog-overlay" (click)="closeTaskForm()">
@@ -308,6 +188,14 @@
           <label class="field">
             <span>Fecha *</span>
             <input type="date" formControlName="scheduledDate" />
+          </label>
+          <label class="field">
+            <span>Hora inicio</span>
+            <input type="time" formControlName="scheduledTime" />
+          </label>
+          <label class="field">
+            <span>Hora fin</span>
+            <input type="time" formControlName="endTime" />
           </label>
           <label class="field">
             <span>Prioridad</span>
@@ -425,16 +313,6 @@
     </div>
   </div>
 }
-
-<app-confirm-dialog
-  [open]="!!deleteTarget()"
-  title="Eliminar objetivo"
-  [message]="'¿Seguro que quieres eliminar &quot;' + (deleteTarget()?.title ?? '') + '&quot;? Esta acción no se puede deshacer.'"
-  confirmText="Eliminar"
-  [danger]="true"
-  (confirmed)="confirmDelete()"
-  (cancelled)="cancelDelete()"
-></app-confirm-dialog>
 
 <app-confirm-dialog
   [open]="!!deleteTaskTarget()"

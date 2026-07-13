@@ -8,7 +8,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { ObjectiveService } from '../../core/services/objective.service';
 import { TaskService } from '../../core/services/task.service';
 import { CategoryService } from '../../core/services/category.service';
-import { Objective, ObjectiveStatus } from '../../core/models/objective.model';
+import { Objective } from '../../core/models/objective.model';
 import { TaskItem, TaskStatus, TaskPriority, RecurrenceType } from '../../core/models/task.model';
 import { Category } from '../../core/models/category.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -24,12 +24,6 @@ export class DashboardComponent implements OnInit {
   name: string;
   loading = signal(true);
   loadError = signal(false);
-  hasObjectives = signal(false);
-
-  totalObjectives = signal(0);
-  completedObjectives = signal(0);
-  pendingTasks = signal(0);
-  overdueTasks = signal(0);
 
   objectives = signal<Objective[]>([]);
   categories = signal<Category[]>([]);
@@ -187,16 +181,6 @@ export class DashboardComponent implements OnInit {
     return new Date(y, m - 1, d);
   }
 
-  // ── Objetivos: form modal ────────────────────────────
-  showForm = signal(false);
-  editingId = signal<number | null>(null);
-  formError = signal('');
-  saving = signal(false);
-  deleteTarget = signal<Objective | null>(null);
-  statuses: ObjectiveStatus[] = ['Pending', 'InProgress', 'Completed', 'Cancelled'];
-
-  form: FormGroup;
-
   // ── Tareas: form modal ───────────────────────────────
   showTaskForm = signal(false);
   editingTaskId = signal<number | null>(null);
@@ -221,28 +205,6 @@ export class DashboardComponent implements OnInit {
     private categoryService: CategoryService
   ) {
     this.name = this.auth.getName();
-    this.form = this.fb.group({
-      title: ['', Validators.required],
-      description: [''],
-      categoryId: [null],
-      startDate: [''],
-      endDate: [''],
-      status: ['Pending' as ObjectiveStatus],
-      progressPercentage: [0]
-    });
-
-    this.form.get('status')?.valueChanges.subscribe(status => {
-      if (status === 'Completed') {
-        this.form.get('progressPercentage')?.setValue(100, { emitEvent: false });
-      }
-    });
-    this.form.get('progressPercentage')?.valueChanges.subscribe(progress => {
-      if (Number(progress) === 100 && this.form.get('status')?.value !== 'Cancelled') {
-        this.form.get('status')?.setValue('Completed', { emitEvent: false });
-      } else if (Number(progress) < 100 && this.form.get('status')?.value === 'Completed') {
-        this.form.get('status')?.setValue('InProgress', { emitEvent: false });
-      }
-    });
 
     this.taskForm = this.fb.group({
       title: ['', Validators.required],
@@ -250,6 +212,8 @@ export class DashboardComponent implements OnInit {
       emoji: [''],
       color: ['#c7d2fe'],
       scheduledDate: ['', Validators.required],
+      scheduledTime: [''],
+      endTime: [''],
       priority: ['Medium' as TaskPriority],
       categoryId: [null],
       objectiveId: [null],
@@ -276,7 +240,7 @@ export class DashboardComponent implements OnInit {
         this.objectives.set(objectives);
         this.allTasks.set(tasks);
         this.categories.set(categories);
-        this.computeStats(objectives, tasks);
+        this.computeStats(objectives);
         this.loading.set(false);
       },
       error: () => {
@@ -286,19 +250,8 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  private computeStats(objectives: Objective[], tasks: TaskItem[]): void {
-    this.hasObjectives.set(objectives.length > 0);
-    this.totalObjectives.set(objectives.length);
-
+  private computeStats(objectives: Objective[]): void {
     const completed = objectives.filter(o => o.status === 'Completed').length;
-    this.completedObjectives.set(completed);
-
-    const today = new Date();
-    this.pendingTasks.set(tasks.filter(t => t.status === 'Pending' || t.status === 'InProgress').length);
-    this.overdueTasks.set(tasks.filter(t =>
-      !!t.scheduledDate && new Date(t.scheduledDate) < today && t.status !== 'Completed'
-    ).length);
-
     const pending = objectives.filter(o => o.status === 'Pending').length;
     const inProgress = objectives.filter(o => o.status === 'InProgress').length;
     const cancelled = objectives.filter(o => o.status === 'Cancelled').length;
@@ -317,6 +270,12 @@ export class DashboardComponent implements OnInit {
     return !!task.scheduledDate && new Date(task.scheduledDate) < new Date();
   }
 
+  timeRangeLabel(task: TaskItem): string {
+    if (!task.scheduledTime) return '';
+    const start = task.scheduledTime.substring(0, 5);
+    return task.endTime ? `${start} - ${task.endTime.substring(0, 5)}` : start;
+  }
+
   toggleTaskComplete(task: TaskItem): void {
     const newStatus = task.status === 'Completed' ? 'Pending' : 'Completed';
     this.taskService.update(task.id, {
@@ -325,6 +284,8 @@ export class DashboardComponent implements OnInit {
       emoji: task.emoji,
       color: task.color,
       scheduledDate: task.scheduledDate,
+      scheduledTime: task.scheduledTime,
+      endTime: task.endTime,
       priority: task.priority,
       status: newStatus,
       isRecurring: task.isRecurring,
@@ -335,7 +296,7 @@ export class DashboardComponent implements OnInit {
       next: updated => {
         const updatedTasks = this.allTasks().map(t => t.id === updated.id ? updated : t);
         this.allTasks.set(updatedTasks);
-        this.computeStats(this.objectives(), updatedTasks);
+        this.computeStats(this.objectives());
         if (updated.objectiveId) {
           this.recomputeObjectiveProgress(updated.objectiveId, updatedTasks);
         }
@@ -388,6 +349,8 @@ export class DashboardComponent implements OnInit {
       emoji: '',
       color: '#c7d2fe',
       scheduledDate: this.selectedDate() ?? this.dateKey(new Date()),
+      scheduledTime: '',
+      endTime: '',
       priority: 'Medium',
       categoryId: null,
       objectiveId: null,
@@ -407,6 +370,8 @@ export class DashboardComponent implements OnInit {
       emoji: task.emoji ?? '',
       color: task.color ?? '#c7d2fe',
       scheduledDate: task.scheduledDate?.substring(0, 10) ?? '',
+      scheduledTime: task.scheduledTime?.substring(0, 5) ?? '',
+      endTime: task.endTime?.substring(0, 5) ?? '',
       priority: task.priority,
       categoryId: task.categoryId ?? null,
       objectiveId: task.objectiveId ?? null,
@@ -429,6 +394,8 @@ export class DashboardComponent implements OnInit {
     const v = this.taskForm.value;
     const categoryId = v.categoryId ? Number(v.categoryId) : undefined;
     const objectiveId = v.objectiveId ? Number(v.objectiveId) : undefined;
+    const scheduledTime = v.scheduledTime ? v.scheduledTime + ':00' : undefined;
+    const endTime = v.endTime ? v.endTime + ':00' : undefined;
     const editingTaskId = this.editingTaskId();
 
     if (editingTaskId === null) {
@@ -438,6 +405,8 @@ export class DashboardComponent implements OnInit {
         emoji: v.emoji || undefined,
         color: v.color || undefined,
         scheduledDate: v.scheduledDate,
+        scheduledTime,
+        endTime,
         priority: v.priority,
         isRecurring: v.isRecurring,
         recurrenceType: v.recurrenceType,
@@ -447,7 +416,7 @@ export class DashboardComponent implements OnInit {
         next: created => {
           const updatedTasks = [...this.allTasks(), created];
           this.allTasks.set(updatedTasks);
-          this.computeStats(this.objectives(), updatedTasks);
+          this.computeStats(this.objectives());
           this.savingTask.set(false);
           this.showTaskForm.set(false);
           if (created.objectiveId) {
@@ -467,6 +436,8 @@ export class DashboardComponent implements OnInit {
         emoji: v.emoji || undefined,
         color: v.color || undefined,
         scheduledDate: v.scheduledDate,
+        scheduledTime,
+        endTime,
         priority: v.priority,
         status: v.status,
         isRecurring: v.isRecurring,
@@ -477,7 +448,7 @@ export class DashboardComponent implements OnInit {
         next: updated => {
           const updatedTasks = this.allTasks().map(t => t.id === updated.id ? updated : t);
           this.allTasks.set(updatedTasks);
-          this.computeStats(this.objectives(), updatedTasks);
+          this.computeStats(this.objectives());
           this.savingTask.set(false);
           this.showTaskForm.set(false);
           if (updated.objectiveId) {
@@ -510,7 +481,7 @@ export class DashboardComponent implements OnInit {
       next: () => {
         const remaining = this.allTasks().filter(t => t.id !== target.id);
         this.allTasks.set(remaining);
-        this.computeStats(this.objectives(), remaining);
+        this.computeStats(this.objectives());
         this.deleteTaskTarget.set(null);
         if (target.objectiveId) {
           this.recomputeObjectiveProgress(target.objectiveId, remaining);
@@ -550,7 +521,7 @@ export class DashboardComponent implements OnInit {
     }).subscribe(updated => {
       const updatedObjectives = this.objectives().map(o => o.id === updated.id ? updated : o);
       this.objectives.set(updatedObjectives);
-      this.computeStats(updatedObjectives, this.allTasks());
+      this.computeStats(updatedObjectives);
     });
   }
 
@@ -589,130 +560,4 @@ export class DashboardComponent implements OnInit {
     return `${y}-${m}-${d}`;
   }
 
-  // ── Objetivos: CRUD ──────────────────────────────────
-  categoryOf(objective: Objective): Category | undefined {
-    return this.categories().find(c => c.id === objective.categoryId);
-  }
-
-  statusLabel(status: ObjectiveStatus): string {
-    switch (status) {
-      case 'Pending': return 'Pendiente';
-      case 'InProgress': return 'En progreso';
-      case 'Completed': return 'Completado';
-      case 'Cancelled': return 'Cancelado';
-    }
-  }
-
-  openCreate(): void {
-    this.editingId.set(null);
-    this.formError.set('');
-    this.form.reset({
-      title: '',
-      description: '',
-      categoryId: null,
-      startDate: '',
-      endDate: '',
-      status: 'Pending',
-      progressPercentage: 0
-    });
-    this.showForm.set(true);
-  }
-
-  openEdit(objective: Objective): void {
-    this.editingId.set(objective.id);
-    this.formError.set('');
-    this.form.reset({
-      title: objective.title,
-      description: objective.description ?? '',
-      categoryId: objective.categoryId ?? null,
-      startDate: objective.startDate?.substring(0, 10) ?? '',
-      endDate: objective.endDate?.substring(0, 10) ?? '',
-      status: objective.status,
-      progressPercentage: objective.progressPercentage
-    });
-    this.showForm.set(true);
-  }
-
-  closeForm(): void {
-    this.showForm.set(false);
-  }
-
-  submit(): void {
-    if (this.form.invalid) return;
-    this.saving.set(true);
-    this.formError.set('');
-
-    const v = this.form.value;
-    const categoryId = v.categoryId ? Number(v.categoryId) : undefined;
-    const editingId = this.editingId();
-
-    if (editingId === null) {
-      this.objectiveService.create({
-        title: v.title,
-        description: v.description || undefined,
-        categoryId,
-        startDate: v.startDate || undefined,
-        endDate: v.endDate || undefined
-      }, this.auth.getUserId()).subscribe({
-        next: created => {
-          const updated = [...this.objectives(), created];
-          this.objectives.set(updated);
-          this.computeStats(updated, this.allTasks());
-          this.saving.set(false);
-          this.showForm.set(false);
-        },
-        error: () => {
-          this.saving.set(false);
-          this.formError.set('No se pudo crear el objetivo. Intenta de nuevo.');
-        }
-      });
-    } else {
-      this.objectiveService.update(editingId, {
-        title: v.title,
-        description: v.description || undefined,
-        categoryId,
-        startDate: v.startDate || undefined,
-        endDate: v.endDate || undefined,
-        status: v.status,
-        progressPercentage: Number(v.progressPercentage)
-      }).subscribe({
-        next: updatedObj => {
-          const updated = this.objectives().map(o => o.id === updatedObj.id ? updatedObj : o);
-          this.objectives.set(updated);
-          this.computeStats(updated, this.allTasks());
-          this.saving.set(false);
-          this.showForm.set(false);
-        },
-        error: () => {
-          this.saving.set(false);
-          this.formError.set('No se pudo guardar el objetivo. Intenta de nuevo.');
-        }
-      });
-    }
-  }
-
-  askDelete(objective: Objective): void {
-    this.deleteTarget.set(objective);
-  }
-
-  cancelDelete(): void {
-    this.deleteTarget.set(null);
-  }
-
-  confirmDelete(): void {
-    const target = this.deleteTarget();
-    if (!target) return;
-    this.objectiveService.delete(target.id).subscribe({
-      next: () => {
-        const updated = this.objectives().filter(o => o.id !== target.id);
-        this.objectives.set(updated);
-        this.computeStats(updated, this.allTasks());
-        this.deleteTarget.set(null);
-      },
-      error: () => {
-        this.deleteTarget.set(null);
-        this.loadError.set(true);
-      }
-    });
-  }
 }
