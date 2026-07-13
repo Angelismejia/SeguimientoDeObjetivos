@@ -177,8 +177,9 @@
                 type="button"
                 class="task-check"
                 [class.checked]="task.status === 'Completed'"
+                [disabled]="task.status !== 'Completed' && isFuture(task)"
                 (click)="toggleTaskComplete(task)"
-                title="Marcar como completada"
+                [title]="task.status !== 'Completed' && isFuture(task) ? 'No podés completar una tarea programada para el futuro' : 'Marcar como completada'"
               >
                 <span class="material-icons-round">{{ task.status === 'Completed' ? 'check_circle' : 'radio_button_unchecked' }}</span>
               </button>

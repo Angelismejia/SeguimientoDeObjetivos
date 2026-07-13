@@ -194,6 +194,8 @@
 .task-check .material-icons-round { font-size: 22px; }
 .task-check:hover { color: #818cf8; }
 .task-check.checked { color: #16a34a; }
+.task-check:disabled { color: #e5e7eb; cursor: not-allowed; }
+.task-check:disabled:hover { color: #e5e7eb; }
 
 /* ── RESPONSIVE ───────────────────────────────────────── */
 @media (max-width: 600px) {

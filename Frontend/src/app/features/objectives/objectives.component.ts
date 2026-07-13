@@ -131,6 +131,13 @@ export class ObjectivesComponent implements OnInit {
       new Date(task.scheduledDate) < new Date(new Date().toDateString());
   }
 
+  isFuture(task: TaskItem): boolean {
+    if (!task.scheduledDate) return false;
+    const taskDate = this.parseDateKey(task.scheduledDate.substring(0, 10));
+    const today = this.parseDateKey(this.dateKey(new Date()));
+    return taskDate > today;
+  }
+
   // ── Racha y mapa de calor ─────────────────────────────
   private completedDaysFor(objectiveId: number): Set<string> {
     return new Set(
@@ -215,6 +222,7 @@ export class ObjectivesComponent implements OnInit {
   }
 
   toggleTaskComplete(task: TaskItem): void {
+    if (task.status !== 'Completed' && this.isFuture(task)) return;
     const newStatus = task.status === 'Completed' ? 'Pending' : 'Completed';
     this.taskService.update(task.id, {
       title: task.title,
