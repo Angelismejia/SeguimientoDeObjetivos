@@ -16,6 +16,8 @@ namespace Application
             services.AddScoped<IDiaryEntryService, DiaryEntryService>();
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IBadgeService, BadgeService>();
+            services.AddScoped<IFollowService, FollowService>();
+            services.AddScoped<IFriendStreakService, FriendStreakService>();
 
             return services;
         }

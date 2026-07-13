@@ -21,6 +21,9 @@ namespace Infrastructure.Persistence
         public DbSet<Badge> Badges { get; set; }
         public DbSet<UserBadge> UserBadges { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<Follow> Follows { get; set; }
+        public DbSet<FriendStreakInvitation> FriendStreakInvitations { get; set; }
+        public DbSet<FriendStreak> FriendStreaks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -78,6 +81,51 @@ namespace Infrastructure.Persistence
             {
                 entity.Property(c => c.Name).HasMaxLength(100).IsRequired();
                 entity.HasIndex(c => c.UserId);
+            });
+
+            modelBuilder.Entity<Follow>(entity =>
+            {
+                entity.HasIndex(f => new { f.FollowerId, f.FollowingId }).IsUnique();
+
+                entity.HasOne(f => f.Follower)
+                    .WithMany()
+                    .HasForeignKey(f => f.FollowerId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(f => f.Following)
+                    .WithMany()
+                    .HasForeignKey(f => f.FollowingId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<FriendStreakInvitation>(entity =>
+            {
+                entity.Property(i => i.Status).HasMaxLength(20).IsRequired();
+
+                entity.HasOne(i => i.FromUser)
+                    .WithMany()
+                    .HasForeignKey(i => i.FromUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(i => i.ToUser)
+                    .WithMany()
+                    .HasForeignKey(i => i.ToUserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<FriendStreak>(entity =>
+            {
+                entity.HasIndex(f => new { f.UserAId, f.UserBId }).IsUnique();
+
+                entity.HasOne(f => f.UserA)
+                    .WithMany()
+                    .HasForeignKey(f => f.UserAId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(f => f.UserB)
+                    .WithMany()
+                    .HasForeignKey(f => f.UserBId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
         }
 

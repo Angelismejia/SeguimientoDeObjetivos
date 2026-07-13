@@ -27,6 +27,9 @@ namespace Infrastructure
             services.AddScoped<IDiaryEntryRepository, DiaryEntryRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<IBadgeRepository, BadgeRepository>();
+            services.AddScoped<IFollowRepository, FollowRepository>();
+            services.AddScoped<IFriendStreakInvitationRepository, FriendStreakInvitationRepository>();
+            services.AddScoped<IFriendStreakRepository, FriendStreakRepository>();
 
             services.AddHostedService<TaskReminderBackgroundService>();
 
