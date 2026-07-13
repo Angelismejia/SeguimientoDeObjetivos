@@ -29,6 +29,9 @@
         <span class="bell-badge">{{ unreadCount() > 9 ? '9+' : unreadCount() }}</span>
       }
     </a>
+    <a class="btn-logout-mobile" routerLink="/chat" routerLinkActive="active" title="Chat">
+      <span class="material-icons-round">chat_bubble</span>
+    </a>
     <button class="btn-logout-mobile" type="button" (click)="logout()" title="Cerrar sesión">
       <span class="material-icons-round">logout</span>
     </button>

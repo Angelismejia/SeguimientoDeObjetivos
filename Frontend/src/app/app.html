@@ -11,9 +11,15 @@
             <span class="bell-badge">{{ unreadCount() > 9 ? '9+' : unreadCount() }}</span>
           }
         </a>
-        <a class="user-chip" routerLink="/profile" routerLinkActive="active">
-          <span class="material-icons-round">account_circle</span>
-          <span class="user-name">{{ userName() }}</span>
+        <a class="btn-bell" routerLink="/chat" routerLinkActive="active" title="Chat">
+          <span class="material-icons-round">chat_bubble</span>
+        </a>
+        <a class="user-avatar" routerLink="/profile" routerLinkActive="active" [title]="userName()">
+          @if (userPhotoUrl()) {
+            <img [src]="userPhotoUrl()" alt="" />
+          } @else {
+            <span class="material-icons-round">account_circle</span>
+          }
         </a>
         <button class="btn-logout" type="button" (click)="logout()" title="Cerrar sesión">
           <span class="material-icons-round">logout</span>

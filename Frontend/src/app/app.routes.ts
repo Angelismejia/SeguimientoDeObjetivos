@@ -39,6 +39,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/diary/diary.component').then(m => m.DiaryComponent)
   },
   {
+    path: 'chat',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/chat/chat.component').then(m => m.ChatComponent)
+  },
+  {
     path: 'notifications',
     canActivate: [authGuard],
     loadComponent: () => import('./features/notifications/notifications.component').then(m => m.NotificationsComponent)

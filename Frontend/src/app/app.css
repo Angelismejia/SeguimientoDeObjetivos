@@ -30,14 +30,15 @@
   border: 2px solid #fff;
 }
 
-.user-chip {
-  display: flex; align-items: center; gap: 8px; min-width: 0;
-  color: #374151; font-size: 0.85rem; font-weight: 600;
-  padding: 8px 10px; border-radius: 8px; transition: background 0.15s;
+.user-avatar {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  overflow: hidden;
+  transition: background 0.15s;
 }
-.user-chip:hover { background: #f3f4f6; }
-.user-chip .material-icons-round { font-size: 22px; flex-shrink: 0; color: #4f46e5; }
-.user-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px; }
+.user-avatar:hover { background: #f3f4f6; }
+.user-avatar .material-icons-round { font-size: 28px; color: #4f46e5; }
+.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
 .btn-logout {
   display: flex; align-items: center; justify-content: center;
