@@ -62,6 +62,31 @@ export class DashboardComponent implements OnInit {
     });
   });
 
+  streak = computed(() => {
+    const completedDays = new Set(
+      this.allTasks()
+        .filter(t => t.status === 'Completed' && !!t.scheduledDate)
+        .map(t => t.scheduledDate.substring(0, 10))
+    );
+
+    let cursor = this.dateKey(new Date());
+    if (!completedDays.has(cursor)) {
+      cursor = this.dateKey(this.addDays(new Date(), -1));
+    }
+    let streak = 0;
+    while (completedDays.has(cursor)) {
+      streak++;
+      cursor = this.dateKey(this.addDays(this.parseDateKey(cursor), -1));
+    }
+    return streak;
+  });
+
+  private addDays(date: Date, days: number): Date {
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    d.setDate(d.getDate() + days);
+    return d;
+  }
+
   upcomingTasks = computed(() =>
     this.allTasks()
       .filter(t => t.status !== 'Completed' && t.status !== 'Skipped' && !!t.scheduledDate)

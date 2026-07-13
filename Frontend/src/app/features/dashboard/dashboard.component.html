@@ -1,7 +1,13 @@
 <div class="dashboard">
   <div class="dashboard-header">
-    <h1>¡Hola, {{ name }}! 👋</h1>
-    <p>Bienvenido de vuelta a tu seguimiento de objetivos.</p>
+    <div>
+      <h1>¡Hola, {{ name }}! 👋</h1>
+      <p>Bienvenido de vuelta a tu seguimiento de objetivos.</p>
+    </div>
+    <span class="streak-badge">
+      <span class="material-icons-round streak-icon">local_fire_department</span>
+      {{ streak() }}
+    </span>
   </div>
 
   @if (loading()) {
