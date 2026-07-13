@@ -41,7 +41,12 @@
 
           <div class="habit-heatmap">
             @for (cell of heatmapFor(obj.id); track cell.key) {
-              <span class="heatmap-cell" [class.filled]="cell.completed" [style.background]="cell.completed ? (categoryOf(obj)?.color ?? '#4f46e5') : null"></span>
+              <span
+                class="heatmap-cell"
+                [class.filled]="cell.completed"
+                [style.background]="cell.completed ? (categoryOf(obj)?.color ?? '#4f46e5') : null"
+                (click)="selectCell(obj.id, cell, $event)"
+              ></span>
             }
           </div>
 
@@ -53,6 +58,10 @@
               <span class="material-icons-round">delete</span>
             </button>
           </span>
+
+          @if (selectedCellLabel(obj.id); as label) {
+            <span class="heatmap-cell-label">{{ label }}</span>
+          }
         </li>
       }
     </ul>

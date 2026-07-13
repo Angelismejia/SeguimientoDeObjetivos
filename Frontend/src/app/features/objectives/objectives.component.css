@@ -51,6 +51,7 @@
   padding: 16px 18px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.06);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 14px;
   cursor: pointer;
@@ -75,8 +76,24 @@
   gap: 3px;
   flex-shrink: 0;
 }
-.heatmap-cell { width: 8px; height: 8px; border-radius: 2px; background: #f3f4f6; }
+.heatmap-cell {
+  width: 8px; height: 8px; border-radius: 2px; background: #f3f4f6;
+  cursor: pointer; box-shadow: 0 0 0 3px transparent;
+  transition: box-shadow 0.1s;
+}
 .heatmap-cell.filled { background: #4f46e5; }
+.heatmap-cell:hover { box-shadow: 0 0 0 3px #ddd6fe; }
+
+.heatmap-cell-label {
+  flex-basis: 100%;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #4b5563;
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 6px 10px;
+  text-transform: capitalize;
+}
 
 .habit-actions { display: inline-flex; gap: 6px; flex-shrink: 0; }
 .btn-icon-only {

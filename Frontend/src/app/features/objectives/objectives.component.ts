@@ -165,6 +165,28 @@ export class ObjectivesComponent implements OnInit {
     return cells;
   }
 
+  // ── Mapa de calor: click para ver la fecha ────────────
+  selectedCell = signal<{ objectiveId: number; key: string } | null>(null);
+
+  selectCell(objectiveId: number, cell: HeatmapCell, event: Event): void {
+    event.stopPropagation();
+    const current = this.selectedCell();
+    if (current && current.objectiveId === objectiveId && current.key === cell.key) {
+      this.selectedCell.set(null);
+      return;
+    }
+    this.selectedCell.set({ objectiveId, key: cell.key });
+  }
+
+  selectedCellLabel(objectiveId: number): string | null {
+    const sel = this.selectedCell();
+    if (!sel || sel.objectiveId !== objectiveId) return null;
+    const date = this.parseDateKey(sel.key);
+    const completed = this.completedDaysFor(objectiveId).has(sel.key);
+    const dateLabel = date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+    return `${dateLabel} — ${completed ? 'completado ✅' : 'sin actividad'}`;
+  }
+
   private addDays(date: Date, days: number): Date {
     const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     d.setDate(d.getDate() + days);
