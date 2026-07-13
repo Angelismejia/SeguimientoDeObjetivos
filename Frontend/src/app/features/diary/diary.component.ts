@@ -61,6 +61,12 @@ export class DiaryComponent implements OnInit {
     return [...entries].sort((a, b) => new Date(b.entryDate).getTime() - new Date(a.entryDate).getTime());
   }
 
+  preview(content: string): string {
+    const maxLength = 140;
+    const oneLine = content.replace(/\s+/g, ' ').trim();
+    return oneLine.length > maxLength ? oneLine.substring(0, maxLength).trimEnd() + '…' : oneLine;
+  }
+
   private today(): string {
     const d = new Date();
     const y = d.getFullYear();

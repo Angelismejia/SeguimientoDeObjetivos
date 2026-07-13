@@ -26,7 +26,7 @@
   } @else {
     <ul class="entry-list">
       @for (entry of entries(); track entry.id) {
-        <li class="entry-card">
+        <li class="entry-card" (click)="openEdit(entry)">
           <div class="entry-top">
             <div class="entry-heading">
               @if (entry.title) {
@@ -35,15 +35,15 @@
               <span class="entry-date">{{ entry.entryDate | date: "EEEE d 'de' MMMM, yyyy" }}</span>
             </div>
             <span class="entry-actions">
-              <button type="button" class="btn-icon-only" (click)="openEdit(entry)" title="Editar">
+              <button type="button" class="btn-icon-only" (click)="openEdit(entry); $event.stopPropagation()" title="Editar">
                 <span class="material-icons-round">edit</span>
               </button>
-              <button type="button" class="btn-icon-only danger" (click)="askDelete(entry)" title="Eliminar">
+              <button type="button" class="btn-icon-only danger" (click)="askDelete(entry); $event.stopPropagation()" title="Eliminar">
                 <span class="material-icons-round">delete</span>
               </button>
             </span>
           </div>
-          <p class="entry-content">{{ entry.content }}</p>
+          <p class="entry-content">{{ preview(entry.content) }}</p>
         </li>
       }
     </ul>

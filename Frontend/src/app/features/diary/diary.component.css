@@ -49,7 +49,10 @@
   border-radius: 14px;
   padding: 20px 22px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  cursor: pointer;
+  transition: box-shadow 0.15s;
 }
+.entry-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
 
 .entry-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
 .entry-heading { display: flex; flex-direction: column; gap: 2px; }
