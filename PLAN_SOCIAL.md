@@ -96,10 +96,10 @@ User (agregar campo)
 
 _(ir tachando acá a medida que se completa cada fase)_
 
-- [ ] Fase 1 — Perfil base
-- [ ] Fase 2 — Racha personal
-- [ ] Fase 3 — Seguir/seguidores
-- [ ] Fase 4 — Racha compartida
-- [ ] Fase 5 — Rediseño de navegación
+- [x] Fase 1 — Perfil base
+- [x] Fase 2 — Racha personal (dashboard, objetivos y perfil)
+- [x] Fase 3 — Seguir/seguidores
+- [x] Fase 4 — Racha compartida (invitación desde amigos que ya sigo; racha calculada al vuelo comparando tareas completadas de ambos, no un contador guardado — igual que las demás rachas, ver nota abajo)
+- [~] Fase 5 — Rediseño de navegación (tab bar + campanita hechos; falta embeber categorías en el form de tarea y mover insignias a perfil)
 - [ ] Fase 6 — Chat en tiempo real
 - [ ] Fase 7 — Pulido responsive
