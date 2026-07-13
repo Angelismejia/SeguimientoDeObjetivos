@@ -11,10 +11,12 @@ namespace Api.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IWebHostEnvironment _env;
 
-        public UsersController(IUserService userService)
+        public UsersController(IUserService userService, IWebHostEnvironment env)
         {
             _userService = userService;
+            _env = env;
         }
 
         [HttpGet]
@@ -40,6 +42,32 @@ namespace Api.Controllers
         public async Task<ActionResult<UserDto>> Update(int id, UpdateUserDto dto)
         {
             return Ok(await _userService.UpdateAsync(id, dto));
+        }
+
+        [HttpPost("{id}/photo")]
+        public async Task<ActionResult<UserDto>> UploadPhoto(int id, IFormFile file)
+        {
+            if (file.Length == 0)
+                return BadRequest("El archivo está vacío.");
+
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!allowedExtensions.Contains(extension))
+                return BadRequest("Formato no permitido. Usa JPG, PNG o WEBP.");
+
+            var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
+            Directory.CreateDirectory(uploadsFolder);
+
+            var fileName = $"user{id}-{Guid.NewGuid()}{extension}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var photoUrl = $"/uploads/{fileName}";
+            return Ok(await _userService.UpdatePhotoAsync(id, photoUrl));
         }
 
         [HttpDelete("{id}")]

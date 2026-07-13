@@ -8,6 +8,7 @@ namespace Application.Interfaces.Services
         Task<UserDto> GetByIdAsync(int id);
         Task<UserDto> CreateAsync(CreateUserDto dto);
         Task<UserDto> UpdateAsync(int id, UpdateUserDto dto);
+        Task<UserDto> UpdatePhotoAsync(int id, string photoUrl);
         Task DeleteAsync(int id);
     }
 }

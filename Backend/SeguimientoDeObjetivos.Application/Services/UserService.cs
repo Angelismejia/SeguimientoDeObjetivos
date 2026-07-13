@@ -64,6 +64,19 @@ namespace Application.Services
             return ToDto(user);
         }
 
+        public async Task<UserDto> UpdatePhotoAsync(int id, string photoUrl)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user is null) throw new NotFoundException("User", id);
+
+            user.ProfilePhotoUrl = photoUrl;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _userRepository.UpdateAsync(user);
+            await _unitOfWork.SaveChangesAsync();
+            return ToDto(user);
+        }
+
         public async Task DeleteAsync(int id)
         {
             var deleted = await _userRepository.DeleteAsync(id);
@@ -79,7 +92,8 @@ namespace Application.Services
             Email = u.Email,
             IsActive = u.IsActive,
             CreatedAt = u.CreatedAt,
-            UpdatedAt = u.UpdatedAt
+            UpdatedAt = u.UpdatedAt,
+            ProfilePhotoUrl = u.ProfilePhotoUrl ?? string.Empty
         };
     }
 }
