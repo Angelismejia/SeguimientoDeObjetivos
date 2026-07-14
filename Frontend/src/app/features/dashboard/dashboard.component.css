@@ -72,34 +72,6 @@
 .btn-main:hover { opacity: 0.9; }
 .btn-icon { font-size: 20px; }
 
-/* ── STATS ─────────────────────────────────────── */
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
-.stat-card {
-  background: #fff;
-  border-radius: 14px;
-  padding: 20px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-}
-.stat-card.alert .stat-value { color: #dc2626; }
-.stat-icon { color: #7c3aed; font-size: 24px; margin-bottom: 4px; }
-.stat-value { font-size: 1.8rem; font-weight: 800; color: #111827; }
-.stat-label { font-size: 0.82rem; color: #6b7280; }
-
-/* ── GRID DE PANELES ──────────────────────────────── */
-.content-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
 .panel {
   background: #fff;
   border-radius: 14px;
@@ -396,7 +368,8 @@
   border-color: #818cf8;
 }
 .field textarea { resize: vertical; }
-.field-row { display: flex; gap: 14px; }
+.field-row { display: flex; gap: 14px; flex-wrap: wrap; }
+.field-row .field { min-width: 120px; }
 
 .field-with-add { display: flex; gap: 8px; }
 .field-with-add select { flex: 1; }
@@ -536,15 +509,13 @@
 .month-day.selected { background: #ede9fe; border-color: #ddd6fe; }
 
 /* ── RESPONSIVE ───────────────────────────────────── */
-@media (max-width: 900px) {
-  .stats-row { grid-template-columns: repeat(2, 1fr); }
-  .content-grid { grid-template-columns: 1fr; }
-}
 @media (max-width: 480px) {
   .dashboard { padding: 24px 16px 40px; }
-  .stats-row { grid-template-columns: 1fr 1fr; gap: 12px; }
-  .stat-card { padding: 16px; }
   .calendar-week { gap: 4px; }
   .day-weekday { font-size: 0.6rem; }
   .calendar-month { min-width: auto; }
+  .dashboard-header { flex-direction: column; align-items: flex-start; }
+  .big-calendar-card { padding: 18px; }
+  .month-grid { gap: 4px; }
+  .month-day { min-height: 48px; padding: 8px 0 10px; }
 }
