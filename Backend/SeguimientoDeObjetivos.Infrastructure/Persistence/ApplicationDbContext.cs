@@ -15,11 +15,13 @@ namespace Infrastructure.Persistence
         public DbSet<Category> Categories { get; set; }
         public DbSet<Objective> Objectives { get; set; }
         public DbSet<TaskItem> Tasks { get; set; }
+
         public DbSet<TaskRepeatDay> TaskRepeatDays { get; set; }
         public DbSet<DiaryEntry> DiaryEntries { get; set; }
         public DbSet<Streak> Streaks { get; set; }
         public DbSet<Badge> Badges { get; set; }
         public DbSet<UserBadge> UserBadges { get; set; }
+        public DbSet<Message> Messages { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Follow> Follows { get; set; }
         public DbSet<FriendStreakInvitation> FriendStreakInvitations { get; set; }
@@ -97,7 +99,20 @@ namespace Infrastructure.Persistence
                     .HasForeignKey(f => f.FollowingId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
+            modelBuilder.Entity<Message>(entity =>
+            {
+                entity.HasIndex(f => new { f.SenderId, f.ReceiverId });
+                entity.HasOne(f => f.Sender)
+                    .WithMany()
+                    .HasForeignKey(f => f.SenderId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(f => f.Receiver)
+                    .WithMany()
+                    .HasForeignKey(f => f.ReceiverId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+            
             modelBuilder.Entity<FriendStreakInvitation>(entity =>
             {
                 entity.Property(i => i.Status).HasMaxLength(20).IsRequired();
@@ -128,9 +143,6 @@ namespace Infrastructure.Persistence
                     .OnDelete(DeleteBehavior.Restrict);
             });
         }
-
-
-
 
     }
 }

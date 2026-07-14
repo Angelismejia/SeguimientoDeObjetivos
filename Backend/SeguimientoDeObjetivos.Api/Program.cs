@@ -1,3 +1,4 @@
+using Api.Hubs;
 using Api.Middleware;
 using Application;
 using Infrastructure;
@@ -32,6 +33,24 @@ builder.Services
             ValidAudience = builder.Configuration["Jwt:Audience"] ?? "SeguimientoObjetivosUsers",
             ValidateLifetime = true
         };
+
+        // SignalR no puede mandar el header Authorization en la conexión WebSocket,
+        // así que el token viaja como query string (?access_token=...) y lo leemos acá.
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddCors(options =>
@@ -49,6 +68,7 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSignalR();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
@@ -64,9 +84,13 @@ if (app.Environment.IsDevelopment())
 app.UseExceptionHandler();
 app.UseCors("AllowAll");
 app.UseStaticFiles();
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<ChatHub>("/hubs/chat");
 
 app.Run();

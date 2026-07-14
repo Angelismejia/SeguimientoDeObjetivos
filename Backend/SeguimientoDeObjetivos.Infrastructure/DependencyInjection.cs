@@ -30,6 +30,7 @@ namespace Infrastructure
             services.AddScoped<IFollowRepository, FollowRepository>();
             services.AddScoped<IFriendStreakInvitationRepository, FriendStreakInvitationRepository>();
             services.AddScoped<IFriendStreakRepository, FriendStreakRepository>();
+            services.AddScoped<IMessageRepository, MessageRepository>();
 
             services.AddHostedService<TaskReminderBackgroundService>();
 

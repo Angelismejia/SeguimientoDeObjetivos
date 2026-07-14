@@ -18,6 +18,7 @@ namespace Application
             services.AddScoped<IBadgeService, BadgeService>();
             services.AddScoped<IFollowService, FollowService>();
             services.AddScoped<IFriendStreakService, FriendStreakService>();
+            services.AddScoped<IMessageService, MessageService>();
 
             return services;
         }
