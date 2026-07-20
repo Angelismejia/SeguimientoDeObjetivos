@@ -196,5 +196,5 @@ input:focus {
 /* ── RESPONSIVE ───────────────────────────────────── */
 @media (max-width: 650px) {
   .image-col { display: none; }
-  .form-col { width: 100%; }
+  .form-col { width: 100%; min-height: 720px; overflow: visible; }
 }
