@@ -51,6 +51,9 @@ export class ProfileComponent implements OnInit {
   friendAction = signal<UserSummary | null>(null);
   friendActionError = signal('');
 
+  // ── Listado de siguiendo / seguidores ──────────────────
+  listModal = signal<'following' | 'followers' | null>(null);
+
   constructor(
     private fb: FormBuilder,
     private auth: AuthService,
@@ -234,6 +237,23 @@ export class ProfileComponent implements OnInit {
         this.searchError.set('No se pudo seguir a este usuario. Intenta de nuevo.');
       }
     });
+  }
+
+  // ── Listado de siguiendo / seguidores ──────────────────
+  openList(type: 'following' | 'followers'): void {
+    this.listModal.set(type);
+  }
+
+  closeList(): void {
+    this.listModal.set(null);
+  }
+
+  openFriendFromList(friend: UserSummary): void {
+    const wasFollowing = this.listModal() === 'following';
+    this.listModal.set(null);
+    if (wasFollowing) {
+      this.openFriendAction(friend);
+    }
   }
 
   // ── Acción sobre un amigo ──────────────────────────────

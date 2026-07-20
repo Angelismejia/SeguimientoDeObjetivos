@@ -32,14 +32,14 @@
     }
 
     <div class="stats-row">
-      <div class="stat-item">
+      <button type="button" class="stat-item stat-item-clickable" (click)="openList('following')">
         <span class="stat-value">{{ following().length }}</span>
         <span class="stat-label">Siguiendo</span>
-      </div>
-      <div class="stat-item">
+      </button>
+      <button type="button" class="stat-item stat-item-clickable" (click)="openList('followers')">
         <span class="stat-value">{{ followers().length }}</span>
         <span class="stat-label">Seguidores</span>
-      </div>
+      </button>
       <div class="stat-item">
         <span class="stat-value streak-value">
           <span class="material-icons-round streak-icon">local_fire_department</span>
@@ -171,6 +171,41 @@
       <div class="dialog-actions split">
         <button type="button" class="btn-cancel danger-text" (click)="askUnfollowFromAction()">Dejar de seguir</button>
         <button type="button" class="btn-cancel" (click)="closeFriendAction()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (listModal(); as type) {
+  <div class="dialog-overlay" (click)="closeList()">
+    <div class="dialog-card" (click)="$event.stopPropagation()">
+      <h2 class="dialog-title">{{ type === 'following' ? 'Siguiendo' : 'Seguidores' }}</h2>
+
+      @let list = type === 'following' ? following() : followers();
+      @if (list.length === 0) {
+        <p class="upload-status">
+          {{ type === 'following' ? 'Todavía no seguís a nadie.' : 'Todavía no tenés seguidores.' }}
+        </p>
+      } @else {
+        <ul class="user-list">
+          @for (person of list; track person.id) {
+            <li class="user-list-item" (click)="openFriendFromList(person)">
+              @if (friendPhotoUrl(person)) {
+                <img [src]="friendPhotoUrl(person)" alt="" class="user-list-avatar" />
+              } @else {
+                <span class="material-icons-round user-list-avatar-placeholder">account_circle</span>
+              }
+              <div class="found-user-info">
+                <span class="found-user-name">{{ person.name }}</span>
+                <span class="found-user-username">&#64;{{ person.username }}</span>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+
+      <div class="dialog-actions">
+        <button type="button" class="btn-cancel" (click)="closeList()">Cerrar</button>
       </div>
     </div>
   </div>
