@@ -198,6 +198,7 @@ input:focus {
 
 /* ── RESPONSIVE ───────────────────────────────────── */
 @media (max-width: 650px) {
-  .image-col { display: none; }
-  .form-col { width: 100%; min-height: 720px; overflow: visible; }
+  .card { flex-direction: column; }
+  .image-col { flex: none; height: 180px; }
+  .form-col { width: 100%; min-height: auto; overflow: visible; }
 }
