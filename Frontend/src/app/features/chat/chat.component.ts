@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, effect, signal } from '@angular/core';
+import { Component, OnInit, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
@@ -15,7 +15,7 @@ import { environment } from '../../../environments/environment';
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.css'
 })
-export class ChatComponent implements OnInit, OnDestroy {
+export class ChatComponent implements OnInit {
   loading = signal(true);
   loadError = signal(false);
 
@@ -59,10 +59,6 @@ export class ChatComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.chatService.connect();
     this.loadFriends();
-  }
-
-  ngOnDestroy(): void {
-    this.chatService.disconnect();
   }
 
   reconnect(): void {
