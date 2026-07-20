@@ -1,7 +1,86 @@
 <div class="chat-page">
-  <div class="empty-state">
-    <span class="material-icons-round empty-icon">chat_bubble</span>
-    <h1>Chat</h1>
-    <p>Muy pronto vas a poder chatear en tiempo real con tus amigos acá.</p>
+  @if (chatService.connectionError(); as connError) {
+    <div class="connection-banner">
+      <span>{{ connError }}</span>
+      <button type="button" (click)="reconnect()">Reintentar</button>
+    </div>
+  }
+
+  <div class="chat-body">
+    <aside class="friends-panel" [class.hidden-mobile]="activeFriend()">
+      <h2>Chats</h2>
+      @if (loading()) {
+        <p class="panel-empty">Cargando...</p>
+      } @else if (loadError()) {
+        <p class="panel-empty error">No se pudo cargar tu lista de amigos.</p>
+      } @else if (friends().length === 0) {
+        <p class="panel-empty">Todavía no seguís a nadie. Agregá amigos desde tu perfil para poder chatear.</p>
+      } @else {
+        <ul class="friend-list">
+          @for (friend of friends(); track friend.id) {
+            <li
+              class="friend-item"
+              [class.active]="activeFriend()?.id === friend.id"
+              (click)="openConversation(friend)"
+            >
+              @if (friendPhotoUrl(friend)) {
+                <img [src]="friendPhotoUrl(friend)" alt="" class="friend-avatar" />
+              } @else {
+                <span class="material-icons-round friend-avatar-placeholder">account_circle</span>
+              }
+              <div class="friend-info">
+                <span class="friend-name">{{ friend.name }}</span>
+                <span class="friend-username">&#64;{{ friend.username }}</span>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </aside>
+
+    <main class="conversation-panel" [class.hidden-mobile]="!activeFriend()">
+      @if (activeFriend(); as friend) {
+        <div class="conversation-header">
+          <button type="button" class="btn-back" (click)="closeConversation()">
+            <span class="material-icons-round">arrow_back</span>
+          </button>
+          @if (friendPhotoUrl(friend)) {
+            <img [src]="friendPhotoUrl(friend)" alt="" class="friend-avatar" />
+          } @else {
+            <span class="material-icons-round friend-avatar-placeholder">account_circle</span>
+          }
+          <span class="conversation-title">{{ friend.name }}</span>
+        </div>
+
+        <div class="messages-list">
+          @if (loadingConversation()) {
+            <p class="panel-empty">Cargando mensajes...</p>
+          } @else if (messages().length === 0) {
+            <p class="panel-empty">Todavía no hay mensajes. ¡Escribí el primero!</p>
+          } @else {
+            @for (message of messages(); track message.id) {
+              <div class="message-row" [class.mine]="isMine(message)">
+                <span class="message-bubble">{{ message.content }}</span>
+              </div>
+            }
+          }
+        </div>
+
+        @if (sendError()) {
+          <p class="send-error">{{ sendError() }}</p>
+        }
+        <form [formGroup]="messageForm" (ngSubmit)="send()" class="message-form">
+          <input type="text" formControlName="content" placeholder="Escribí un mensaje..." autocomplete="off" />
+          <button type="submit" class="btn-send" [disabled]="messageForm.invalid">
+            <span class="material-icons-round">send</span>
+          </button>
+        </form>
+      } @else {
+        <div class="empty-conversation">
+          <span class="material-icons-round empty-icon">chat_bubble</span>
+          <p>Elegí un amigo de la izquierda para empezar a chatear.</p>
+        </div>
+      }
+    </main>
   </div>
 </div>
