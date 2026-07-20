@@ -7,6 +7,7 @@ import { AuthService } from './core/services/auth.service';
 import { NotificationService } from './core/services/notification.service';
 import { UserService } from './core/services/user.service';
 import { environment } from '../environments/environment';
+import { ChatService } from './core/services/chat.service';
 
 @Component({
   selector: 'app-root',
@@ -27,7 +28,8 @@ export class App {
     private router: Router,
     private authService: AuthService,
     private notificationService: NotificationService,
-    private userService: UserService
+    private userService: UserService,
+    private chatService: ChatService
   ) {
     this.updateNavbarVisibility();
     this.router.events
@@ -43,6 +45,7 @@ export class App {
     this.userName.set(this.authService.getName());
 
     if (loggedIn) {
+      this.chatService.connect();
       this.userService.getById(this.authService.getUserId()).subscribe({
         next: user => this.userPhotoUrl.set(user.profilePhotoUrl ? this.apiOrigin + user.profilePhotoUrl : null),
         error: () => {}
@@ -64,6 +67,7 @@ export class App {
   }
 
   logout(): void {
+    this.chatService.disconnect();
     this.authService.logout();
   }
 }
