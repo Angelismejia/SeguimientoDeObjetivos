@@ -1,0 +1,125 @@
+<div class="profile-page">
+  @if (loading()) {
+    <div class="state-msg">Cargando perfil...</div>
+  } @else if (loadError()) {
+    <div class="state-msg error">No se pudo cargar este perfil. Intenta de nuevo más tarde.</div>
+  } @else if (user(); as u) {
+    <button type="button" class="back-link" (click)="goBack()">
+      <span class="material-icons-round">arrow_back</span>
+      Volver
+    </button>
+
+    <div class="profile-header">
+      @if (photoUrl()) {
+        <img [src]="photoUrl()" alt="" class="profile-photo" />
+      } @else {
+        <span class="material-icons-round photo-placeholder">account_circle</span>
+      }
+
+      <div class="profile-info">
+        <h1>{{ u.name }}</h1>
+        <p class="profile-username">&#64;{{ u.username }}</p>
+      </div>
+    </div>
+
+    <div class="actions-row">
+      <button type="button" class="btn-confirm" [disabled]="followBusy()" (click)="toggleFollow()">
+        <span class="material-icons-round">{{ isFollowing() ? 'how_to_reg' : 'person_add' }}</span>
+        {{ isFollowing() ? 'Siguiendo' : 'Seguir' }}
+      </button>
+      <button type="button" class="btn-chat" (click)="chatWith()">
+        <span class="material-icons-round">chat_bubble</span>
+        Hablar
+      </button>
+    </div>
+
+    <div class="stats-row">
+      <button type="button" class="stat-item stat-item-clickable" (click)="openList('following')">
+        <span class="stat-value">{{ following().length }}</span>
+        <span class="stat-label">Siguiendo</span>
+      </button>
+      <button type="button" class="stat-item stat-item-clickable" (click)="openList('followers')">
+        <span class="stat-value">{{ followers().length }}</span>
+        <span class="stat-label">Seguidores</span>
+      </button>
+      <div class="stat-item">
+        <span class="stat-value streak-value">
+          <span class="material-icons-round streak-icon">local_fire_department</span>
+          {{ streak() }}
+        </span>
+        <span class="stat-label">Racha del día</span>
+      </div>
+    </div>
+
+    @if (badges().length > 0) {
+      <div class="section">
+        <h2>Insignias</h2>
+        <ul class="badge-row">
+          @for (badge of badges(); track badge.id) {
+            <li class="badge-chip" [title]="badge.description ?? badge.name">
+              <span class="material-icons-round">{{ badge.icon || 'workspace_premium' }}</span>
+              <span>{{ badge.name }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    <div class="section">
+      <h2>Objetivos</h2>
+      @if (objectives().length === 0) {
+        <p class="empty-hint">Todavía no tiene objetivos creados.</p>
+      } @else {
+        <ul class="objective-list">
+          @for (obj of objectives(); track obj.id) {
+            <li class="objective-card">
+              <div class="objective-top">
+                <span class="objective-title">{{ obj.title }}</span>
+                <span class="status-badge" [class]="'status-' + obj.status">{{ statusLabel(obj.status) }}</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" [style.width.%]="obj.progressPercentage"></div>
+              </div>
+              <span class="objective-pct">{{ obj.progressPercentage }}%</span>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</div>
+
+@if (listModal(); as type) {
+  <div class="dialog-overlay" (click)="closeList()">
+    <div class="dialog-card" (click)="$event.stopPropagation()">
+      <h2 class="dialog-title">{{ type === 'following' ? 'Siguiendo' : 'Seguidores' }}</h2>
+
+      @let list = type === 'following' ? following() : followers();
+      @if (list.length === 0) {
+        <p class="empty-hint">
+          {{ type === 'following' ? 'Todavía no sigue a nadie.' : 'Todavía no tiene seguidores.' }}
+        </p>
+      } @else {
+        <ul class="user-list">
+          @for (person of list; track person.id) {
+            <li class="user-list-item" (click)="goToPerson(person)">
+              @if (personPhotoUrl(person)) {
+                <img [src]="personPhotoUrl(person)" alt="" class="user-list-avatar" />
+              } @else {
+                <span class="material-icons-round user-list-avatar-placeholder">account_circle</span>
+              }
+              <div class="found-user-info">
+                <span class="found-user-name">{{ person.name }}</span>
+                <span class="found-user-username">&#64;{{ person.username }}</span>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+
+      <div class="dialog-actions">
+        <button type="button" class="btn-cancel" (click)="closeList()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}

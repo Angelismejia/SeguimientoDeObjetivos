@@ -112,25 +112,29 @@
     <div class="dialog-card" (click)="$event.stopPropagation()">
       <h2 class="dialog-title">Agregar amigo</h2>
 
-      <form [formGroup]="addFriendForm" (ngSubmit)="search()" class="search-form">
-        <input type="text" formControlName="username" placeholder="Buscar por username" />
-        <button type="submit" class="btn-confirm" [disabled]="addFriendForm.invalid || searching()">
-          {{ searching() ? 'Buscando...' : 'Buscar' }}
-        </button>
+      <form [formGroup]="addFriendForm" class="search-form">
+        <input type="text" formControlName="username" placeholder="Buscar por nombre o username" autocomplete="off" />
       </form>
 
+      @if (searching()) {
+        <p class="upload-status">Cargando usuarios...</p>
+      }
       @if (searchError()) {
         <p class="form-error">{{ searchError() }}</p>
       }
 
-      @if (foundUser(); as found) {
+      @if (!searching() && addFriendForm.value.username?.trim() && searchResults().length === 0) {
+        <p class="upload-status">No se encontraron usuarios.</p>
+      }
+
+      @for (found of searchResults(); track found.id) {
         <div class="found-user">
           <span class="material-icons-round">account_circle</span>
           <div class="found-user-info">
             <span class="found-user-name">{{ found.name }}</span>
             <span class="found-user-username">&#64;{{ found.username }}</span>
           </div>
-          <button type="button" class="btn-confirm" (click)="follow()">Seguir</button>
+          <button type="button" class="btn-confirm" (click)="follow(found)">Seguir</button>
         </div>
       }
 
@@ -168,8 +172,17 @@
         <p class="form-error">{{ friendActionError() }}</p>
       }
 
+      <button type="button" class="btn-confirm full-width" (click)="viewFriendProfile(friend)">
+        <span class="material-icons-round">account_circle</span>
+        Ver perfil
+      </button>
+
       <div class="dialog-actions split">
-        <button type="button" class="btn-cancel danger-text" (click)="askUnfollowFromAction()">Dejar de seguir</button>
+        @if (following().some(f => f.id === friend!.id)) {
+          <button type="button" class="btn-cancel danger-text" (click)="askUnfollowFromAction()">Dejar de seguir</button>
+        } @else {
+          <span></span>
+        }
         <button type="button" class="btn-cancel" (click)="closeFriendAction()">Cerrar</button>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
@@ -43,7 +44,8 @@ export class ProfileComponent implements OnInit {
   addFriendForm: FormGroup;
   searching = signal(false);
   searchError = signal('');
-  foundUser = signal<User | null>(null);
+  allUsers = signal<User[]>([]);
+  searchResults = signal<User[]>([]);
 
   unfollowTarget = signal<UserSummary | null>(null);
 
@@ -56,6 +58,7 @@ export class ProfileComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
+    private router: Router,
     private auth: AuthService,
     private userService: UserService,
     private followService: FollowService,
@@ -63,8 +66,9 @@ export class ProfileComponent implements OnInit {
     private taskService: TaskService
   ) {
     this.addFriendForm = this.fb.group({
-      username: ['', Validators.required]
+      username: ['']
     });
+    this.addFriendForm.get('username')!.valueChanges.subscribe(() => this.applyFilter());
   }
 
   ngOnInit(): void {
@@ -185,44 +189,44 @@ export class ProfileComponent implements OnInit {
   openAddFriend(): void {
     this.addFriendForm.reset({ username: '' });
     this.searchError.set('');
-    this.foundUser.set(null);
+    this.searchResults.set([]);
     this.showAddFriend.set(true);
+
+    this.searching.set(true);
+    this.userService.getAll().subscribe({
+      next: users => {
+        this.allUsers.set(users);
+        this.searching.set(false);
+        this.applyFilter();
+      },
+      error: () => {
+        this.searching.set(false);
+        this.searchError.set('No se pudo cargar la lista de usuarios.');
+      }
+    });
   }
 
   closeAddFriend(): void {
     this.showAddFriend.set(false);
   }
 
-  search(): void {
-    if (this.addFriendForm.invalid) return;
-    const username = this.addFriendForm.value.username.trim();
-    this.searching.set(true);
-    this.searchError.set('');
-    this.foundUser.set(null);
-
-    this.userService.getByUsername(username).subscribe({
-      next: found => {
-        this.searching.set(false);
-        if (found.id === this.auth.getUserId()) {
-          this.searchError.set('Ese sos vos :)');
-          return;
-        }
-        if (this.following().some(f => f.id === found.id)) {
-          this.searchError.set('Ya seguís a este usuario.');
-          return;
-        }
-        this.foundUser.set(found);
-      },
-      error: () => {
-        this.searching.set(false);
-        this.searchError.set('No se encontró ningún usuario con ese username.');
-      }
-    });
+  private applyFilter(): void {
+    const query = (this.addFriendForm.value.username ?? '').trim().toLowerCase();
+    if (!query) {
+      this.searchResults.set([]);
+      return;
+    }
+    const myId = this.auth.getUserId();
+    const followingIds = new Set(this.following().map(f => f.id));
+    this.searchResults.set(
+      this.allUsers()
+        .filter(u => u.id !== myId && !followingIds.has(u.id))
+        .filter(u => u.username.toLowerCase().includes(query) || u.name.toLowerCase().includes(query))
+        .slice(0, 20)
+    );
   }
 
-  follow(): void {
-    const found = this.foundUser();
-    if (!found) return;
+  follow(found: User): void {
     this.followService.follow(this.auth.getUserId(), found.id).subscribe({
       next: () => {
         this.following.set([...this.following(), {
@@ -231,7 +235,7 @@ export class ProfileComponent implements OnInit {
           name: found.name,
           profilePhotoUrl: found.profilePhotoUrl
         }]);
-        this.showAddFriend.set(false);
+        this.searchResults.set(this.searchResults().filter(u => u.id !== found.id));
       },
       error: () => {
         this.searchError.set('No se pudo seguir a este usuario. Intenta de nuevo.');
@@ -249,11 +253,8 @@ export class ProfileComponent implements OnInit {
   }
 
   openFriendFromList(friend: UserSummary): void {
-    const wasFollowing = this.listModal() === 'following';
     this.listModal.set(null);
-    if (wasFollowing) {
-      this.openFriendAction(friend);
-    }
+    this.openFriendAction(friend);
   }
 
   // ── Acción sobre un amigo ──────────────────────────────
@@ -264,6 +265,11 @@ export class ProfileComponent implements OnInit {
 
   closeFriendAction(): void {
     this.friendAction.set(null);
+  }
+
+  viewFriendProfile(friend: UserSummary): void {
+    this.friendAction.set(null);
+    this.router.navigate(['/profile', friend.id]);
   }
 
   inviteToStreak(): void {
