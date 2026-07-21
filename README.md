@@ -1,128 +1,97 @@
-# Personal Goal Tracker
+# BetterMe — Seguimiento de Objetivos
 
-## 📖 Description
-Personal Goal Tracker is an initial version of a goal management application developed as a C# console application.  
-It allows users to create, manage, and track personal objectives and their associated tasks, following a layered architecture approach in .NET.
+## 📖 Descripción
 
-This project was developed as part of an academic assignment at ITLA and represents the foundation for a more advanced application.
+BetterMe es una aplicación full-stack de seguimiento de objetivos personales: permite crear metas, dividirlas en tareas, llevar un diario, ganar insignias por logros y compartir el progreso con amigos (seguidores, rachas compartidas y chat en tiempo real).
 
----
-
-## 🚀 Features
-
-- Create new personal goals
-- Edit existing goals
-- Delete goals
-- View all goals with progress percentage
-- Add multiple tasks to each goal
-- Mark tasks as completed
-- Automatic progress calculation based on completed tasks
+El proyecto arrancó como una app de consola en C# hecha para una asignatura en ITLA, y evolucionó a una aplicación web completa con frontend en Angular y backend en ASP.NET Core siguiendo Clean Architecture.
 
 ---
 
-## 🧠 How It Works
+## 🚀 Funcionalidades
 
-Each goal can contain multiple tasks.  
-The system calculates progress dynamically based on how many tasks have been completed.
+**Objetivos y tareas**
+- Crear, editar y eliminar objetivos, organizados por categorías
+- Tareas asociadas a cada objetivo, con fecha programada y estado
+- Cálculo automático de progreso según tareas completadas
+- Dashboard con resumen del día y objetivos recientes
 
-Example:
-- 5 tasks → 3 completed = 60% progress
+**Hábitos y seguimiento**
+- Diario personal con entradas por día
+- Racha de días consecutivos completando tareas
+- Insignias/logros que se desbloquean según el progreso
 
----
+**Social**
+- Seguir a otros usuarios (seguidores/seguidos)
+- Perfil propio y perfil público de cada usuario (foto, racha, insignias, objetivos)
+- Rachas compartidas: invitá a un amigo y mantengan la racha juntos
+- Chat en tiempo real vía SignalR, con notificaciones de mensajes nuevos
+- Búsqueda de usuarios por nombre o username
 
-## 🏗️ Architecture
-
-The application follows a **layered architecture**, separating responsibilities into different projects:
-
-- **Entities**
-  - Contains core models such as `Objetivo` and `Tarea`
-  - Includes business logic like progress calculation
-
-- **Data**
-  - Handles data storage (in-memory list)
-  - Implements CRUD operations for goals
-
-- **Services**
-  - Contains business logic layer
-  - Acts as an intermediary between UI and Data
-
-- **UI**
-  - Console-based user interface
-  - Handles user interaction and menu navigation
+**Cuenta**
+- Registro e inicio de sesión con JWT
+- Foto de perfil
 
 ---
 
-## 🛠️ Technologies Used
+## 🏗️ Arquitectura
 
-- C#
-- .NET 8
-- Console Application
-- Object-Oriented Programming (OOP)
+**Backend — Clean Architecture (.NET 8)**
 
----
+```
+Backend/
+├── SeguimientoDeObjetivos.Domain          # Entidades y reglas de negocio puras
+├── SeguimientoDeObjetivos.Application     # Casos de uso, DTOs, interfaces de servicios
+├── SeguimientoDeObjetivos.Infrastructure  # EF Core, acceso a datos, implementaciones
+└── SeguimientoDeObjetivos.Api             # Controllers, SignalR hubs, autenticación JWT
+```
 
-## 📂 Project Structure
+**Frontend — Angular 21 (standalone components)**
 
-The solution is organized into multiple layers, each with a specific responsibility:
-
-**SeguimientoDeObjetivos.sln**  
-│  
-├── 📁 **SeguimientoDeObjetivos.Entities** 
-
-│   ├── Objetivo.cs        # Goal entity with progress calculation  
-│   ├── Tarea.cs           # Task entity  
-│   └── DBconexion.cs      # (Reserved for future database connection)  
-│  
-├── 📁 **SeguimientoDeObjetivos.Data** 
-
-│   └── RepositorioObjetivo.cs   # In-memory repository for managing goals  
-│  
-├── 📁 **SeguimientoDeObjetivos.Services** 
-
-│   └── ServicioObjetivo.cs      # Business logic layer  
-│  
-├── 📁 **SeguimientoDeObjetivos.UI**  
-
-│   └── Program.cs               # Console user interface (main menu & interaction)  
-│  
-└── **SeguimientoDeObjetivos.sln**   # Solution file
+```
+Frontend/
+└── src/app/
+    ├── core/        # Servicios, modelos, guards, interceptors
+    ├── features/    # Una carpeta por pantalla (dashboard, objectives, chat, profile, ...)
+    └── shared/      # Componentes reutilizables (navbar, confirm-dialog, ...)
+```
 
 ---
 
-## ▶️ How to Run
+## 🛠️ Tecnologías
 
-1. Clone the repository:
+**Backend**: ASP.NET Core 8, Entity Framework Core, SQL Server, SignalR, JWT Bearer Auth
 
-git clone https://github.com/your-username/your-repo.git
-
-
-2. Open the solution in Visual Studio
-
-3. Set `SeguimientoDeObjetivos.UI` as Startup Project
-
-4. Run the application
+**Frontend**: Angular 21, Angular Material, Chart.js / ng2-charts, SignalR client, RxJS
 
 ---
 
-## 📌 Notes
+## ▶️ Cómo correrlo localmente
 
-- This version uses an in-memory data structure (no database)
-- Designed as a foundational project to be later expanded into a web application
-- Demonstrates separation of concerns using layered architecture
+### Backend
+
+```bash
+cd Backend
+dotnet restore
+dotnet ef database update --project SeguimientoDeObjetivos.Infrastructure --startup-project SeguimientoDeObjetivos.Api
+dotnet run --project SeguimientoDeObjetivos.Api
+```
+
+Configurá la cadena de conexión a SQL Server en `SeguimientoDeObjetivos.Api/appsettings.json` antes de correr las migraciones.
+
+### Frontend
+
+```bash
+cd Frontend
+npm install
+npm start
+```
+
+La app queda disponible en `http://localhost:4200`. El dev server proxea `/api` y `/hubs` hacia `http://localhost:5015` (ver `Frontend/proxy.conf.json`), así que el backend tiene que estar corriendo en paralelo.
 
 ---
 
-## 🚀 Future Improvements
+## 👩‍💻 Autora
 
-- Convert to Web Application (ASP.NET Core)
-- Add database integration (SQL Server)
-- Implement user authentication
-- Add habits and financial tracking
-- Improve UI/UX with a modern interface
-
----
-
-## 👩‍💻 Author
-
-Developed by Candy **Angelis Mejia** Soriano 
-Software Development Student at ITLA
+Desarrollado por **Angelis Mejía Soriano**
+Estudiante de Desarrollo de Software en ITLA
