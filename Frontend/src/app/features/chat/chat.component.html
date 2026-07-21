@@ -47,12 +47,14 @@
           <button type="button" class="btn-back" (click)="closeConversation()">
             <span class="material-icons-round">arrow_back</span>
           </button>
-          @if (friendPhotoUrl(friend)) {
-            <img [src]="friendPhotoUrl(friend)" alt="" class="friend-avatar" />
-          } @else {
-            <span class="material-icons-round friend-avatar-placeholder">account_circle</span>
-          }
-          <span class="conversation-title">{{ friend.name }}</span>
+          <a class="conversation-header-link" [routerLink]="['/profile', friend.id]" title="Ver perfil">
+            @if (friendPhotoUrl(friend)) {
+              <img [src]="friendPhotoUrl(friend)" alt="" class="friend-avatar" />
+            } @else {
+              <span class="material-icons-round friend-avatar-placeholder">account_circle</span>
+            }
+            <span class="conversation-title">{{ friend.name }}</span>
+          </a>
         </div>
 
         <div class="messages-list">

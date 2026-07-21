@@ -1,9 +1,12 @@
 import { Component, OnInit, OnDestroy, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { ChatService } from '../../core/services/chat.service';
 import { FollowService } from '../../core/services/follow.service';
+import { UserService } from '../../core/services/user.service';
 import { UserSummary } from '../../core/models/follow.model';
 import { Message } from '../../core/models/message.model';
 import { environment } from '../../../environments/environment';
@@ -11,7 +14,7 @@ import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.css'
 })
@@ -34,7 +37,9 @@ export class ChatComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private auth: AuthService,
     protected chatService: ChatService,
-    private followService: FollowService
+    private followService: FollowService,
+    private userService: UserService,
+    private route: ActivatedRoute
   ) {
     this.myId = this.auth.getUserId();
     this.messageForm = this.fb.group({
@@ -72,15 +77,46 @@ export class ChatComponent implements OnInit, OnDestroy {
   private loadFriends(): void {
     this.loading.set(true);
     this.loadError.set(false);
-    this.followService.getFollowing(this.myId).subscribe({
-      next: friends => {
-        this.friends.set(friends);
+    forkJoin({
+      following: this.followService.getFollowing(this.myId),
+      followers: this.followService.getFollowers(this.myId)
+    }).subscribe({
+      next: ({ following, followers }) => {
+        const byId = new Map<number, UserSummary>();
+        for (const person of [...following, ...followers]) {
+          byId.set(person.id, person);
+        }
+        this.friends.set(Array.from(byId.values()));
         this.loading.set(false);
+        this.openFromQueryParam();
       },
       error: () => {
         this.loading.set(false);
         this.loadError.set(true);
       }
+    });
+  }
+
+  /** Si venimos de "Hablar" en el perfil de alguien (?with=id), abrimos esa conversación */
+  private openFromQueryParam(): void {
+    const withId = Number(this.route.snapshot.queryParamMap.get('with'));
+    if (!withId) return;
+
+    const existing = this.friends().find(f => f.id === withId);
+    if (existing) {
+      this.openConversation(existing);
+      return;
+    }
+
+    this.userService.getById(withId).subscribe({
+      next: user => {
+        const summary: UserSummary = {
+          id: user.id, username: user.username, name: user.name, profilePhotoUrl: user.profilePhotoUrl
+        };
+        this.friends.update(current => [...current, summary]);
+        this.openConversation(summary);
+      },
+      error: () => {}
     });
   }
 

@@ -91,6 +91,12 @@
 }
 .conversation-title { font-size: 0.95rem; font-weight: 700; color: #111827; }
 
+.conversation-header-link {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none; min-width: 0;
+}
+.conversation-header-link:hover .conversation-title { color: #4f46e5; }
+
 .btn-back {
   display: none;
   align-items: center; justify-content: center;
