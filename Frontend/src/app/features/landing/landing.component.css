@@ -386,7 +386,7 @@ h2 {
 @media (max-width: 960px) {
   .hero { flex-direction: column; padding: 56px 1.5rem 40px; gap: 3rem; }
   .hero-sub { max-width: 100%; }
-  .why-layout { flex-direction: column; gap: 3rem; }
+  .why-layout { flex-direction: column; gap: 3rem; align-items: stretch; }
   .social-layout { flex-direction: column-reverse; gap: 3rem; }
   .steps-row { flex-direction: column; gap: 1rem; }
   .step-connector { display: none; }
