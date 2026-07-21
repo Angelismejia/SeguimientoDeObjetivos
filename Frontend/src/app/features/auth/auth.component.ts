@@ -1,5 +1,5 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -25,7 +25,8 @@ export class AuthComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private auth: AuthService,
-    private router: Router
+    private router: Router,
+    private location: Location
   ) {
     this.loginForm = this.fb.group({
       username: ['', Validators.required],
@@ -47,7 +48,7 @@ export class AuthComponent implements OnInit {
     this.isRegister = mode === 'register';
     this.loginError.set('');
     this.registerError.set('');
-    this.router.navigate([mode === 'register' ? '/register' : '/login'], { replaceUrl: true });
+    this.location.replaceState(mode === 'register' ? '/register' : '/login');
   }
 
   submitLogin() {
