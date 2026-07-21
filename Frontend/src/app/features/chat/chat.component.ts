@@ -1,4 +1,4 @@
-import { Component, OnInit, effect, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
@@ -15,7 +15,7 @@ import { environment } from '../../../environments/environment';
   templateUrl: './chat.component.html',
   styleUrl: './chat.component.css'
 })
-export class ChatComponent implements OnInit {
+export class ChatComponent implements OnInit, OnDestroy {
   loading = signal(true);
   loadError = signal(false);
 
@@ -61,6 +61,10 @@ export class ChatComponent implements OnInit {
     this.loadFriends();
   }
 
+  ngOnDestroy(): void {
+    this.chatService.setActiveFriend(null);
+  }
+
   reconnect(): void {
     this.chatService.connect();
   }
@@ -86,6 +90,7 @@ export class ChatComponent implements OnInit {
 
   openConversation(friend: UserSummary): void {
     this.activeFriend.set(friend);
+    this.chatService.setActiveFriend(friend.id);
     this.messages.set([]);
     this.loadingConversation.set(true);
     this.chatService.getConversation(this.myId, friend.id).subscribe({
@@ -101,6 +106,11 @@ export class ChatComponent implements OnInit {
 
   closeConversation(): void {
     this.activeFriend.set(null);
+    this.chatService.setActiveFriend(null);
+  }
+
+  isUnread(friend: UserSummary): boolean {
+    return this.chatService.unreadFrom().has(friend.id);
   }
 
   isMine(message: Message): boolean {

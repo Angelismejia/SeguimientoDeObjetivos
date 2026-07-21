@@ -13,6 +13,9 @@
         </a>
         <a class="btn-bell" routerLink="/chat" routerLinkActive="active" title="Chat">
           <span class="material-icons-round">chat_bubble</span>
+          @if (chatService.unreadFrom().size > 0) {
+            <span class="bell-badge">{{ chatService.unreadFrom().size > 9 ? '9+' : chatService.unreadFrom().size }}</span>
+          }
         </a>
         <a class="user-avatar" routerLink="/profile" routerLinkActive="active" [title]="userName()">
           @if (userPhotoUrl()) {

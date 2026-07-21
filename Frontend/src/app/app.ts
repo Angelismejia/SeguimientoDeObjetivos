@@ -29,7 +29,7 @@ export class App {
     private authService: AuthService,
     private notificationService: NotificationService,
     private userService: UserService,
-    private chatService: ChatService
+    protected chatService: ChatService
   ) {
     this.updateNavbarVisibility();
     this.router.events

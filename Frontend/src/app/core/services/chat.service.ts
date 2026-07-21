@@ -15,6 +15,11 @@ export class ChatService {
   connected = signal(false);
   connectionError = signal<string | null>(null);
 
+  /** id del amigo cuya conversación está abierta ahora mismo (null si ninguna) */
+  activeFriendId = signal<number | null>(null);
+  /** ids de amigos con mensajes sin leer, para mostrar antes de abrir la conversación */
+  unreadFrom = signal<Set<number>>(new Set());
+
   constructor(
     private http: HttpClient,
     private auth: AuthService
@@ -41,6 +46,13 @@ export class ChatService {
 
     this.connection.on('ReceiveMessage', (message: Message) => {
       this.lastMessage.set(message);
+
+      const myId = this.auth.getUserId();
+      const isIncoming = message.senderId !== myId;
+      const isOpenConversation = message.senderId === this.activeFriendId();
+      if (isIncoming && !isOpenConversation) {
+        this.unreadFrom.update(current => new Set(current).add(message.senderId));
+      }
     });
 
     this.connection.onreconnecting(() => this.connected.set(false));
@@ -76,6 +88,20 @@ export class ChatService {
     this.connection?.stop();
     this.connection = null;
     this.connected.set(false);
+  }
+
+  setActiveFriend(friendId: number | null): void {
+    this.activeFriendId.set(friendId);
+    if (friendId !== null) this.markRead(friendId);
+  }
+
+  markRead(friendId: number): void {
+    if (!this.unreadFrom().has(friendId)) return;
+    this.unreadFrom.update(current => {
+      const next = new Set(current);
+      next.delete(friendId);
+      return next;
+    });
   }
 
   sendMessage(dto: CreateMessageDto): Promise<void> {

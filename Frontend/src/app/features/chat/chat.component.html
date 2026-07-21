@@ -32,6 +32,9 @@
                 <span class="friend-name">{{ friend.name }}</span>
                 <span class="friend-username">&#64;{{ friend.username }}</span>
               </div>
+              @if (isUnread(friend)) {
+                <span class="unread-dot"></span>
+              }
             </li>
           }
         </ul>

@@ -4,6 +4,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { interval, startWith } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { ChatService } from '../../../core/services/chat.service';
 @Component({
   selector: 'app-navbar',
   standalone: true,
@@ -24,7 +25,8 @@ export class NavbarComponent {
 
   constructor(
     private authService: AuthService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    protected chatService: ChatService
   ) {
     this.name = this.authService.getName();
     interval(30000).pipe(startWith(0)).subscribe(() => {

@@ -65,9 +65,14 @@
 }
 .friend-avatar-placeholder { font-size: 40px; color: #c7d2fe; display: flex; align-items: center; justify-content: center; }
 
-.friend-info { display: flex; flex-direction: column; min-width: 0; }
+.friend-info { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .friend-name { font-size: 0.86rem; font-weight: 700; color: #111827; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .friend-username { font-size: 0.74rem; color: #7c3aed; }
+
+.unread-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #7c3aed; flex-shrink: 0;
+}
 
 /* ── PANEL DE CONVERSACIÓN ────────────────────────────── */
 .conversation-panel {
