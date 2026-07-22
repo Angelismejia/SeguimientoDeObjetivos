@@ -1,5 +1,9 @@
 # BetterMe — Seguimiento de Objetivos
 
+## 🌐 Demo en vivo
+
+**[better-me-d6gugua2dnhucpfg.centralus-01.azurewebsites.net](https://better-me-d6gugua2dnhucpfg.centralus-01.azurewebsites.net)**
+
 ## 📖 Descripción
 
 BetterMe es una aplicación full-stack de seguimiento de objetivos personales: permite crear metas, dividirlas en tareas, llevar un diario, ganar insignias por logros y compartir el progreso con amigos (seguidores, rachas compartidas y chat en tiempo real).
