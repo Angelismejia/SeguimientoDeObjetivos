@@ -23,6 +23,25 @@ jobs:
         with:
           dotnet-version: '8.x'
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: Frontend
+
+      - name: Build Angular app
+        run: npm run build
+        working-directory: Frontend
+
+      - name: Copy Angular build into API wwwroot
+        shell: bash
+        run: |
+          mkdir -p Backend/SeguimientoDeObjetivos.Api/wwwroot
+          cp -r Frontend/dist/Frontend/browser/. Backend/SeguimientoDeObjetivos.Api/wwwroot/
+
       - name: Build with dotnet
         run: dotnet build Backend/SeguimientoDeObjetivos.sln --configuration Release
 
