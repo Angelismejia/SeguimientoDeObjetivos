@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://localhost:5000/api',
-  hubUrl: 'http://localhost:5000/hubs/chat'
+  apiUrl: 'https://better-me-d6gugua2dnhucpfg.centralus-01.azurewebsites.net/api',
+  hubUrl: 'https://better-me-d6gugua2dnhucpfg.centralus-01.azurewebsites.net/hubs/chat'
 };
