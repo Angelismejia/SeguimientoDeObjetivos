@@ -61,8 +61,7 @@ namespace Api.Controllers
             if (!allowedExtensions.Contains(extension))
                 return BadRequest("Formato no permitido. Usa JPG, PNG o WEBP.");
 
-            var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
-            Directory.CreateDirectory(uploadsFolder);
+            var uploadsFolder = PersistentStorage.UploadsPath(_env);
 
             var fileName = $"user{id}-{Guid.NewGuid()}{extension}";
             var filePath = Path.Combine(uploadsFolder, fileName);

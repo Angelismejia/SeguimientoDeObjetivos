@@ -1,8 +1,10 @@
+using Api;
 using Api.Hubs;
 using Api.Middleware;
 using Application;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -86,6 +88,11 @@ if (app.Environment.IsDevelopment())
 app.UseExceptionHandler();
 app.UseCors("AllowAll");
 app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(PersistentStorage.UploadsPath(app.Environment)),
+    RequestPath = "/uploads"
+});
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
