@@ -1,0 +1,14 @@
+.tasks-page {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 32px 24px 60px;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  padding: 80px 20px; text-align: center; color: #6b7280;
+}
+.empty-icon { font-size: 56px; color: #c7d2fe; }
+.empty-state h1 { font-size: 1.4rem; font-weight: 800; color: #111827; margin: 0; }
+.empty-state p { margin: 0; max-width: 320px; }
