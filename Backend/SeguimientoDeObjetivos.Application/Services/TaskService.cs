@@ -12,11 +12,13 @@ namespace Application.Services
     {
         private readonly ITaskRepository _taskRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IBadgeAwardService _badgeAwardService;
 
-        public TaskService(ITaskRepository taskRepository, IUnitOfWork unitOfWork)
+        public TaskService(ITaskRepository taskRepository, IUnitOfWork unitOfWork, IBadgeAwardService badgeAwardService)
         {
             _taskRepository = taskRepository;
             _unitOfWork = unitOfWork;
+            _badgeAwardService = badgeAwardService;
         }
 
         public async Task<IEnumerable<TaskDto>> GetByUserIdAsync(int userId)
@@ -88,11 +90,16 @@ namespace Application.Services
             task.CategoryId = dto.CategoryId;
             task.UpdatedAt = DateTime.UtcNow;
 
-            if (dto.Status == TaskItemStatus.Completed && task.CompletedAt is null)
+            var justCompleted = dto.Status == TaskItemStatus.Completed && task.CompletedAt is null;
+            if (justCompleted)
                 task.CompletedAt = DateTime.UtcNow;
 
             await _taskRepository.UpdateAsync(task);
             await _unitOfWork.SaveChangesAsync();
+
+            if (justCompleted)
+                await _badgeAwardService.CheckAndAwardAsync(task.UserId);
+
             return ToDto(task);
         }
 
