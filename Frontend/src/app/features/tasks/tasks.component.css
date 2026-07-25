@@ -1,14 +1,243 @@
 .tasks-page {
-  max-width: 700px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 32px 24px 60px;
   font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
 }
 
+.tasks-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.tasks-header h1 { font-size: 1.7rem; font-weight: 800; color: #111827; margin: 0 0 4px; }
+.tasks-header p { color: #6b7280; margin: 0; }
+
+.btn-main {
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 12px 20px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.btn-main:hover { opacity: 0.9; }
+.btn-icon { font-size: 20px; }
+
+.state-msg { padding: 40px; text-align: center; color: #6b7280; }
+.state-msg.error { color: #dc2626; }
+
 .empty-state {
   display: flex; flex-direction: column; align-items: center; gap: 12px;
-  padding: 80px 20px; text-align: center; color: #6b7280;
+  padding: 60px 20px; text-align: center; color: #6b7280;
 }
-.empty-icon { font-size: 56px; color: #c7d2fe; }
-.empty-state h1 { font-size: 1.4rem; font-weight: 800; color: #111827; margin: 0; }
-.empty-state p { margin: 0; max-width: 320px; }
+.empty-icon { font-size: 48px; color: #c7d2fe; }
+
+/* ── RESUMEN ──────────────────────────────────────── */
+.summary-row {
+  display: flex;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.summary-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px 6px;
+  border-right: 1px solid #f3f4f6;
+  text-align: center;
+}
+.summary-stat:last-child { border-right: none; }
+.summary-value { font-size: 1.3rem; font-weight: 800; color: #111827; }
+.summary-label { font-size: 0.72rem; color: #6b7280; font-weight: 600; }
+
+/* ── BUSCADOR ─────────────────────────────────────── */
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+}
+.search-icon { color: #9ca3af; font-size: 20px; }
+.search-row input {
+  flex: 1; border: none; outline: none; font-family: inherit;
+  font-size: 0.9rem; color: #111827; background: transparent;
+}
+.search-row input::placeholder { color: #9ca3af; }
+
+/* ── FILTROS ──────────────────────────────────────── */
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.filter-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #6b7280;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.filter-tab .material-icons-round { font-size: 16px; }
+.filter-tab:hover { background: #f9fafb; }
+.filter-tab.active {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  border-color: transparent;
+  color: #fff;
+}
+
+/* ── LISTA DE TAREAS ──────────────────────────────── */
+.task-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #f9fafb;
+}
+.task-item.overdue { background: #fef2f2; }
+.task-emoji { font-size: 1.2rem; line-height: 1; flex-shrink: 0; }
+
+.task-check {
+  border: none; background: transparent; padding: 0; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: #c7d2fe; flex-shrink: 0;
+}
+.task-check .material-icons-round { font-size: 24px; }
+.task-check:hover { color: #818cf8; }
+.task-check.checked { color: #16a34a; }
+.task-check:disabled { color: #e5e7eb; cursor: not-allowed; }
+.task-check:disabled:hover { color: #e5e7eb; }
+
+.task-main { flex: 1; min-width: 0; cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
+.task-title { font-size: 0.9rem; color: #111827; font-weight: 600; }
+.task-title.done { color: #9ca3af; text-decoration: line-through; }
+.task-meta { display: flex; flex-wrap: wrap; gap: 6px; }
+.meta-chip {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 0.7rem; font-weight: 600; color: #6b7280;
+  background: #f3f4f6; border-radius: 999px; padding: 2px 9px;
+}
+.meta-chip .material-icons-round { font-size: 13px; }
+.meta-chip.priority-high { background: #fef2f2; color: #dc2626; }
+
+.task-actions { display: inline-flex; gap: 4px; margin-left: auto; flex-shrink: 0; }
+.btn-icon-only {
+  border: none; background: #f3f4f6; color: #4b5563;
+  border-radius: 8px; width: 28px; height: 28px;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+}
+.btn-icon-only:hover { background: #e5e7eb; }
+.btn-icon-only.danger:hover { background: #fee2e2; color: #dc2626; }
+.btn-icon-only .material-icons-round { font-size: 16px; }
+
+/* ── MODALES (crear/editar tarea y categoría) ─────────── */
+.dialog-overlay {
+  position: fixed; inset: 0; background: rgba(17, 24, 39, 0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 16px;
+}
+.dialog-card {
+  background: #fff; border-radius: 14px; padding: 24px;
+  max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+.dialog-title { margin: 0 0 16px; font-size: 1.1rem; font-weight: 800; color: #111827; }
+
+.field {
+  display: flex; flex-direction: column; gap: 6px;
+  font-size: 0.8rem; font-weight: 600; color: #374151; flex: 1;
+}
+.field input, .field textarea, .field select {
+  font-family: inherit; font-size: 0.9rem; font-weight: 400;
+  padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; color: #111827;
+}
+.field input:focus, .field textarea:focus, .field select:focus {
+  outline: none; border-color: #818cf8;
+}
+.field textarea { resize: vertical; }
+.field-row { display: flex; gap: 14px; flex-wrap: wrap; }
+.field-row .field { min-width: 120px; }
+
+.field-with-add { display: flex; gap: 8px; }
+.field-with-add select { flex: 1; }
+.btn-inline-add {
+  flex-shrink: 0; width: 38px; height: 38px;
+  border: none; border-radius: 8px;
+  background: #ede9fe; color: #7c3aed; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.btn-inline-add:hover { background: #ddd6fe; }
+.btn-inline-add .material-icons-round { font-size: 20px; }
+
+.task-form { display: flex; flex-direction: column; gap: 14px; }
+.checkbox-field { flex-direction: row; align-items: center; gap: 8px; }
+.checkbox-field input { width: auto; }
+
+.emoji-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+  gap: 6px;
+}
+.emoji-option {
+  width: 38px; height: 38px; border-radius: 8px;
+  border: 1px solid #e5e7eb; background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; cursor: pointer;
+}
+.emoji-option:hover { background: #f3f4f6; }
+.emoji-option.selected { background: #ede9fe; border-color: #7c3aed; }
+
+.color-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.color-swatch {
+  width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent;
+  cursor: pointer; padding: 0;
+}
+.color-swatch.selected { border-color: #111827; }
+
+.form-error { color: #dc2626; font-size: 0.85rem; margin: 0; }
+
+.dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
+.dialog-actions button {
+  border: none; border-radius: 8px; padding: 10px 18px;
+  font-weight: 700; font-size: 0.85rem; cursor: pointer;
+}
+.btn-cancel { background: #f3f4f6; color: #374151; }
+.btn-cancel:hover { background: #e5e7eb; }
+.btn-confirm { background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff; }
+.btn-confirm:hover { opacity: 0.9; }
+.btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ── RESPONSIVE ───────────────────────────────────── */
+@media (max-width: 480px) {
+  .tasks-page { padding: 24px 16px 40px; }
+  .summary-row { flex-wrap: wrap; }
+  .summary-stat { flex: 1 1 50%; border-right: none; border-bottom: 1px solid #f3f4f6; }
+}
