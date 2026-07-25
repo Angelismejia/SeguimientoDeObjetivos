@@ -1,7 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
@@ -15,10 +15,15 @@ import { TaskItem } from '../../core/models/task.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { environment } from '../../../environments/environment';
 
+interface HeatmapCell {
+  key: string;
+  completed: boolean;
+}
+
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ConfirmDialogComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, ConfirmDialogComponent],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.css'
 })
@@ -32,6 +37,7 @@ export class ProfileComponent implements OnInit {
   followers = signal<UserSummary[]>([]);
   following = signal<UserSummary[]>([]);
   streak = signal(0);
+  allTasks = signal<TaskItem[]>([]);
 
   friendStreaks = signal<FriendStreak[]>([]);
   receivedInvitations = signal<FriendStreakInvitation[]>([]);
@@ -92,6 +98,7 @@ export class ProfileComponent implements OnInit {
         this.user.set(user);
         this.followers.set(followers);
         this.following.set(following);
+        this.allTasks.set(tasks);
         this.streak.set(this.computeStreak(tasks));
         this.friendStreaks.set(friendStreaks);
         this.receivedInvitations.set(receivedInvitations);
@@ -140,6 +147,55 @@ export class ProfileComponent implements OnInit {
   private parseDateKey(key: string): Date {
     const [y, m, d] = key.split('-').map(Number);
     return new Date(y, m - 1, d);
+  }
+
+  // ── Mapa de calor de actividad ────────────────────────
+  private completedDays(): Set<string> {
+    return new Set(
+      this.allTasks()
+        .filter(t => t.status === 'Completed' && !!t.scheduledDate)
+        .map(t => t.scheduledDate.substring(0, 10))
+    );
+  }
+
+  activityHeatmap(): HeatmapCell[] {
+    const days = this.completedDays();
+    const today = new Date();
+    const cells: HeatmapCell[] = [];
+    for (let i = 90; i >= 0; i--) {
+      const key = this.dateKey(this.addDays(today, -i));
+      cells.push({ key, completed: days.has(key) });
+    }
+    return cells;
+  }
+
+  tasksCompletedOn(key: string): TaskItem[] {
+    return this.allTasks().filter(
+      t => t.status === 'Completed' && t.scheduledDate?.substring(0, 10) === key
+    );
+  }
+
+  heatmapCellTitle(cell: HeatmapCell): string {
+    const date = this.parseDateKey(cell.key);
+    const dateLabel = date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+    if (!cell.completed) return `${dateLabel} — sin actividad`;
+    const titles = this.tasksCompletedOn(cell.key).map(t => t.title);
+    return `${dateLabel}:\n${titles.join('\n')}`;
+  }
+
+  selectedHeatmapCell = signal<string | null>(null);
+
+  selectHeatmapCell(cell: HeatmapCell): void {
+    this.selectedHeatmapCell.set(this.selectedHeatmapCell() === cell.key ? null : cell.key);
+  }
+
+  selectedHeatmapLabel(): string | null {
+    const key = this.selectedHeatmapCell();
+    if (!key) return null;
+    const date = this.parseDateKey(key);
+    const dateLabel = date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+    const titles = this.tasksCompletedOn(key).map(t => t.title);
+    return titles.length > 0 ? `${dateLabel}: ${titles.join(', ')}` : `${dateLabel} — sin tareas completadas`;
   }
 
   photoUrl(): string | null {

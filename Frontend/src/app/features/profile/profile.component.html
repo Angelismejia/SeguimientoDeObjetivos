@@ -49,6 +49,17 @@
       </div>
     </div>
 
+    <a class="badges-link-card" routerLink="/badges">
+      <span class="badges-link-icon">
+        <span class="material-icons-round">workspace_premium</span>
+      </span>
+      <span class="badges-link-text">
+        <span class="badges-link-title">Insignias</span>
+        <span class="badges-link-subtitle">Mira los logros que has desbloqueado</span>
+      </span>
+      <span class="material-icons-round badges-link-arrow">chevron_right</span>
+    </a>
+
     @if (receivedInvitations().length > 0) {
       <div class="invitations-section">
         <h2>Invitaciones de racha compartida</h2>
@@ -103,6 +114,25 @@
           <span class="material-icons-round">add</span>
         </button>
       </div>
+    </div>
+
+    <div class="activity-section">
+      <h2>Actividad</h2>
+      <div class="activity-heatmap-wrap">
+        <div class="activity-heatmap">
+          @for (cell of activityHeatmap(); track cell.key) {
+            <span
+              class="heatmap-cell"
+              [class.filled]="cell.completed"
+              [title]="heatmapCellTitle(cell)"
+              (click)="selectHeatmapCell(cell)"
+            ></span>
+          }
+        </div>
+      </div>
+      @if (selectedHeatmapLabel(); as label) {
+        <p class="heatmap-cell-label">{{ label }}</p>
+      }
     </div>
   }
 </div>
@@ -197,7 +227,7 @@
       @let list = type === 'following' ? following() : followers();
       @if (list.length === 0) {
         <p class="upload-status">
-          {{ type === 'following' ? 'Todavía no seguís a nadie.' : 'Todavía no tenés seguidores.' }}
+          {{ type === 'following' ? 'Todavía no sigues a nadie.' : 'Todavía no tienes seguidores.' }}
         </p>
       } @else {
         <ul class="user-list">

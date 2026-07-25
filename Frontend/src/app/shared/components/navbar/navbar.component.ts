@@ -21,7 +21,6 @@ export class NavbarComponent {
     { path: '/objectives', label: 'Objetivos', icon: 'track_changes' },
     { path: '/tasks', label: 'Tareas', icon: 'task_alt' },
     { path: '/diary', label: 'Diario', icon: 'menu_book' },
-    { path: '/badges', label: 'Insignias', icon: 'workspace_premium' },
   ];
 
   constructor(
