@@ -14,7 +14,7 @@
       } @else if (loadError()) {
         <p class="panel-empty error">No se pudo cargar tu lista de amigos.</p>
       } @else if (friends().length === 0) {
-        <p class="panel-empty">Todavía no seguís a nadie. Agregá amigos desde tu perfil para poder chatear.</p>
+        <p class="panel-empty">Todavía no sigues a nadie. Agrega amigos desde tu perfil para poder chatear.</p>
       } @else {
         <ul class="friend-list">
           @for (friend of friends(); track friend.id) {

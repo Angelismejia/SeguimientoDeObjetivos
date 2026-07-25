@@ -48,7 +48,7 @@ namespace Application.Services
         public async Task<FriendStreakInvitationDto> InviteAsync(int fromUserId, CreateFriendStreakInvitationDto dto)
         {
             if (fromUserId == dto.ToUserId)
-                throw new InvalidOperationException("No puedes invitarte a vos mismo.");
+                throw new InvalidOperationException("No puedes invitarte a ti mismo.");
 
             var targetUser = await _userRepository.GetByIdAsync(dto.ToUserId);
             if (targetUser is null) throw new NotFoundException("User", dto.ToUserId);
