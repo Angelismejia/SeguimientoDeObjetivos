@@ -103,6 +103,8 @@
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .filter-tab .material-icons-round { font-size: 16px; }
 .filter-tab:hover { background: #f9fafb; }
@@ -236,8 +238,31 @@
 .btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* ── RESPONSIVE ───────────────────────────────────── */
-@media (max-width: 480px) {
-  .tasks-page { padding: 24px 16px 40px; }
-  .summary-row { flex-wrap: wrap; }
-  .summary-stat { flex: 1 1 50%; border-right: none; border-bottom: 1px solid #f3f4f6; }
+@media (max-width: 600px) {
+  .tasks-page { padding: 20px 14px 40px; }
+
+  .tasks-header { margin-bottom: 16px; }
+  .tasks-header h1 { font-size: 1.4rem; }
+  .btn-main { width: 100%; justify-content: center; }
+
+  .summary-row { flex-wrap: wrap; margin-bottom: 16px; }
+  .summary-stat { flex: 1 1 50%; border-right: none; border-bottom: 1px solid #f3f4f6; padding: 12px 6px; }
+  .summary-stat:nth-child(2) { border-right: none; }
+
+  /* Los filtros pasan a una tira horizontal deslizable, en vez de envolver en varias líneas */
+  .filter-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin: 0 -14px 16px;
+    padding: 0 14px 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .filter-tab { padding: 7px 12px; font-size: 0.76rem; }
+
+  .task-item { padding: 10px 12px; gap: 8px; }
+  .task-title { font-size: 0.86rem; }
+  .meta-chip { font-size: 0.66rem; padding: 2px 7px; }
+  .task-actions { margin-left: 4px; }
+
+  .dialog-card { padding: 18px; }
 }

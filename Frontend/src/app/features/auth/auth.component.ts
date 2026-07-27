@@ -1,7 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -26,6 +26,7 @@ export class AuthComponent implements OnInit {
     private fb: FormBuilder,
     private auth: AuthService,
     private router: Router,
+    private route: ActivatedRoute,
     private location: Location
   ) {
     this.loginForm = this.fb.group({
@@ -42,6 +43,9 @@ export class AuthComponent implements OnInit {
 
   ngOnInit() {
     this.isRegister = this.router.url.includes('register');
+    if (this.route.snapshot.queryParamMap.get('sessionExpired')) {
+      this.loginError.set('Tu sesión expiró. Volvé a iniciar sesión.');
+    }
   }
 
   switchTo(mode: 'login' | 'register') {

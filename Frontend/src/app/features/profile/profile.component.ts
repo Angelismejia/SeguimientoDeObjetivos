@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -27,7 +27,9 @@ interface HeatmapCell {
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.css'
 })
-export class ProfileComponent implements OnInit {
+export class ProfileComponent implements OnInit, AfterViewInit {
+  @ViewChild('heatmapWrap') heatmapWrap?: ElementRef<HTMLElement>;
+
   loading = signal(true);
   loadError = signal(false);
   uploading = signal(false);
@@ -104,12 +106,22 @@ export class ProfileComponent implements OnInit {
         this.receivedInvitations.set(receivedInvitations);
         this.sentInvitations.set(sentInvitations);
         this.loading.set(false);
+        setTimeout(() => this.scrollHeatmapToToday());
       },
       error: () => {
         this.loading.set(false);
         this.loadError.set(true);
       }
     });
+  }
+
+  ngAfterViewInit(): void {
+    this.scrollHeatmapToToday();
+  }
+
+  private scrollHeatmapToToday(): void {
+    const el = this.heatmapWrap?.nativeElement;
+    if (el) el.scrollLeft = el.scrollWidth;
   }
 
   private computeStreak(tasks: TaskItem[]): number {
@@ -162,7 +174,7 @@ export class ProfileComponent implements OnInit {
     const days = this.completedDays();
     const today = new Date();
     const cells: HeatmapCell[] = [];
-    for (let i = 90; i >= 0; i--) {
+    for (let i = 363; i >= 0; i--) {
       const key = this.dateKey(this.addDays(today, -i));
       cells.push({ key, completed: days.has(key) });
     }

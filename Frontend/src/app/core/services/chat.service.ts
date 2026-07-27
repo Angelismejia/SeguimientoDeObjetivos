@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import * as signalR from '@microsoft/signalr';
+import type * as SignalR from '@microsoft/signalr';
 import { Message, CreateMessageDto } from '../models/message.model';
 import { AuthService } from './auth.service';
 import { environment } from '../../../environments/environment';
@@ -9,7 +9,11 @@ import { environment } from '../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class ChatService {
   private url = `${environment.apiUrl}/messages`;
-  private connection: signalR.HubConnection | null = null;
+  private connection: SignalR.HubConnection | null = null;
+
+  // @microsoft/signalr se carga en tiempo de ejecución (no en el bundle inicial) para
+  // que un navegador que no soporte su sintaxis solo rompa el chat, no toda la app.
+  private signalRModule: typeof SignalR | null = null;
 
   lastMessage = signal<Message | null>(null);
   connected = signal(false);
@@ -27,12 +31,27 @@ export class ChatService {
 
   connect(): void {
     if (this.connection) return;
-    this.buildAndStart(undefined);
+    this.loadAndStart(undefined);
   }
 
-  private buildAndStart(forceTransport: signalR.HttpTransportType | undefined): void {
-    const builder = new signalR.HubConnectionBuilder();
-    const options: signalR.IHttpConnectionOptions = {
+  private async loadAndStart(forceTransport: SignalR.HttpTransportType | undefined): Promise<void> {
+    let sr = this.signalRModule;
+    if (!sr) {
+      try {
+        sr = await import('@microsoft/signalr');
+        this.signalRModule = sr;
+      } catch (err) {
+        console.error('No se pudo cargar el módulo de chat en tiempo real:', err);
+        this.connectionError.set('Tu navegador no es compatible con el chat en tiempo real.');
+        return;
+      }
+    }
+    this.buildAndStart(sr, forceTransport);
+  }
+
+  private buildAndStart(sr: typeof SignalR, forceTransport: SignalR.HttpTransportType | undefined): void {
+    const builder = new sr.HubConnectionBuilder();
+    const options: SignalR.IHttpConnectionOptions = {
       accessTokenFactory: () => this.auth.getToken() ?? ''
     };
     if (forceTransport) {
@@ -60,7 +79,7 @@ export class ChatService {
     this.connection.onclose(err => {
       this.connected.set(false);
       this.connection = null;
-      if (err) this.connectionError.set('Se perdió la conexión del chat. Volvé a intentar.');
+      if (err) this.connectionError.set('Se perdió la conexión del chat. Vuelve a intentar.');
     });
 
     this.connection.start()
@@ -76,11 +95,11 @@ export class ChatService {
         if (!forceTransport) {
           // El WebSocket puede estar bloqueado por la red (WiFi/proxy). Reintentamos
           // forzando long polling, que funciona sobre HTTPS normal sin "upgrade".
-          this.buildAndStart(signalR.HttpTransportType.LongPolling);
+          this.buildAndStart(sr, sr.HttpTransportType.LongPolling);
           return;
         }
 
-        this.connectionError.set('No se pudo conectar al chat. Revisá tu conexión y volvé a intentar.');
+        this.connectionError.set('No se pudo conectar al chat. Revisa tu conexión y vuelve a intentar.');
       });
   }
 
@@ -105,7 +124,8 @@ export class ChatService {
   }
 
   sendMessage(dto: CreateMessageDto): Promise<void> {
-    if (!this.connection || this.connection.state !== signalR.HubConnectionState.Connected) {
+    const sr = this.signalRModule;
+    if (!this.connection || !sr || this.connection.state !== sr.HubConnectionState.Connected) {
       return Promise.reject('No hay conexión de chat activa.');
     }
     return this.connection.invoke('SendMessage', dto);
