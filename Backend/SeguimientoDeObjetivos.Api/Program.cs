@@ -87,7 +87,26 @@ if (app.Environment.IsDevelopment())
 
 app.UseExceptionHandler();
 app.UseCors("AllowAll");
-app.UseStaticFiles();
+
+// index.html (y el manifest) no deben quedar cacheados por el navegador: es el
+// "shell" que referencia los archivos con hash de cada build. Si el navegador
+// lo guarda en caché sin revalidar, un deploy nuevo puede tardar horas en
+// llegarle a un usuario aunque el servidor ya tenga la version nueva. Los
+// archivos con hash (chunk-*.js, styles-*.css) si pueden cachearse largo,
+// porque cada build genera nombres distintos.
+var noCacheStaticFileOptions = new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        var fileName = ctx.File.Name;
+        if (fileName.Equals("index.html", StringComparison.OrdinalIgnoreCase) ||
+            fileName.Equals("manifest.webmanifest", StringComparison.OrdinalIgnoreCase))
+        {
+            ctx.Context.Response.Headers.CacheControl = "no-cache, must-revalidate";
+        }
+    }
+};
+app.UseStaticFiles(noCacheStaticFileOptions);
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(PersistentStorage.UploadsPath(app.Environment)),
@@ -101,6 +120,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<ChatHub>("/hubs/chat");
-app.MapFallbackToFile("index.html");
+app.MapFallbackToFile("index.html", noCacheStaticFileOptions);
 
 app.Run();
