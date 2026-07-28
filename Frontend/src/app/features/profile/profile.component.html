@@ -4,6 +4,12 @@
   } @else if (loadError()) {
     <div class="state-msg error">No se pudo cargar el perfil. Intenta de nuevo más tarde.</div>
   } @else if (user(); as u) {
+    <div class="profile-top-bar">
+      <button type="button" class="btn-settings" (click)="openSettings()" title="Configuración">
+        <span class="material-icons-round">settings</span>
+      </button>
+    </div>
+
     <div class="profile-header">
       <label class="photo-wrap" for="photo-input">
         @if (photoUrl()) {
@@ -32,11 +38,7 @@
     }
 
     <div class="profile-actions-row">
-      <button type="button" class="btn-profile-action" (click)="openEditProfile()">
-        <span class="material-icons-round">edit</span>
-        Editar perfil
-      </button>
-      <button type="button" class="btn-profile-action" (click)="shareProfile()">
+      <button type="button" class="btn-profile-action full-width" (click)="shareProfile()">
         <span class="material-icons-round">{{ shareCopied() ? 'check' : 'ios_share' }}</span>
         {{ shareCopied() ? 'Enlace copiado' : 'Compartir perfil' }}
       </button>
@@ -184,6 +186,33 @@
     </div>
   }
 </div>
+
+@if (showSettings()) {
+  <div class="dialog-overlay" (click)="closeSettings()">
+    <div class="dialog-card" (click)="$event.stopPropagation()">
+      <h2 class="dialog-title">Configuración</h2>
+
+      <ul class="settings-list">
+        <li>
+          <button type="button" class="settings-item" (click)="closeSettings(); openEditProfile()">
+            <span class="material-icons-round settings-item-icon">person</span>
+            <span class="settings-item-label">Editar perfil</span>
+            <span class="material-icons-round settings-item-arrow">chevron_right</span>
+          </button>
+        </li>
+      </ul>
+
+      <button type="button" class="settings-logout" (click)="logout()">
+        <span class="material-icons-round">logout</span>
+        Cerrar sesión
+      </button>
+
+      <div class="dialog-actions">
+        <button type="button" class="btn-cancel" (click)="closeSettings()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}
 
 @if (showEditProfile()) {
   <div class="dialog-overlay" (click)="closeEditProfile()">

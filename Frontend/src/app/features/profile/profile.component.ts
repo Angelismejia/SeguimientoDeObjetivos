@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { ChatService } from '../../core/services/chat.service';
 import { UserService } from '../../core/services/user.service';
 import { FollowService } from '../../core/services/follow.service';
 import { FriendStreakService } from '../../core/services/friend-streak.service';
@@ -54,6 +55,9 @@ export class ProfileComponent implements OnInit, AfterViewInit {
   receivedInvitations = signal<FriendStreakInvitation[]>([]);
   sentInvitations = signal<FriendStreakInvitation[]>([]);
 
+  // ── Configuración ────────────────────────────────────
+  showSettings = signal(false);
+
   // ── Editar perfil ───────────────────────────────────
   showEditProfile = signal(false);
   editProfileForm: FormGroup;
@@ -86,6 +90,7 @@ export class ProfileComponent implements OnInit, AfterViewInit {
     private fb: FormBuilder,
     private router: Router,
     private auth: AuthService,
+    private chatService: ChatService,
     private userService: UserService,
     private followService: FollowService,
     private friendStreakService: FriendStreakService,
@@ -253,6 +258,20 @@ export class ProfileComponent implements OnInit, AfterViewInit {
 
   previewBadges(): Badge[] {
     return this.badges().slice(0, 4);
+  }
+
+  // ── Configuración ────────────────────────────────────
+  openSettings(): void {
+    this.showSettings.set(true);
+  }
+
+  closeSettings(): void {
+    this.showSettings.set(false);
+  }
+
+  logout(): void {
+    this.chatService.disconnect();
+    this.auth.logout();
   }
 
   // ── Editar perfil ────────────────────────────────────
