@@ -767,7 +767,11 @@
 
 /* ── RESPONSIVE ───────────────────────────────────── */
 @media (max-width: 600px) {
-  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .stats-row { gap: 8px; }
+  .stat-tile { padding: 10px 6px; gap: 4px; align-items: center; text-align: center; }
+  .stat-icon { width: 28px; height: 28px; font-size: 15px; border-radius: 8px; }
+  .stat-value { font-size: 1.05rem; }
+  .stat-label { font-size: 0.62rem; line-height: 1.1; }
   .quick-actions-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .quick-action { flex-direction: column; text-align: center; gap: 6px; padding: 12px 6px; font-size: 0.72rem; }
   .fab { right: 16px; bottom: 16px; }
