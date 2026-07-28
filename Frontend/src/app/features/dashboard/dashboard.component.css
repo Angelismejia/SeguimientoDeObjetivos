@@ -364,6 +364,7 @@
 .calendar-open-btn .material-icons-round { font-size: 18px; }
 
 .today-task-item { align-items: center; gap: 12px; background: #f9fafb; }
+.today-task-delete { flex-shrink: 0; }
 .today-task-item.overdue { background: #fef2f2; }
 
 .task-check-round {

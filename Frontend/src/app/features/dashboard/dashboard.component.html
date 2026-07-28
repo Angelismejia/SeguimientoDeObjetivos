@@ -106,6 +106,9 @@
               } @else if (task.scheduledTime) {
                 <span class="task-time">{{ timeRangeLabel(task) }}</span>
               }
+              <button type="button" class="btn-icon-only danger today-task-delete" (click)="askDeleteTask(task)" title="Eliminar">
+                <span class="material-icons-round">delete</span>
+              </button>
             </li>
           }
         </ul>
