@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
@@ -17,14 +18,16 @@ import { isTaskDoneOn } from '../../core/utils/task-status.util';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, BaseChartDirective, ConfirmDialogComponent],
+  imports: [CommonModule, ReactiveFormsModule, BaseChartDirective, ConfirmDialogComponent, RouterLink],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent implements OnInit {
   name: string;
+  firstName: string;
   loading = signal(true);
   loadError = signal(false);
+  calendarExpanded = signal(false);
 
   objectives = signal<Objective[]>([]);
   categories = signal<Category[]>([]);
@@ -88,13 +91,40 @@ export class DashboardComponent implements OnInit {
     return d;
   }
 
-  upcomingTasks = computed(() => {
-    const todayKey = this.dateKey(new Date());
+  // ── "Hoy": lo primero que se ve al entrar ─────────────
+  todayTasks = computed(() => {
+    const today = new Date();
     return this.allTasks()
-      .filter(t => t.status !== 'Skipped' && !!t.scheduledDate && !isTaskDoneOn(t, todayKey))
-      .sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime())
-      .slice(0, 5);
+      .filter(t => this.taskOccursOn(t, today) && t.status !== 'Skipped')
+      .sort((a, b) => (a.scheduledTime ?? '99:99').localeCompare(b.scheduledTime ?? '99:99'));
   });
+
+  todayProgress = computed(() => {
+    const todayKey = this.dateKey(new Date());
+    const tasks = this.todayTasks();
+    const done = tasks.filter(t => isTaskDoneOn(t, todayKey)).length;
+    const total = tasks.length;
+    return { done, total, pct: total > 0 ? Math.round((done / total) * 100) : 0 };
+  });
+
+  featuredObjective = computed(() => {
+    const objs = this.objectives();
+    if (objs.length === 0) return null;
+    const inProgress = objs.filter(o => o.status === 'InProgress');
+    const pool = inProgress.length > 0 ? inProgress : objs.filter(o => o.status === 'Pending');
+    const candidates = pool.length > 0 ? pool : objs;
+    return [...candidates].sort((a, b) => b.progressPercentage - a.progressPercentage)[0] ?? null;
+  });
+
+  featuredObjectiveCategory = computed(() => {
+    const obj = this.featuredObjective();
+    if (!obj) return undefined;
+    return this.categories().find(c => c.id === obj.categoryId);
+  });
+
+  toggleCalendar(): void {
+    this.calendarExpanded.update(v => !v);
+  }
 
   selectedDayTasks = computed(() => {
     const key = this.selectedDate();
@@ -246,6 +276,7 @@ export class DashboardComponent implements OnInit {
     private categoryService: CategoryService
   ) {
     this.name = this.auth.getName();
+    this.firstName = this.name.split(' ')[0] || this.name;
 
     this.taskForm = this.fb.group({
       title: ['', Validators.required],
