@@ -1,5 +1,5 @@
 import { Component, signal } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd, NavigationError } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { interval, startWith } from 'rxjs';
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
@@ -35,6 +35,13 @@ export class App {
     this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe(() => this.updateNavbarVisibility());
+
+    // Si una navegación falla (ej: un chunk lazy-load que ya no existe porque se
+    // redesplegó el front con nuevos hashes), recargamos la página en vez de dejar
+    // la pantalla trabada indefinidamente (ej: el botón de login en "Ingresando...").
+    this.router.events
+      .pipe(filter((event): event is NavigationError => event instanceof NavigationError))
+      .subscribe(event => window.location.href = event.url);
 
     interval(30000).pipe(startWith(0)).subscribe(() => this.refreshUnreadCount());
   }
