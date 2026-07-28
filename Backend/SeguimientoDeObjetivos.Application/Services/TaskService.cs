@@ -72,6 +72,9 @@ namespace Application.Services
             var task = await _taskRepository.GetByIdAsync(id);
             if (task is null) throw new NotFoundException("Task", id);
 
+            var wasCompleted = task.Status == TaskItemStatus.Completed;
+            var justCompletedNow = !wasCompleted && dto.Status == TaskItemStatus.Completed;
+
             task.Title = dto.Title;
             task.Description = dto.Description;
             task.Emoji = dto.Emoji;
@@ -89,6 +92,12 @@ namespace Application.Services
             task.ObjectiveId = dto.ObjectiveId;
             task.CategoryId = dto.CategoryId;
             task.UpdatedAt = DateTime.UtcNow;
+
+            // Las tareas recurrentes son una sola fila con una unica ScheduledDate: si no la
+            // movemos al completarla, la racha nunca ve "hoy" como completado (sigue apuntando
+            // al dia original), aunque el usuario la haya marcado hoy.
+            if (task.IsRecurring && justCompletedNow)
+                task.ScheduledDate = DateTime.UtcNow.Date;
 
             var justCompleted = dto.Status == TaskItemStatus.Completed && task.CompletedAt is null;
             if (justCompleted)

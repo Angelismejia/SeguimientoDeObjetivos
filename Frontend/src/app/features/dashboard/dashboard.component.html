@@ -71,17 +71,17 @@
                   <button
                     type="button"
                     class="task-check"
-                    [class.checked]="task.status === 'Completed'"
-                    [disabled]="task.status !== 'Completed' && isFuture(task)"
-                    (click)="toggleTaskComplete(task)"
-                    [title]="task.status !== 'Completed' && isFuture(task) ? 'No puedes completar una tarea programada para el futuro' : 'Marcar como completada'"
+                    [class.checked]="isDone(task, selectedDate() ?? undefined)"
+                    [disabled]="!isDone(task, selectedDate() ?? undefined) && isFuture(task)"
+                    (click)="toggleTaskComplete(task, selectedDate() ?? undefined)"
+                    [title]="!isDone(task, selectedDate() ?? undefined) && isFuture(task) ? 'No puedes completar una tarea programada para el futuro' : 'Marcar como completada'"
                   >
-                    <span class="material-icons-round">{{ task.status === 'Completed' ? 'check_circle' : 'radio_button_unchecked' }}</span>
+                    <span class="material-icons-round">{{ isDone(task, selectedDate() ?? undefined) ? 'check_circle' : 'radio_button_unchecked' }}</span>
                   </button>
                   @if (task.emoji) {
                     <span class="task-emoji">{{ task.emoji }}</span>
                   }
-                  <span class="task-title" [class.done]="task.status === 'Completed'" (click)="openEditTask(task)">{{ task.title }}</span>
+                  <span class="task-title" [class.done]="isDone(task, selectedDate() ?? undefined)" (click)="openEditTask(task)">{{ task.title }}</span>
                   @if (task.scheduledTime) {
                     <span class="task-date">{{ timeRangeLabel(task) }}</span>
                   }
@@ -103,16 +103,16 @@
                 <button
                   type="button"
                   class="task-check"
-                  [class.checked]="task.status === 'Completed'"
+                  [class.checked]="isDone(task)"
                   (click)="toggleTaskComplete(task)"
                   title="Marcar como completada"
                 >
-                  <span class="material-icons-round">{{ task.status === 'Completed' ? 'check_circle' : 'radio_button_unchecked' }}</span>
+                  <span class="material-icons-round">{{ isDone(task) ? 'check_circle' : 'radio_button_unchecked' }}</span>
                 </button>
                 @if (task.emoji) {
                   <span class="task-emoji">{{ task.emoji }}</span>
                 }
-                <span class="task-title" [class.done]="task.status === 'Completed'" (click)="openEditTask(task)">{{ task.title }}</span>
+                <span class="task-title" [class.done]="isDone(task)" (click)="openEditTask(task)">{{ task.title }}</span>
                 <span class="task-date">{{ task.scheduledDate | date: 'd MMM' }}{{ task.scheduledTime ? ' · ' + timeRangeLabel(task) : '' }}</span>
                 <span class="task-actions">
                   <button type="button" class="btn-icon-only danger" (click)="askDeleteTask(task)" title="Eliminar">

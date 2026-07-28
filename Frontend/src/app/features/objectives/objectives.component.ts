@@ -10,6 +10,7 @@ import { Objective, ObjectiveStatus } from '../../core/models/objective.model';
 import { TaskItem } from '../../core/models/task.model';
 import { Category } from '../../core/models/category.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { isTaskDoneOn } from '../../core/utils/task-status.util';
 
 interface HeatmapCell {
   key: string;
@@ -127,7 +128,7 @@ export class ObjectivesComponent implements OnInit {
   }
 
   isOverdue(task: TaskItem): boolean {
-    return task.status !== 'Completed' && task.status !== 'Skipped' &&
+    return !this.isDone(task) && task.status !== 'Skipped' &&
       new Date(task.scheduledDate) < new Date(new Date().toDateString());
   }
 
@@ -136,6 +137,10 @@ export class ObjectivesComponent implements OnInit {
     const taskDate = this.parseDateKey(task.scheduledDate.substring(0, 10));
     const today = this.parseDateKey(this.dateKey(new Date()));
     return taskDate > today;
+  }
+
+  isDone(task: TaskItem, dateKey?: string): boolean {
+    return isTaskDoneOn(task, dateKey ?? this.dateKey(new Date()));
   }
 
   // ── Racha y mapa de calor ─────────────────────────────
@@ -222,8 +227,9 @@ export class ObjectivesComponent implements OnInit {
   }
 
   toggleTaskComplete(task: TaskItem): void {
-    if (task.status !== 'Completed' && this.isFuture(task)) return;
-    const newStatus = task.status === 'Completed' ? 'Pending' : 'Completed';
+    const currentlyDone = this.isDone(task);
+    if (!currentlyDone && this.isFuture(task)) return;
+    const newStatus = currentlyDone ? 'Pending' : 'Completed';
     this.taskService.update(task.id, {
       title: task.title,
       description: task.description,

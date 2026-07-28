@@ -176,17 +176,17 @@
               <button
                 type="button"
                 class="task-check"
-                [class.checked]="task.status === 'Completed'"
-                [disabled]="task.status !== 'Completed' && isFuture(task)"
+                [class.checked]="isDone(task)"
+                [disabled]="!isDone(task) && isFuture(task)"
                 (click)="toggleTaskComplete(task)"
-                [title]="task.status !== 'Completed' && isFuture(task) ? 'No puedes completar una tarea programada para el futuro' : 'Marcar como completada'"
+                [title]="!isDone(task) && isFuture(task) ? 'No puedes completar una tarea programada para el futuro' : 'Marcar como completada'"
               >
-                <span class="material-icons-round">{{ task.status === 'Completed' ? 'check_circle' : 'radio_button_unchecked' }}</span>
+                <span class="material-icons-round">{{ isDone(task) ? 'check_circle' : 'radio_button_unchecked' }}</span>
               </button>
               @if (task.emoji) {
                 <span class="task-emoji">{{ task.emoji }}</span>
               }
-              <span class="task-title" [class.done]="task.status === 'Completed'">{{ task.title }}</span>
+              <span class="task-title" [class.done]="isDone(task)">{{ task.title }}</span>
               <span class="task-date">{{ task.scheduledDate | date: 'd MMM' }}</span>
             </li>
           }

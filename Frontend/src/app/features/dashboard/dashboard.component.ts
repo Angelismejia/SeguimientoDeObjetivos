@@ -12,6 +12,7 @@ import { Objective } from '../../core/models/objective.model';
 import { TaskItem, TaskStatus, TaskPriority, RecurrenceType } from '../../core/models/task.model';
 import { Category } from '../../core/models/category.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { isTaskDoneOn } from '../../core/utils/task-status.util';
 
 @Component({
   selector: 'app-dashboard',
@@ -87,12 +88,13 @@ export class DashboardComponent implements OnInit {
     return d;
   }
 
-  upcomingTasks = computed(() =>
-    this.allTasks()
-      .filter(t => t.status !== 'Completed' && t.status !== 'Skipped' && !!t.scheduledDate)
+  upcomingTasks = computed(() => {
+    const todayKey = this.dateKey(new Date());
+    return this.allTasks()
+      .filter(t => t.status !== 'Skipped' && !!t.scheduledDate && !isTaskDoneOn(t, todayKey))
       .sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime())
-      .slice(0, 5)
-  );
+      .slice(0, 5);
+  });
 
   selectedDayTasks = computed(() => {
     const key = this.selectedDate();
@@ -364,15 +366,20 @@ export class DashboardComponent implements OnInit {
     return taskDate > today;
   }
 
+  isDone(task: TaskItem, dateKey?: string): boolean {
+    return isTaskDoneOn(task, dateKey ?? this.dateKey(new Date()));
+  }
+
   timeRangeLabel(task: TaskItem): string {
     if (!task.scheduledTime) return '';
     const start = task.scheduledTime.substring(0, 5);
     return task.endTime ? `${start} - ${task.endTime.substring(0, 5)}` : start;
   }
 
-  toggleTaskComplete(task: TaskItem): void {
-    if (task.status !== 'Completed' && this.isFuture(task)) return;
-    const newStatus = task.status === 'Completed' ? 'Pending' : 'Completed';
+  toggleTaskComplete(task: TaskItem, dateKey?: string): void {
+    const currentlyDone = this.isDone(task, dateKey);
+    if (!currentlyDone && this.isFuture(task)) return;
+    const newStatus = currentlyDone ? 'Pending' : 'Completed';
     this.taskService.update(task.id, {
       title: task.title,
       description: task.description,

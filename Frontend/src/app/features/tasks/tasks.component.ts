@@ -10,6 +10,7 @@ import { TaskItem, TaskPriority, TaskStatus, RecurrenceType } from '../../core/m
 import { Objective } from '../../core/models/objective.model';
 import { Category } from '../../core/models/category.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { isTaskDoneOn } from '../../core/utils/task-status.util';
 
 type TaskFilter = 'all' | 'today' | 'upcoming' | 'recurring' | 'completed' | 'important';
 
@@ -66,7 +67,7 @@ export class TasksComponent implements OnInit {
         break;
       case 'upcoming':
         tasks = tasks.filter(t =>
-          t.status !== 'Completed' && t.status !== 'Skipped' &&
+          !isTaskDoneOn(t, todayKey) && t.status !== 'Skipped' &&
           !!t.scheduledDate && t.scheduledDate.substring(0, 10) > todayKey
         );
         break;
@@ -74,7 +75,7 @@ export class TasksComponent implements OnInit {
         tasks = tasks.filter(t => t.isRecurring);
         break;
       case 'completed':
-        tasks = tasks.filter(t => t.status === 'Completed');
+        tasks = tasks.filter(t => isTaskDoneOn(t, todayKey));
         break;
       case 'important':
         tasks = tasks.filter(t => t.priority === 'High');
@@ -194,7 +195,7 @@ export class TasksComponent implements OnInit {
   }
 
   isOverdue(task: TaskItem): boolean {
-    return task.status !== 'Completed' && task.status !== 'Skipped' &&
+    return !this.isDone(task) && task.status !== 'Skipped' &&
       new Date(task.scheduledDate) < new Date(new Date().toDateString());
   }
 
@@ -203,6 +204,10 @@ export class TasksComponent implements OnInit {
     const taskDate = this.parseDateKey(task.scheduledDate.substring(0, 10));
     const today = this.parseDateKey(this.dateKey(new Date()));
     return taskDate > today;
+  }
+
+  isDone(task: TaskItem, dateKey?: string): boolean {
+    return isTaskDoneOn(task, dateKey ?? this.dateKey(new Date()));
   }
 
   taskPriorityLabel(priority: TaskPriority): string {
@@ -239,8 +244,9 @@ export class TasksComponent implements OnInit {
   }
 
   toggleTaskComplete(task: TaskItem): void {
-    if (task.status !== 'Completed' && this.isFuture(task)) return;
-    const newStatus: TaskStatus = task.status === 'Completed' ? 'Pending' : 'Completed';
+    const currentlyDone = this.isDone(task);
+    if (!currentlyDone && this.isFuture(task)) return;
+    const newStatus: TaskStatus = currentlyDone ? 'Pending' : 'Completed';
     this.taskService.update(task.id, {
       title: task.title,
       description: task.description,
