@@ -1,6 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { interval, startWith } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -15,6 +16,7 @@ import { ChatService } from '../../../core/services/chat.service';
 export class NavbarComponent {
   name: string = '';
   unreadCount = signal(0);
+  onOwnProfilePage = signal(false);
 
   links = [
     { path: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
@@ -26,9 +28,16 @@ export class NavbarComponent {
   constructor(
     private authService: AuthService,
     private notificationService: NotificationService,
-    protected chatService: ChatService
+    protected chatService: ChatService,
+    private router: Router
   ) {
     this.name = this.authService.getName();
+    const isOwnProfileUrl = (url: string) => url === '/profile' || url.startsWith('/profile?');
+    this.onOwnProfilePage.set(isOwnProfileUrl(this.router.url));
+    this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe(event => this.onOwnProfilePage.set(isOwnProfileUrl(event.urlAfterRedirects)));
+
     interval(30000).pipe(startWith(0)).subscribe(() => {
       this.notificationService.getUnread(this.authService.getUserId()).subscribe({
         next: list => this.unreadCount.set(list.length),
