@@ -8,10 +8,16 @@ import { UserService } from '../../core/services/user.service';
 import { FollowService } from '../../core/services/follow.service';
 import { FriendStreakService } from '../../core/services/friend-streak.service';
 import { TaskService } from '../../core/services/task.service';
+import { ObjectiveService } from '../../core/services/objective.service';
+import { BadgeService } from '../../core/services/badge.service';
+import { DiaryEntryService } from '../../core/services/diary-entry.service';
 import { User } from '../../core/models/user.model';
 import { UserSummary } from '../../core/models/follow.model';
 import { FriendStreak, FriendStreakInvitation } from '../../core/models/friend-streak.model';
 import { TaskItem } from '../../core/models/task.model';
+import { Objective } from '../../core/models/objective.model';
+import { Badge } from '../../core/models/badge.model';
+import { DiaryEntry } from '../../core/models/diary-entry.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { environment } from '../../../environments/environment';
 
@@ -40,10 +46,22 @@ export class ProfileComponent implements OnInit, AfterViewInit {
   following = signal<UserSummary[]>([]);
   streak = signal(0);
   allTasks = signal<TaskItem[]>([]);
+  objectives = signal<Objective[]>([]);
+  badges = signal<Badge[]>([]);
+  diaryEntries = signal<DiaryEntry[]>([]);
 
   friendStreaks = signal<FriendStreak[]>([]);
   receivedInvitations = signal<FriendStreakInvitation[]>([]);
   sentInvitations = signal<FriendStreakInvitation[]>([]);
+
+  // ── Editar perfil ───────────────────────────────────
+  showEditProfile = signal(false);
+  editProfileForm: FormGroup;
+  savingProfile = signal(false);
+  editProfileError = signal('');
+
+  // ── Compartir perfil ─────────────────────────────────
+  shareCopied = signal(false);
 
   private apiOrigin = environment.apiUrl.replace('/api', '');
 
@@ -71,12 +89,20 @@ export class ProfileComponent implements OnInit, AfterViewInit {
     private userService: UserService,
     private followService: FollowService,
     private friendStreakService: FriendStreakService,
-    private taskService: TaskService
+    private taskService: TaskService,
+    private objectiveService: ObjectiveService,
+    private badgeService: BadgeService,
+    private diaryEntryService: DiaryEntryService
   ) {
     this.addFriendForm = this.fb.group({
       username: ['']
     });
     this.addFriendForm.get('username')!.valueChanges.subscribe(() => this.applyFilter());
+
+    this.editProfileForm = this.fb.group({
+      name: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]]
+    });
   }
 
   ngOnInit(): void {
@@ -92,12 +118,18 @@ export class ProfileComponent implements OnInit, AfterViewInit {
       followers: this.followService.getFollowers(userId),
       following: this.followService.getFollowing(userId),
       tasks: this.taskService.getAll(userId),
+      objectives: this.objectiveService.getAll(userId),
+      badges: this.badgeService.getByUser(userId),
+      diaryEntries: this.diaryEntryService.getAll(userId),
       friendStreaks: this.friendStreakService.getForUser(userId),
       receivedInvitations: this.friendStreakService.getReceivedInvitations(userId),
       sentInvitations: this.friendStreakService.getSentInvitations(userId)
     }).subscribe({
-      next: ({ user, followers, following, tasks, friendStreaks, receivedInvitations, sentInvitations }) => {
+      next: ({ user, followers, following, tasks, objectives, badges, diaryEntries, friendStreaks, receivedInvitations, sentInvitations }) => {
         this.user.set(user);
+        this.objectives.set(objectives);
+        this.badges.set(badges);
+        this.diaryEntries.set(diaryEntries);
         this.followers.set(followers);
         this.following.set(following);
         this.allTasks.set(tasks);
@@ -208,6 +240,63 @@ export class ProfileComponent implements OnInit, AfterViewInit {
     const dateLabel = date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
     const titles = this.tasksCompletedOn(key).map(t => t.title);
     return titles.length > 0 ? `${dateLabel}: ${titles.join(', ')}` : `${dateLabel} — sin tareas completadas`;
+  }
+
+  // ── Resumen ────────────────────────────────────────
+  activeObjectivesCount(): number {
+    return this.objectives().filter(o => o.status !== 'Completed' && o.status !== 'Cancelled').length;
+  }
+
+  completedTasksCount(): number {
+    return this.allTasks().filter(t => t.status === 'Completed').length;
+  }
+
+  previewBadges(): Badge[] {
+    return this.badges().slice(0, 4);
+  }
+
+  // ── Editar perfil ────────────────────────────────────
+  openEditProfile(): void {
+    const u = this.user();
+    if (!u) return;
+    this.editProfileError.set('');
+    this.editProfileForm.reset({ name: u.name, email: u.email });
+    this.showEditProfile.set(true);
+  }
+
+  closeEditProfile(): void {
+    this.showEditProfile.set(false);
+  }
+
+  submitEditProfile(): void {
+    const u = this.user();
+    if (!u || this.editProfileForm.invalid) return;
+    this.savingProfile.set(true);
+    this.editProfileError.set('');
+
+    const v = this.editProfileForm.value;
+    this.userService.update(u.id, { name: v.name, email: v.email, isActive: u.isActive }).subscribe({
+      next: updated => {
+        this.user.set(updated);
+        this.savingProfile.set(false);
+        this.showEditProfile.set(false);
+      },
+      error: () => {
+        this.savingProfile.set(false);
+        this.editProfileError.set('No se pudo guardar. Intenta de nuevo.');
+      }
+    });
+  }
+
+  // ── Compartir perfil ──────────────────────────────────
+  shareProfile(): void {
+    const u = this.user();
+    if (!u) return;
+    const url = `${window.location.origin}/profile/${u.id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      this.shareCopied.set(true);
+      setTimeout(() => this.shareCopied.set(false), 2000);
+    });
   }
 
   photoUrl(): string | null {

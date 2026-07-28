@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { User } from '../models/user.model';
+import { User, UpdateUserDto } from '../models/user.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -20,6 +20,10 @@ export class UserService {
 
   getByUsername(username: string): Observable<User> {
     return this.http.get<User>(`${this.url}/by-username/${username}`);
+  }
+
+  update(id: number, data: UpdateUserDto): Observable<User> {
+    return this.http.put<User>(`${this.url}/${id}`, data);
   }
 
   uploadPhoto(id: number, file: File): Observable<User> {

@@ -32,3 +32,9 @@ export interface User {
   updatedAt?: string;
   profilePhotoUrl?: string;
 }
+
+export interface UpdateUserDto {
+  name: string;
+  email: string;
+  isActive: boolean;
+}

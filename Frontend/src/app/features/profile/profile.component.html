@@ -31,6 +31,17 @@
       <p class="upload-status error">{{ uploadError() }}</p>
     }
 
+    <div class="profile-actions-row">
+      <button type="button" class="btn-profile-action" (click)="openEditProfile()">
+        <span class="material-icons-round">edit</span>
+        Editar perfil
+      </button>
+      <button type="button" class="btn-profile-action" (click)="shareProfile()">
+        <span class="material-icons-round">{{ shareCopied() ? 'check' : 'ios_share' }}</span>
+        {{ shareCopied() ? 'Enlace copiado' : 'Compartir perfil' }}
+      </button>
+    </div>
+
     <div class="stats-row">
       <button type="button" class="stat-item stat-item-clickable" (click)="openList('following')">
         <span class="stat-value">{{ following().length }}</span>
@@ -50,15 +61,52 @@
     </div>
 
     <a class="badges-link-card" routerLink="/badges">
-      <span class="badges-link-icon">
-        <span class="material-icons-round">workspace_premium</span>
+      <span class="badges-link-top">
+        <span class="badges-link-icon">
+          <span class="material-icons-round">workspace_premium</span>
+        </span>
+        <span class="badges-link-text">
+          <span class="badges-link-title">Insignias</span>
+          @if (badges().length === 0) {
+            <span class="badges-link-subtitle">Todavía no desbloqueaste ninguna</span>
+          } @else {
+            <span class="badges-link-subtitle">Ver las {{ badges().length }} &rarr;</span>
+          }
+        </span>
+        <span class="material-icons-round badges-link-arrow">chevron_right</span>
       </span>
-      <span class="badges-link-text">
-        <span class="badges-link-title">Insignias</span>
-        <span class="badges-link-subtitle">Mira los logros que has desbloqueado</span>
-      </span>
-      <span class="material-icons-round badges-link-arrow">chevron_right</span>
+      @if (previewBadges().length > 0) {
+        <span class="badges-preview-row">
+          @for (badge of previewBadges(); track badge.id) {
+            <span class="badge-preview-icon" [title]="badge.name">
+              <span class="material-icons-round">{{ badge.icon || 'workspace_premium' }}</span>
+            </span>
+          }
+        </span>
+      }
     </a>
+
+    <div class="section">
+      <h2>Resumen</h2>
+      <div class="summary-grid">
+        <div class="summary-row-item">
+          <span class="material-icons-round summary-icon purple">track_changes</span>
+          <span class="summary-text">{{ activeObjectivesCount() }} objetivos activos</span>
+        </div>
+        <div class="summary-row-item">
+          <span class="material-icons-round summary-icon blue">check_circle</span>
+          <span class="summary-text">{{ completedTasksCount() }} tareas completadas</span>
+        </div>
+        <div class="summary-row-item">
+          <span class="material-icons-round summary-icon green">menu_book</span>
+          <span class="summary-text">{{ diaryEntries().length }} entradas en el diario</span>
+        </div>
+        <div class="summary-row-item">
+          <span class="material-icons-round summary-icon orange">emoji_events</span>
+          <span class="summary-text">{{ badges().length }} insignias</span>
+        </div>
+      </div>
+    </div>
 
     @if (receivedInvitations().length > 0) {
       <div class="invitations-section">
@@ -136,6 +184,36 @@
     </div>
   }
 </div>
+
+@if (showEditProfile()) {
+  <div class="dialog-overlay" (click)="closeEditProfile()">
+    <div class="dialog-card" (click)="$event.stopPropagation()">
+      <h2 class="dialog-title">Editar perfil</h2>
+
+      <form [formGroup]="editProfileForm" (ngSubmit)="submitEditProfile()" class="edit-profile-form">
+        <label class="field">
+          <span>Nombre</span>
+          <input type="text" formControlName="name" placeholder="Tu nombre" />
+        </label>
+        <label class="field">
+          <span>Correo electrónico</span>
+          <input type="email" formControlName="email" placeholder="tu@correo.com" />
+        </label>
+
+        @if (editProfileError()) {
+          <p class="form-error">{{ editProfileError() }}</p>
+        }
+
+        <div class="dialog-actions">
+          <button type="button" class="btn-cancel" (click)="closeEditProfile()">Cancelar</button>
+          <button type="submit" class="btn-confirm" [disabled]="editProfileForm.invalid || savingProfile()">
+            {{ savingProfile() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
 
 @if (showAddFriend()) {
   <div class="dialog-overlay" (click)="closeAddFriend()">
