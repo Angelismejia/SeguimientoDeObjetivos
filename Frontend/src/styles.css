@@ -6,6 +6,37 @@ html, body {
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
+/* Fuente de los íconos servida localmente (no desde Google Fonts): en redes
+   lentas o inestables, depender de un CDN externo para algo tan usado en
+   toda la app dejaba los íconos invisibles (font-display: block los oculta
+   mientras la fuente no cargó). Con swap, al menos se ve el nombre del
+   ícono como texto plano hasta que la fuente termine de cargar. */
+@font-face {
+  font-family: "Material Icons Round";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/material-icons-round.woff2") format("woff2"),
+       url("/fonts/material-icons-round.woff") format("woff");
+}
+.material-icons-round {
+  font-family: "Material Icons Round";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "liga";
+}
+
 /* La app todavía no soporta modo oscuro: le decimos al navegador que no
    fuerce colores (Android/Samsung Internet invierten sitios "a ciegas" si
    el usuario tiene el modo oscuro del sistema activado, y eso rompe el
