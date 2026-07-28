@@ -127,7 +127,7 @@
               (click)="pickTaskEmoji('')"
               title="Sin emoji"
             >—</button>
-            @for (e of emojis; track e) {
+            @for (e of (showAllEmojis() ? emojis : emojis.slice(0, emojiPreviewCount)); track e) {
               <button
                 type="button"
                 class="emoji-option"
@@ -136,6 +136,11 @@
               >{{ e }}</button>
             }
           </div>
+          @if (emojis.length > emojiPreviewCount) {
+            <button type="button" class="btn-toggle-emojis" (click)="showAllEmojis.set(!showAllEmojis())">
+              {{ showAllEmojis() ? 'Ver menos' : 'Ver más' }}
+            </button>
+          }
         </div>
 
         <div class="field">

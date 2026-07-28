@@ -285,6 +285,8 @@ export class DashboardComponent implements OnInit {
 
   pastelColors = ['#c7d2fe', '#bbf7d0', '#fecaca', '#fed7aa', '#fef08a', '#bae6fd', '#f5d0fe', '#e5e7eb'];
   emojis = TASK_EMOJIS;
+  emojiPreviewCount = 20;
+  showAllEmojis = signal(false);
 
   taskForm: FormGroup;
 
@@ -510,6 +512,7 @@ export class DashboardComponent implements OnInit {
   openCreateTask(): void {
     this.editingTaskId.set(null);
     this.taskFormError.set('');
+    this.showAllEmojis.set(false);
     this.taskForm.reset({
       title: '',
       description: '',
@@ -531,6 +534,7 @@ export class DashboardComponent implements OnInit {
   openEditTask(task: TaskItem): void {
     this.editingTaskId.set(task.id);
     this.taskFormError.set('');
+    this.showAllEmojis.set(!!task.emoji && !this.emojis.slice(0, this.emojiPreviewCount).includes(task.emoji));
     this.taskForm.reset({
       title: task.title,
       description: task.description ?? '',

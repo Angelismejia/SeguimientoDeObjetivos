@@ -658,6 +658,19 @@
 .emoji-option:hover { background: #f3f4f6; }
 .emoji-option.selected { background: #ede9fe; border-color: #7c3aed; }
 
+.btn-toggle-emojis {
+  margin-top: 8px;
+  border: none;
+  background: transparent;
+  color: #6d28d9;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+}
+.btn-toggle-emojis:hover { text-decoration: underline; }
+
 .color-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .color-swatch {
   width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent;
