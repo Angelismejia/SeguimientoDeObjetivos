@@ -32,7 +32,12 @@
           </span>
 
           <div class="habit-main">
-            <span class="habit-title">{{ obj.title }}</span>
+            <span class="habit-title">
+              {{ obj.title }}
+              @if (obj.isPrimary) {
+                <span class="primary-badge">Principal</span>
+              }
+            </span>
             <span class="habit-meta">
               <span class="material-icons-round streak-icon">local_fire_department</span>
               {{ streakFor(obj.id) }}-day streak · {{ obj.progressPercentage }}%
@@ -51,6 +56,15 @@
           </div>
 
           <span class="habit-actions">
+            <button
+              type="button"
+              class="btn-icon-only"
+              [class.primary-active]="obj.isPrimary"
+              (click)="togglePrimary(obj); $event.stopPropagation()"
+              [title]="obj.isPrimary ? 'Quitar como objetivo principal' : 'Marcar como objetivo principal'"
+            >
+              <span class="material-icons-round">{{ obj.isPrimary ? 'star' : 'star_outline' }}</span>
+            </button>
             <button type="button" class="btn-icon-only" (click)="openEdit(obj); $event.stopPropagation()" title="Editar">
               <span class="material-icons-round">edit</span>
             </button>

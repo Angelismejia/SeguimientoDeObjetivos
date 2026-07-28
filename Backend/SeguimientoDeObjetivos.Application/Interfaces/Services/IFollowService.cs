@@ -8,5 +8,6 @@ namespace Application.Interfaces.Services
         Task<IEnumerable<UserSummaryDto>> GetFollowingAsync(int userId);
         Task<FollowDto> CreateAsync(int followerId, CreateFollowDto dto);
         Task DeleteAsync(int followerId, int followingId);
+        Task<bool> IsFollowingAsync(int followerId, int followingId);
     }
 }

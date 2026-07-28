@@ -76,6 +76,30 @@ namespace Application.Services
             return ToDto(objective);
         }
 
+        public async Task<ObjectiveDto> SetPrimaryAsync(int userId, int objectiveId, bool isPrimary)
+        {
+            var objectives = (await _objectiveRepository.GetByUserIdAsync(userId)).ToList();
+            var target = objectives.FirstOrDefault(o => o.Id == objectiveId);
+            if (target is null) throw new NotFoundException("Objective", objectiveId);
+
+            // Solo puede haber un objetivo principal por usuario: si se marca este,
+            // se desmarca cualquier otro que lo tuviera.
+            if (isPrimary)
+            {
+                foreach (var other in objectives.Where(o => o.Id != objectiveId && o.IsPrimary))
+                {
+                    other.IsPrimary = false;
+                    await _objectiveRepository.UpdateAsync(other);
+                }
+            }
+
+            target.IsPrimary = isPrimary;
+            await _objectiveRepository.UpdateAsync(target);
+            await _unitOfWork.SaveChangesAsync();
+
+            return ToDto(target);
+        }
+
         public async Task DeleteAsync(int id)
         {
             var deleted = await _objectiveRepository.DeleteAsync(id);
@@ -92,6 +116,7 @@ namespace Application.Services
             EndDate = o.EndDate,
             Status = o.Status,
             ProgressPercentage = o.ProgressPercentage,
+            IsPrimary = o.IsPrimary,
             UserId = o.UserId,
             CategoryId = o.CategoryId,
             CreatedAt = o.CreatedAt,

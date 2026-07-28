@@ -1,7 +1,8 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { FollowService } from '../../core/services/follow.service';
@@ -32,6 +33,8 @@ export class FriendProfileComponent implements OnInit {
   streak = signal(0);
   badges = signal<Badge[]>([]);
   objectives = signal<Objective[]>([]);
+  /** true si no lo seguimos, asi que el backend no nos dejo ver sus tareas/objetivos */
+  privateDataLocked = signal(false);
 
   isFollowing = signal(false);
   followBusy = signal(false);
@@ -74,24 +77,37 @@ export class FriendProfileComponent implements OnInit {
       followers: this.followService.getFollowers(userId),
       following: this.followService.getFollowing(userId),
       myFollowing: this.followService.getFollowing(this.myId),
-      tasks: this.taskService.getAll(userId),
-      badges: this.badgeService.getByUser(userId),
-      objectives: this.objectiveService.getAll(userId)
+      badges: this.badgeService.getByUser(userId)
     }).subscribe({
-      next: ({ user, followers, following, myFollowing, tasks, badges, objectives }) => {
+      next: ({ user, followers, following, myFollowing, badges }) => {
         this.user.set(user);
         this.followers.set(followers);
         this.following.set(following);
         this.isFollowing.set(myFollowing.some(f => f.id === userId));
-        this.streak.set(this.computeStreak(tasks));
         this.badges.set(badges);
-        this.objectives.set(objectives);
         this.loading.set(false);
+        this.loadPrivateData(userId);
       },
       error: () => {
         this.loading.set(false);
         this.loadError.set(true);
       }
+    });
+  }
+
+  /**
+   * Tareas y objetivos solo se ven si seguis a la persona (lo exige el backend).
+   * Se piden aparte para que un 403 acá no tumbe el resto del perfil (foto,
+   * bio, botón de seguir), que sí debe verse aunque todavía no la sigas.
+   */
+  private loadPrivateData(userId: number): void {
+    this.privateDataLocked.set(false);
+    forkJoin({
+      tasks: this.taskService.getAll(userId).pipe(catchError(() => { this.privateDataLocked.set(true); return of([]); })),
+      objectives: this.objectiveService.getAll(userId).pipe(catchError(() => { this.privateDataLocked.set(true); return of([]); }))
+    }).subscribe(({ tasks, objectives }) => {
+      this.streak.set(this.computeStreak(tasks));
+      this.objectives.set(objectives);
     });
   }
 
@@ -150,6 +166,7 @@ export class FriendProfileComponent implements OnInit {
       this.isFollowing.set(!this.isFollowing());
       this.followBusy.set(false);
       this.followService.getFollowers(target.id).subscribe(followers => this.followers.set(followers));
+      this.loadPrivateData(target.id);
     };
     const onError = () => this.followBusy.set(false);
 

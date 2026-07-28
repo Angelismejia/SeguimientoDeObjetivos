@@ -11,6 +11,7 @@ namespace Application.DTOs.Objectives
         public DateTime? EndDate { get; set; }
         public ObjectiveStatus Status { get; set; }
         public int ProgressPercentage { get; set; }
+        public bool IsPrimary { get; set; }
         public int UserId { get; set; }
         public int? CategoryId { get; set; }
         public DateTime CreatedAt { get; set; }

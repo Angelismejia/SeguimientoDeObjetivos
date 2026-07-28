@@ -26,6 +26,10 @@ export class ObjectiveService {
     return this.http.put<Objective>(`${this.url}/${id}`, data);
   }
 
+  setPrimary(id: number, userId: number, isPrimary: boolean): Observable<Objective> {
+    return this.http.put<Objective>(`${this.url}/${id}/primary?userId=${userId}`, { isPrimary });
+  }
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.url}/${id}`);
   }

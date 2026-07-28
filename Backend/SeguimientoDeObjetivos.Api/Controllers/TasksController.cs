@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Application.DTOs.Tasks;
 using Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -11,15 +12,21 @@ namespace Api.Controllers
     public class TasksController : ControllerBase
     {
         private readonly ITaskService _taskService;
+        private readonly IFollowService _followService;
 
-        public TasksController(ITaskService taskService)
+        public TasksController(ITaskService taskService, IFollowService followService)
         {
             _taskService = taskService;
+            _followService = followService;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TaskDto>>> GetByUser([FromQuery] int userId)
         {
+            var requesterId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            if (requesterId != userId && !await _followService.IsFollowingAsync(requesterId, userId))
+                return Forbid();
+
             return Ok(await _taskService.GetByUserIdAsync(userId));
         }
 

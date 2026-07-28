@@ -45,7 +45,7 @@
       <div class="stat-item">
         <span class="stat-value streak-value">
           <span class="material-icons-round streak-icon">local_fire_department</span>
-          {{ streak() }}
+          {{ privateDataLocked() ? '—' : streak() }}
         </span>
         <span class="stat-label">Racha del día</span>
       </div>
@@ -67,7 +67,9 @@
 
     <div class="section">
       <h2>Objetivos</h2>
-      @if (objectives().length === 0) {
+      @if (privateDataLocked()) {
+        <p class="empty-hint">Seguí a {{ u.name }} para ver sus objetivos y su racha.</p>
+      } @else if (objectives().length === 0) {
         <p class="empty-hint">Todavía no tiene objetivos creados.</p>
       } @else {
         <ul class="objective-list">

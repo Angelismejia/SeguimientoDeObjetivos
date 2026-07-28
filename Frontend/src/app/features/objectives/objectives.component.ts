@@ -10,7 +10,7 @@ import { Objective, ObjectiveStatus } from '../../core/models/objective.model';
 import { TaskItem } from '../../core/models/task.model';
 import { Category } from '../../core/models/category.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import { isTaskDoneOn } from '../../core/utils/task-status.util';
+import { isTaskDoneOn, isTaskOverdue } from '../../core/utils/task-status.util';
 
 interface HeatmapCell {
   key: string;
@@ -128,8 +128,7 @@ export class ObjectivesComponent implements OnInit {
   }
 
   isOverdue(task: TaskItem): boolean {
-    return !this.isDone(task) && task.status !== 'Skipped' &&
-      new Date(task.scheduledDate) < new Date(new Date().toDateString());
+    return isTaskOverdue(task, this.dateKey(new Date()), this.isDone(task));
   }
 
   isFuture(task: TaskItem): boolean {
@@ -315,6 +314,22 @@ export class ObjectivesComponent implements OnInit {
 
   closeForm(): void {
     this.showForm.set(false);
+  }
+
+  togglePrimary(objective: Objective): void {
+    const makePrimary = !objective.isPrimary;
+    this.objectiveService.setPrimary(objective.id, this.auth.getUserId(), makePrimary).subscribe({
+      next: updated => {
+        this.objectives.set(
+          this.objectives().map(o => {
+            if (o.id === updated.id) return updated;
+            // Solo puede haber un principal a la vez: si acabamos de marcar uno,
+            // el resto se desmarca en el mismo momento (sin esperar un refetch).
+            return makePrimary && o.isPrimary ? { ...o, isPrimary: false } : o;
+          })
+        );
+      }
+    });
   }
 
   submit(): void {

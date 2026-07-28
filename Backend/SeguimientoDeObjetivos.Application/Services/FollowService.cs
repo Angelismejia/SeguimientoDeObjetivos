@@ -69,6 +69,11 @@ namespace Application.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
+        public async Task<bool> IsFollowingAsync(int followerId, int followingId)
+        {
+            return await _followRepository.GetAsync(followerId, followingId) is not null;
+        }
+
         private static UserSummaryDto ToSummary(User u) => new()
         {
             Id = u.Id,

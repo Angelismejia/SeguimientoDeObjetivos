@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Application.DTOs.Objectives;
 using Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -11,15 +12,21 @@ namespace Api.Controllers
     public class ObjectivesController : ControllerBase
     {
         private readonly IObjectiveService _objectiveService;
+        private readonly IFollowService _followService;
 
-        public ObjectivesController(IObjectiveService objectiveService)
+        public ObjectivesController(IObjectiveService objectiveService, IFollowService followService)
         {
             _objectiveService = objectiveService;
+            _followService = followService;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ObjectiveDto>>> GetByUser([FromQuery] int userId)
         {
+            var requesterId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            if (requesterId != userId && !await _followService.IsFollowingAsync(requesterId, userId))
+                return Forbid();
+
             return Ok(await _objectiveService.GetByUserIdAsync(userId));
         }
 
@@ -40,6 +47,12 @@ namespace Api.Controllers
         public async Task<ActionResult<ObjectiveDto>> Update(int id, UpdateObjectiveDto dto)
         {
             return Ok(await _objectiveService.UpdateAsync(id, dto));
+        }
+
+        [HttpPut("{id}/primary")]
+        public async Task<ActionResult<ObjectiveDto>> SetPrimary(int id, [FromQuery] int userId, SetPrimaryObjectiveDto dto)
+        {
+            return Ok(await _objectiveService.SetPrimaryAsync(userId, id, dto.IsPrimary));
         }
 
         [HttpDelete("{id}")]

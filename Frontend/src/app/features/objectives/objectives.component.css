@@ -66,6 +66,20 @@
 
 .habit-main { display: flex; flex-direction: column; gap: 4px; min-width: 120px; flex: 1; }
 .habit-title { font-size: 0.92rem; font-weight: 700; color: #111827; }
+.primary-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #b45309;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+}
 .habit-meta { display: flex; align-items: center; gap: 4px; font-size: 0.76rem; color: #6b7280; font-weight: 600; }
 .streak-icon { font-size: 15px; color: #f97316; }
 
@@ -96,6 +110,8 @@
 }
 
 .habit-actions { display: inline-flex; gap: 6px; flex-shrink: 0; }
+.habit-actions .btn-icon-only.primary-active { background: #fef3c7; color: #b45309; }
+.habit-actions .btn-icon-only.primary-active:hover { background: #fde68a; }
 .btn-icon-only {
   border: none; background: #f3f4f6; color: #4b5563;
   border-radius: 8px; width: 28px; height: 28px;
