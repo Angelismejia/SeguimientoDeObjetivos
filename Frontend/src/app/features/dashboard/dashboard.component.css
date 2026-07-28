@@ -11,6 +11,7 @@
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
+  margin-bottom: 24px;
 }
 .dashboard-header h1 {
   font-size: 1.7rem;
