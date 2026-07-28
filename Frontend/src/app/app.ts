@@ -43,7 +43,19 @@ export class App {
       .pipe(filter((event): event is NavigationError => event instanceof NavigationError))
       .subscribe(event => window.location.href = event.url);
 
-    interval(30000).pipe(startWith(0)).subscribe(() => this.refreshUnreadCount());
+    interval(30000).pipe(startWith(0)).subscribe(() => {
+      this.refreshUnreadCount();
+      this.ensureChatConnected();
+    });
+  }
+
+  // Si la conexion de chat se cae (red inestable, celular viejo, etc.) y el
+  // reintento automatico de SignalR se agota, esto la vuelve a levantar sola
+  // en vez de dejar al usuario sin mensajes hasta que recargue la pagina.
+  private ensureChatConnected(): void {
+    if (this.authService.isLoggedIn() && !this.chatService.connected()) {
+      this.chatService.connect();
+    }
   }
 
   private updateNavbarVisibility() {

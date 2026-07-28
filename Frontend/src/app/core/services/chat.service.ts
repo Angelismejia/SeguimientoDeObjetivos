@@ -76,10 +76,13 @@ export class ChatService {
 
     this.connection.onreconnecting(() => this.connected.set(false));
     this.connection.onreconnected(() => { this.connected.set(true); this.connectionError.set(null); });
-    this.connection.onclose(err => {
+    this.connection.onclose(() => {
+      // Esto tambien dispara cuando el reintento automatico de SignalR se agota sin
+      // "error" (cierre "limpio"): sin este mensaje, el chat queda desconectado en
+      // silencio y no llegan mensajes hasta que el usuario recarga la pagina a mano.
       this.connected.set(false);
       this.connection = null;
-      if (err) this.connectionError.set('Se perdió la conexión del chat. Vuelve a intentar.');
+      this.connectionError.set('Se perdió la conexión del chat. Vuelve a intentar.');
     });
 
     this.connection.start()
