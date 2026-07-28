@@ -5,3 +5,11 @@ html, body {
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
+
+/* La app todavía no soporta modo oscuro: le decimos al navegador que no
+   fuerce colores (Android/Samsung Internet invierten sitios "a ciegas" si
+   el usuario tiene el modo oscuro del sistema activado, y eso rompe el
+   contraste de textos en tarjetas anidadas dejándolos invisibles). */
+:root {
+  color-scheme: light only;
+}
