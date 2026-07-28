@@ -42,29 +42,6 @@
 }
 .empty-icon { font-size: 48px; color: #c7d2fe; }
 
-/* ── RESUMEN ──────────────────────────────────────── */
-.summary-row {
-  display: flex;
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-  overflow: hidden;
-  margin-bottom: 20px;
-}
-.summary-stat {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 16px 6px;
-  border-right: 1px solid #f3f4f6;
-  text-align: center;
-}
-.summary-stat:last-child { border-right: none; }
-.summary-value { font-size: 1.3rem; font-weight: 800; color: #111827; }
-.summary-label { font-size: 0.72rem; color: #6b7280; font-weight: 600; }
-
 /* ── BUSCADOR ─────────────────────────────────────── */
 .search-row {
   display: flex;
@@ -244,10 +221,6 @@
   .tasks-header { margin-bottom: 16px; }
   .tasks-header h1 { font-size: 1.4rem; }
   .btn-main { width: 100%; justify-content: center; }
-
-  .summary-row { flex-wrap: wrap; margin-bottom: 16px; }
-  .summary-stat { flex: 1 1 50%; border-right: none; border-bottom: 1px solid #f3f4f6; padding: 12px 6px; }
-  .summary-stat:nth-child(2) { border-right: none; }
 
   /* Los filtros pasan a una tira horizontal deslizable, en vez de envolver en varias líneas */
   .filter-tabs {

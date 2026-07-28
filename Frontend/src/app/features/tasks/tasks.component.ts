@@ -10,7 +10,8 @@ import { TaskItem, TaskPriority, TaskStatus, RecurrenceType } from '../../core/m
 import { Objective } from '../../core/models/objective.model';
 import { Category } from '../../core/models/category.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import { isTaskDoneOn } from '../../core/utils/task-status.util';
+import { isTaskDoneOn, isTaskOverdue } from '../../core/utils/task-status.util';
+import { TASK_EMOJIS } from '../../core/constants/task-emojis';
 
 type TaskFilter = 'all' | 'today' | 'upcoming' | 'recurring' | 'completed' | 'important';
 
@@ -40,20 +41,6 @@ export class TasksComponent implements OnInit {
     { key: 'completed', label: 'Completadas', icon: 'check_circle' },
     { key: 'important', label: 'Importantes', icon: 'star' }
   ];
-
-  summary = computed(() => {
-    const tasks = this.allTasks();
-    const todayKey = this.dateKey(new Date());
-    const weekAgo = this.dateKey(this.addDays(new Date(), -7));
-    return {
-      total: tasks.length,
-      today: tasks.filter(t => t.scheduledDate?.substring(0, 10) === todayKey).length,
-      recurring: tasks.filter(t => t.isRecurring).length,
-      completedThisWeek: tasks.filter(
-        t => t.status === 'Completed' && !!t.completedAt && t.completedAt.substring(0, 10) >= weekAgo
-      ).length
-    };
-  });
 
   filteredTasks = computed(() => {
     const filter = this.activeFilter();
@@ -104,7 +91,7 @@ export class TasksComponent implements OnInit {
   recurrenceTypes: RecurrenceType[] = ['None', 'Daily', 'Weekly', 'Monthly', 'Yearly'];
 
   pastelColors = ['#c7d2fe', '#bbf7d0', '#fecaca', '#fed7aa', '#fef08a', '#bae6fd', '#f5d0fe', '#e5e7eb'];
-  emojis = ['📌', '✅', '📅', '💪', '📚', '💼', '🏠', '🛒', '🎯', '💡', '🧹', '🍎', '💊', '🎨', '🎮', '✈️', '💰', '🧘', '🐾', '📝'];
+  emojis = TASK_EMOJIS;
 
   taskForm: FormGroup;
 
@@ -195,8 +182,7 @@ export class TasksComponent implements OnInit {
   }
 
   isOverdue(task: TaskItem): boolean {
-    return !this.isDone(task) && task.status !== 'Skipped' &&
-      new Date(task.scheduledDate) < new Date(new Date().toDateString());
+    return isTaskOverdue(task, this.dateKey(new Date()), this.isDone(task));
   }
 
   isFuture(task: TaskItem): boolean {
@@ -502,12 +488,6 @@ export class TasksComponent implements OnInit {
     }).subscribe(updated => {
       this.objectives.set(this.objectives().map(o => o.id === updated.id ? updated : o));
     });
-  }
-
-  private addDays(date: Date, days: number): Date {
-    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    d.setDate(d.getDate() + days);
-    return d;
   }
 
   private dateKey(date: Date): string {
