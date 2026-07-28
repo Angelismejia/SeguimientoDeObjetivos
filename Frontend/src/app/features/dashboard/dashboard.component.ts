@@ -13,7 +13,8 @@ import { Objective } from '../../core/models/objective.model';
 import { TaskItem, TaskStatus, TaskPriority, RecurrenceType } from '../../core/models/task.model';
 import { Category } from '../../core/models/category.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import { isTaskDoneOn } from '../../core/utils/task-status.util';
+import { isTaskDoneOn, isTaskOverdue } from '../../core/utils/task-status.util';
+import { TASK_EMOJIS } from '../../core/constants/task-emojis';
 
 @Component({
   selector: 'app-dashboard',
@@ -27,7 +28,6 @@ export class DashboardComponent implements OnInit {
   firstName: string;
   loading = signal(true);
   loadError = signal(false);
-  calendarExpanded = signal(false);
 
   objectives = signal<Objective[]>([]);
   categories = signal<Category[]>([]);
@@ -110,20 +110,54 @@ export class DashboardComponent implements OnInit {
   featuredObjective = computed(() => {
     const objs = this.objectives();
     if (objs.length === 0) return null;
+
+    const marked = objs.find(o => o.isPrimary);
+    if (marked) return marked;
+
+    // Todavía no marcaste ninguno como principal: mostramos el más relevante
+    // como sugerencia (podés fijar uno de verdad desde Objetivos).
     const inProgress = objs.filter(o => o.status === 'InProgress');
     const pool = inProgress.length > 0 ? inProgress : objs.filter(o => o.status === 'Pending');
     const candidates = pool.length > 0 ? pool : objs;
     return [...candidates].sort((a, b) => b.progressPercentage - a.progressPercentage)[0] ?? null;
   });
 
-  featuredObjectiveCategory = computed(() => {
-    const obj = this.featuredObjective();
-    if (!obj) return undefined;
-    return this.categories().find(c => c.id === obj.categoryId);
+  objectiveCaption(progressPercentage: number): string {
+    if (progressPercentage >= 70) return 'Estás avanzando muy bien 🚀';
+    if (progressPercentage >= 35) return 'Vas por buen camino 💪';
+    return 'Es un buen momento para retomarlo ✨';
+  }
+
+  // ── Estadísticas rápidas ───────────────────────────────
+  activeObjectivesCount = computed(() =>
+    this.objectives().filter(o => o.status !== 'Completed' && o.status !== 'Cancelled').length
+  );
+
+  completedTasksCount = computed(() =>
+    this.allTasks().filter(t => t.status === 'Completed').length
+  );
+
+  avgProgress = computed(() => {
+    const objs = this.objectives();
+    if (objs.length === 0) return 0;
+    return Math.round(objs.reduce((sum, o) => sum + o.progressPercentage, 0) / objs.length);
   });
 
-  toggleCalendar(): void {
-    this.calendarExpanded.update(v => !v);
+  isTodaySelected(): boolean {
+    return this.selectedDate() === this.dateKey(new Date());
+  }
+
+  todayLabel(): string {
+    return new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  }
+
+  taskDurationLabel(task: TaskItem): string | null {
+    if (!task.scheduledTime || !task.endTime) return null;
+    const [sh, sm] = task.scheduledTime.split(':').map(Number);
+    const [eh, em] = task.endTime.split(':').map(Number);
+    const minutes = (eh * 60 + em) - (sh * 60 + sm);
+    if (minutes <= 0) return null;
+    return minutes >= 60 ? `${Math.round(minutes / 60)} h` : `${minutes} minutos`;
   }
 
   selectedDayTasks = computed(() => {
@@ -250,7 +284,7 @@ export class DashboardComponent implements OnInit {
   recurrenceTypes: RecurrenceType[] = ['None', 'Daily', 'Weekly', 'Monthly', 'Yearly'];
 
   pastelColors = ['#c7d2fe', '#bbf7d0', '#fecaca', '#fed7aa', '#fef08a', '#bae6fd', '#f5d0fe', '#e5e7eb'];
-  emojis = ['📌', '✅', '📅', '💪', '📚', '💼', '🏠', '🛒', '🎯', '💡', '🧹', '🍎', '💊', '🎨', '🎮', '✈️', '💰', '🧘', '🐾', '📝'];
+  emojis = TASK_EMOJIS;
 
   taskForm: FormGroup;
 
@@ -387,7 +421,7 @@ export class DashboardComponent implements OnInit {
   }
 
   isOverdue(task: TaskItem): boolean {
-    return !!task.scheduledDate && new Date(task.scheduledDate) < new Date();
+    return isTaskOverdue(task, this.dateKey(new Date()), this.isDone(task));
   }
 
   isFuture(task: TaskItem): boolean {
