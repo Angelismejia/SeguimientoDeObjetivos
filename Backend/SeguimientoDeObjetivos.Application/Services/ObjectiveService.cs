@@ -100,6 +100,19 @@ namespace Application.Services
             return ToDto(target);
         }
 
+        public async Task<ObjectiveDto> SetPrivateAsync(int userId, int objectiveId, bool isPrivate)
+        {
+            var objectives = await _objectiveRepository.GetByUserIdAsync(userId);
+            var target = objectives.FirstOrDefault(o => o.Id == objectiveId);
+            if (target is null) throw new NotFoundException("Objective", objectiveId);
+
+            target.IsPrivate = isPrivate;
+            await _objectiveRepository.UpdateAsync(target);
+            await _unitOfWork.SaveChangesAsync();
+
+            return ToDto(target);
+        }
+
         public async Task DeleteAsync(int id)
         {
             var deleted = await _objectiveRepository.DeleteAsync(id);
@@ -117,6 +130,7 @@ namespace Application.Services
             Status = o.Status,
             ProgressPercentage = o.ProgressPercentage,
             IsPrimary = o.IsPrimary,
+            IsPrivate = o.IsPrivate,
             UserId = o.UserId,
             CategoryId = o.CategoryId,
             CreatedAt = o.CreatedAt,

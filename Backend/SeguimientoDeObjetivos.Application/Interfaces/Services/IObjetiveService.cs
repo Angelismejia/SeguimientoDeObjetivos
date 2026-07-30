@@ -9,6 +9,7 @@ namespace Application.Interfaces.Services
         Task<ObjectiveDto> CreateAsync(int userId, CreateObjectiveDto dto);
         Task<ObjectiveDto> UpdateAsync(int id, UpdateObjectiveDto dto);
         Task<ObjectiveDto> SetPrimaryAsync(int userId, int objectiveId, bool isPrimary);
+        Task<ObjectiveDto> SetPrivateAsync(int userId, int objectiveId, bool isPrivate);
         Task DeleteAsync(int id);
     }
 }

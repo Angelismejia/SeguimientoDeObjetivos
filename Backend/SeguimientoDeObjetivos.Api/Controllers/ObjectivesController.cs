@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Security.Claims;
 using Application.DTOs.Objectives;
 using Application.Interfaces.Services;
@@ -27,7 +28,11 @@ namespace Api.Controllers
             if (requesterId != userId && !await _followService.IsFollowingAsync(requesterId, userId))
                 return Forbid();
 
-            return Ok(await _objectiveService.GetByUserIdAsync(userId));
+            var objectives = await _objectiveService.GetByUserIdAsync(userId);
+            if (requesterId != userId)
+                objectives = objectives.Where(o => !o.IsPrivate);
+
+            return Ok(objectives);
         }
 
         [HttpGet("{id}")]
@@ -53,6 +58,12 @@ namespace Api.Controllers
         public async Task<ActionResult<ObjectiveDto>> SetPrimary(int id, [FromQuery] int userId, SetPrimaryObjectiveDto dto)
         {
             return Ok(await _objectiveService.SetPrimaryAsync(userId, id, dto.IsPrimary));
+        }
+
+        [HttpPut("{id}/privacy")]
+        public async Task<ActionResult<ObjectiveDto>> SetPrivate(int id, [FromQuery] int userId, SetPrivateObjectiveDto dto)
+        {
+            return Ok(await _objectiveService.SetPrivateAsync(userId, id, dto.IsPrivate));
         }
 
         [HttpDelete("{id}")]

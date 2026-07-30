@@ -13,6 +13,7 @@ namespace Domain.Entities
         public ObjectiveStatus Status { get; set; } = ObjectiveStatus.Pending;
         public int ProgressPercentage { get; set; } = 0;
         public bool IsPrimary { get; set; } = false;
+        public bool IsPrivate { get; set; } = false;
         public int UserId { get; set; }
         public int? CategoryId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
