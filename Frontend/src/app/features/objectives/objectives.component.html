@@ -37,6 +37,9 @@
               @if (obj.isPrimary) {
                 <span class="primary-badge">Principal</span>
               }
+              @if (obj.isPrivate) {
+                <span class="material-icons-round private-icon" title="Solo tú puedes ver este objetivo">lock</span>
+              }
             </span>
             <span class="habit-meta">
               <span class="material-icons-round streak-icon">local_fire_department</span>
@@ -64,6 +67,15 @@
               [title]="obj.isPrimary ? 'Quitar como objetivo principal' : 'Marcar como objetivo principal'"
             >
               <span class="material-icons-round">{{ obj.isPrimary ? 'star' : 'star_outline' }}</span>
+            </button>
+            <button
+              type="button"
+              class="btn-icon-only"
+              [class.primary-active]="obj.isPrivate"
+              (click)="togglePrivate(obj); $event.stopPropagation()"
+              [title]="obj.isPrivate ? 'Hacer visible a tus amigos' : 'Ocultar de tus amigos'"
+            >
+              <span class="material-icons-round">{{ obj.isPrivate ? 'lock' : 'lock_open' }}</span>
             </button>
             <button type="button" class="btn-icon-only" (click)="openEdit(obj); $event.stopPropagation()" title="Editar">
               <span class="material-icons-round">edit</span>

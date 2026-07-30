@@ -80,6 +80,7 @@
   letter-spacing: 0.02em;
   vertical-align: middle;
 }
+.private-icon { margin-left: 6px; font-size: 15px; color: #6b7280; vertical-align: middle; }
 .habit-meta { display: flex; align-items: center; gap: 4px; font-size: 0.76rem; color: #6b7280; font-weight: 600; }
 .streak-icon { font-size: 15px; color: #f97316; }
 

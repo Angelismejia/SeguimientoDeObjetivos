@@ -332,6 +332,15 @@ export class ObjectivesComponent implements OnInit {
     });
   }
 
+  togglePrivate(objective: Objective): void {
+    const makePrivate = !objective.isPrivate;
+    this.objectiveService.setPrivate(objective.id, this.auth.getUserId(), makePrivate).subscribe({
+      next: updated => {
+        this.objectives.set(this.objectives().map(o => (o.id === updated.id ? updated : o)));
+      }
+    });
+  }
+
   submit(): void {
     if (this.form.invalid) return;
     this.saving.set(true);

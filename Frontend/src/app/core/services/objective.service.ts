@@ -30,6 +30,10 @@ export class ObjectiveService {
     return this.http.put<Objective>(`${this.url}/${id}/primary?userId=${userId}`, { isPrimary });
   }
 
+  setPrivate(id: number, userId: number, isPrivate: boolean): Observable<Objective> {
+    return this.http.put<Objective>(`${this.url}/${id}/privacy?userId=${userId}`, { isPrivate });
+  }
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.url}/${id}`);
   }

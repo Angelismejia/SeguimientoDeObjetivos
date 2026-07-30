@@ -7,6 +7,7 @@ export interface Objective {
   status: ObjectiveStatus;
   progressPercentage: number;
   isPrimary: boolean;
+  isPrivate: boolean;
   categoryId?: number;
   categoryName?: string;
   startDate?: string;
