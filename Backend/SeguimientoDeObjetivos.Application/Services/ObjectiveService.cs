@@ -1,3 +1,4 @@
+using Application.DTOs.Notifications;
 using Application.DTOs.Objectives;
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
@@ -13,12 +14,18 @@ namespace Application.Services
         private readonly IObjectiveRepository _objectiveRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IBadgeAwardService _badgeAwardService;
+        private readonly INotificationService _notificationService;
 
-        public ObjectiveService(IObjectiveRepository objectiveRepository, IUnitOfWork unitOfWork, IBadgeAwardService badgeAwardService)
+        public ObjectiveService(
+            IObjectiveRepository objectiveRepository,
+            IUnitOfWork unitOfWork,
+            IBadgeAwardService badgeAwardService,
+            INotificationService notificationService)
         {
             _objectiveRepository = objectiveRepository;
             _unitOfWork = unitOfWork;
             _badgeAwardService = badgeAwardService;
+            _notificationService = notificationService;
         }
 
         public async Task<IEnumerable<ObjectiveDto>> GetByUserIdAsync(int userId)
@@ -71,7 +78,16 @@ namespace Application.Services
             await _unitOfWork.SaveChangesAsync();
 
             if (justCompleted)
+            {
                 await _badgeAwardService.CheckAndAwardAsync(objective.UserId);
+                await _notificationService.CreateAsync(new CreateNotificationDto
+                {
+                    UserId = objective.UserId,
+                    Title = "¡Objetivo completado!",
+                    Message = $"Completaste \"{objective.Title}\". ¡Felicidades!",
+                    Type = "objective_completed"
+                });
+            }
 
             return ToDto(objective);
         }

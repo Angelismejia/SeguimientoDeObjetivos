@@ -54,4 +54,13 @@ export class NotificationsComponent implements OnInit {
       this.notifications.set(this.notifications().filter(n => n.id !== notification.id));
     });
   }
+
+  iconFor(notification: Notification): string {
+    switch (notification.type) {
+      case 'objective_completed': return 'emoji_events';
+      case 'badge_awarded': return 'military_tech';
+      case 'new_follower': return 'person_add';
+      default: return 'notifications';
+    }
+  }
 }

@@ -1,3 +1,4 @@
+using Application.DTOs.Notifications;
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
@@ -12,6 +13,7 @@ namespace Application.Services
         private readonly ITaskRepository _taskRepository;
         private readonly IObjectiveRepository _objectiveRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly INotificationService _notificationService;
 
         // BadgeType (tal como se guarda en la tabla Badges) -> condición para ganarla.
         // tasksCompleted, objectivesCompleted y currentStreak son los tres números
@@ -32,12 +34,14 @@ namespace Application.Services
             IBadgeRepository badgeRepository,
             ITaskRepository taskRepository,
             IObjectiveRepository objectiveRepository,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            INotificationService notificationService)
         {
             _badgeRepository = badgeRepository;
             _taskRepository = taskRepository;
             _objectiveRepository = objectiveRepository;
             _unitOfWork = unitOfWork;
+            _notificationService = notificationService;
         }
 
         public async Task CheckAndAwardAsync(int userId)
@@ -58,7 +62,17 @@ namespace Application.Services
                 if (!isEarned(tasksCompleted, objectivesCompleted, currentStreak)) continue;
 
                 var awarded = await _badgeRepository.AssignToUserAsync(userId, badge.Id);
-                if (awarded) awardedAny = true;
+                if (awarded)
+                {
+                    awardedAny = true;
+                    await _notificationService.CreateAsync(new CreateNotificationDto
+                    {
+                        UserId = userId,
+                        Title = "¡Nueva insignia!",
+                        Message = $"Ganaste la insignia \"{badge.Name}\".",
+                        Type = "badge_awarded"
+                    });
+                }
             }
 
             if (awardedAny) await _unitOfWork.SaveChangesAsync();

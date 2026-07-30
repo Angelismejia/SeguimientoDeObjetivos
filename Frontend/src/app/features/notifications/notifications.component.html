@@ -18,7 +18,7 @@
       @for (n of notifications(); track n.id) {
         <li class="notification-card" [class.unread]="!n.isRead" (click)="markAsRead(n)">
           <span class="notification-icon">
-            <span class="material-icons-round">notifications</span>
+            <span class="material-icons-round">{{ iconFor(n) }}</span>
           </span>
           <div class="notification-main">
             <span class="notification-title">{{ n.title }}</span>

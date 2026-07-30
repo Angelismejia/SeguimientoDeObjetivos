@@ -1,4 +1,5 @@
 using Application.DTOs.Follows;
+using Application.DTOs.Notifications;
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
@@ -12,12 +13,18 @@ namespace Application.Services
         private readonly IFollowRepository _followRepository;
         private readonly IUserRepository _userRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly INotificationService _notificationService;
 
-        public FollowService(IFollowRepository followRepository, IUserRepository userRepository, IUnitOfWork unitOfWork)
+        public FollowService(
+            IFollowRepository followRepository,
+            IUserRepository userRepository,
+            IUnitOfWork unitOfWork,
+            INotificationService notificationService)
         {
             _followRepository = followRepository;
             _userRepository = userRepository;
             _unitOfWork = unitOfWork;
+            _notificationService = notificationService;
         }
 
         public async Task<IEnumerable<UserSummaryDto>> GetFollowersAsync(int userId)
@@ -52,6 +59,15 @@ namespace Application.Services
 
             var created = await _followRepository.CreateAsync(follow);
             await _unitOfWork.SaveChangesAsync();
+
+            var follower = await _userRepository.GetByIdAsync(followerId);
+            await _notificationService.CreateAsync(new CreateNotificationDto
+            {
+                UserId = dto.FollowingId,
+                Title = "Nuevo seguidor",
+                Message = $"{follower?.Name ?? "Alguien"} empezó a seguirte.",
+                Type = "new_follower"
+            });
 
             return new FollowDto
             {
