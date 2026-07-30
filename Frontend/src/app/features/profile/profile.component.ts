@@ -64,6 +64,13 @@ export class ProfileComponent implements OnInit, AfterViewInit {
   savingProfile = signal(false);
   editProfileError = signal('');
 
+  // ── Cambiar contraseña ───────────────────────────────
+  showChangePassword = signal(false);
+  changePasswordForm: FormGroup;
+  savingPassword = signal(false);
+  changePasswordError = signal('');
+  changePasswordSuccess = signal(false);
+
   // ── Compartir perfil ─────────────────────────────────
   shareCopied = signal(false);
 
@@ -107,6 +114,11 @@ export class ProfileComponent implements OnInit, AfterViewInit {
     this.editProfileForm = this.fb.group({
       name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]]
+    });
+
+    this.changePasswordForm = this.fb.group({
+      currentPassword: ['', Validators.required],
+      newPassword: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 
@@ -303,6 +315,41 @@ export class ProfileComponent implements OnInit, AfterViewInit {
       error: () => {
         this.savingProfile.set(false);
         this.editProfileError.set('No se pudo guardar. Intenta de nuevo.');
+      }
+    });
+  }
+
+  // ── Cambiar contraseña ────────────────────────────────
+  openChangePassword(): void {
+    this.changePasswordError.set('');
+    this.changePasswordSuccess.set(false);
+    this.changePasswordForm.reset({ currentPassword: '', newPassword: '' });
+    this.showChangePassword.set(true);
+  }
+
+  closeChangePassword(): void {
+    this.showChangePassword.set(false);
+  }
+
+  submitChangePassword(): void {
+    const u = this.user();
+    if (!u || this.changePasswordForm.invalid) return;
+    this.savingPassword.set(true);
+    this.changePasswordError.set('');
+    this.changePasswordSuccess.set(false);
+
+    const v = this.changePasswordForm.value;
+    this.userService.changePassword(u.id, { currentPassword: v.currentPassword, newPassword: v.newPassword }).subscribe({
+      next: () => {
+        this.savingPassword.set(false);
+        this.changePasswordSuccess.set(true);
+        this.changePasswordForm.reset({ currentPassword: '', newPassword: '' });
+      },
+      error: (err) => {
+        this.savingPassword.set(false);
+        this.changePasswordError.set(
+          err?.status === 400 ? 'La contraseña actual es incorrecta.' : 'No se pudo cambiar la contraseña. Intenta de nuevo.'
+        );
       }
     });
   }

@@ -200,6 +200,13 @@
             <span class="material-icons-round settings-item-arrow">chevron_right</span>
           </button>
         </li>
+        <li>
+          <button type="button" class="settings-item" (click)="closeSettings(); openChangePassword()">
+            <span class="material-icons-round settings-item-icon">lock</span>
+            <span class="settings-item-label">Cambiar contraseña</span>
+            <span class="material-icons-round settings-item-arrow">chevron_right</span>
+          </button>
+        </li>
       </ul>
 
       <button type="button" class="settings-logout" (click)="logout()">
@@ -237,6 +244,39 @@
           <button type="button" class="btn-cancel" (click)="closeEditProfile()">Cancelar</button>
           <button type="submit" class="btn-confirm" [disabled]="editProfileForm.invalid || savingProfile()">
             {{ savingProfile() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (showChangePassword()) {
+  <div class="dialog-overlay" (click)="closeChangePassword()">
+    <div class="dialog-card" (click)="$event.stopPropagation()">
+      <h2 class="dialog-title">Cambiar contraseña</h2>
+
+      <form [formGroup]="changePasswordForm" (ngSubmit)="submitChangePassword()" class="edit-profile-form">
+        <label class="field">
+          <span>Contraseña actual</span>
+          <input type="password" formControlName="currentPassword" placeholder="Tu contraseña actual" />
+        </label>
+        <label class="field">
+          <span>Nueva contraseña</span>
+          <input type="password" formControlName="newPassword" placeholder="Mínimo 6 caracteres" />
+        </label>
+
+        @if (changePasswordError()) {
+          <p class="form-error">{{ changePasswordError() }}</p>
+        }
+        @if (changePasswordSuccess()) {
+          <p class="upload-status">Contraseña actualizada correctamente.</p>
+        }
+
+        <div class="dialog-actions">
+          <button type="button" class="btn-cancel" (click)="closeChangePassword()">Cerrar</button>
+          <button type="submit" class="btn-confirm" [disabled]="changePasswordForm.invalid || savingPassword()">
+            {{ savingPassword() ? 'Guardando...' : 'Guardar' }}
           </button>
         </div>
       </form>
