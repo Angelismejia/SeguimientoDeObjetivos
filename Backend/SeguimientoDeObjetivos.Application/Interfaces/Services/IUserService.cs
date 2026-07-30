@@ -10,6 +10,7 @@ namespace Application.Interfaces.Services
         Task<UserDto> CreateAsync(CreateUserDto dto);
         Task<UserDto> UpdateAsync(int id, UpdateUserDto dto);
         Task<UserDto> UpdatePhotoAsync(int id, string photoUrl);
+        Task ChangePasswordAsync(int id, ChangePasswordDto dto);
         Task DeleteAsync(int id);
     }
 }

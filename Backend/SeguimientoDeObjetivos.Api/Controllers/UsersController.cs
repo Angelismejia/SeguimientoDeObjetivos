@@ -50,6 +50,13 @@ namespace Api.Controllers
             return Ok(await _userService.UpdateAsync(id, dto));
         }
 
+        [HttpPut("{id}/password")]
+        public async Task<IActionResult> ChangePassword(int id, ChangePasswordDto dto)
+        {
+            await _userService.ChangePasswordAsync(id, dto);
+            return NoContent();
+        }
+
         [HttpPost("{id}/photo")]
         public async Task<ActionResult<UserDto>> UploadPhoto(int id, IFormFile file)
         {

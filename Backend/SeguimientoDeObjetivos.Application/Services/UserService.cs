@@ -84,6 +84,22 @@ namespace Application.Services
             return ToDto(user);
         }
 
+        public async Task ChangePasswordAsync(int id, ChangePasswordDto dto)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user is null) throw new NotFoundException("User", id);
+
+            var passwordValid = BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash);
+            if (!passwordValid)
+                throw new InvalidOperationException("Current password is incorrect");
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _userRepository.UpdateAsync(user);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
         public async Task DeleteAsync(int id)
         {
             var deleted = await _userRepository.DeleteAsync(id);
