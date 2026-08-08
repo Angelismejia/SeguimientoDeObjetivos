@@ -235,12 +235,18 @@ export class TasksComponent implements OnInit {
     const currentlyDone = this.isDone(task);
     if (!currentlyDone && this.isFuture(task)) return;
     const newStatus: TaskStatus = currentlyDone ? 'Pending' : 'Completed';
+    // Las recurrentes son una sola fila con una unica scheduledDate: al completarla hay
+    // que moverla a "hoy" para que la racha la vea como hecha. Usamos el hoy LOCAL del
+    // navegador (no el del backend, que corre en UTC y puede ser otro dia distinto).
+    const scheduledDate = (task.isRecurring && newStatus === 'Completed')
+      ? this.dateKey(new Date())
+      : task.scheduledDate;
     this.taskService.update(task.id, {
       title: task.title,
       description: task.description,
       emoji: task.emoji,
       color: task.color,
-      scheduledDate: task.scheduledDate,
+      scheduledDate,
       scheduledTime: task.scheduledTime,
       endTime: task.endTime,
       priority: task.priority,
