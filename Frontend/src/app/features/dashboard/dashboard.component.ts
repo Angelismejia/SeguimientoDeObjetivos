@@ -448,10 +448,12 @@ export class DashboardComponent implements OnInit {
     if (!currentlyDone && this.isFuture(task)) return;
     const newStatus = currentlyDone ? 'Pending' : 'Completed';
     // Las recurrentes son una sola fila con una unica scheduledDate: al completarla hay
-    // que moverla a "hoy" para que la racha la vea como hecha. Usamos el hoy LOCAL del
-    // navegador (no el del backend, que corre en UTC y puede ser otro dia distinto).
+    // que moverla al dia que se esta marcando (el que llega en dateKey, p.ej. un dia
+    // pasado elegido en el calendario) para que la racha lo vea como hecho ESE dia.
+    // Si no llega dateKey (lista "Tareas de Hoy"), usamos el hoy LOCAL del navegador
+    // (no el del backend, que corre en UTC y puede ser otro dia distinto).
     const scheduledDate = (task.isRecurring && newStatus === 'Completed')
-      ? this.dateKey(new Date())
+      ? (dateKey ?? this.dateKey(new Date()))
       : task.scheduledDate;
     this.taskService.update(task.id, {
       title: task.title,
@@ -682,9 +684,16 @@ export class DashboardComponent implements OnInit {
     const progressPercentage = Math.round((completed / linked.length) * 100);
     if (objective.progressPercentage === progressPercentage) return;
 
+    // Un objetivo con una tarea recurrente vinculada (un habito diario/semanal, etc.)
+    // nunca "termina" solo porque hoy este al 100%: mañana la tarea vuelve a estar
+    // pendiente. Por eso no lo marcamos Completed automaticamente en ese caso.
+    const hasRecurring = linked.some(t => t.isRecurring);
+
     let status = objective.status;
     if (status !== 'Cancelled') {
-      status = progressPercentage === 100 ? 'Completed' : progressPercentage > 0 ? 'InProgress' : 'Pending';
+      status = progressPercentage === 100 && !hasRecurring
+        ? 'Completed'
+        : progressPercentage > 0 ? 'InProgress' : 'Pending';
     }
 
     this.objectiveService.update(objectiveId, {

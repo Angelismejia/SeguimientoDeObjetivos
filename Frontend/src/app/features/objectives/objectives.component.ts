@@ -263,9 +263,16 @@ export class ObjectivesComponent implements OnInit {
     const progressPercentage = Math.round((completed / linked.length) * 100);
     if (objective.progressPercentage === progressPercentage) return;
 
+    // Un objetivo con una tarea recurrente vinculada (un habito diario/semanal, etc.)
+    // nunca "termina" solo porque hoy este al 100%: mañana la tarea vuelve a estar
+    // pendiente. Por eso no lo marcamos Completed automaticamente en ese caso.
+    const hasRecurring = linked.some(t => t.isRecurring);
+
     let status = objective.status;
     if (status !== 'Cancelled') {
-      status = progressPercentage === 100 ? 'Completed' : progressPercentage > 0 ? 'InProgress' : 'Pending';
+      status = progressPercentage === 100 && !hasRecurring
+        ? 'Completed'
+        : progressPercentage > 0 ? 'InProgress' : 'Pending';
     }
 
     this.objectiveService.update(objectiveId, {
