@@ -21,10 +21,12 @@ namespace Api.Controllers
             _followService = followService;
         }
 
+        private int RequesterId => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ObjectiveDto>>> GetByUser([FromQuery] int userId)
         {
-            var requesterId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var requesterId = RequesterId;
             if (requesterId != userId && !await _followService.IsFollowingAsync(requesterId, userId))
                 return Forbid();
 
@@ -38,37 +40,59 @@ namespace Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ObjectiveDto>> GetById(int id)
         {
-            return Ok(await _objectiveService.GetByIdAsync(id));
+            var requesterId = RequesterId;
+            var objective = await _objectiveService.GetByIdAsync(id);
+            if (objective.UserId != requesterId)
+            {
+                if (objective.IsPrivate || !await _followService.IsFollowingAsync(requesterId, objective.UserId))
+                    return Forbid();
+            }
+
+            return Ok(objective);
         }
 
         [HttpPost]
-        public async Task<ActionResult<ObjectiveDto>> Create([FromQuery] int userId, CreateObjectiveDto dto)
+        public async Task<ActionResult<ObjectiveDto>> Create(CreateObjectiveDto dto)
         {
-            var created = await _objectiveService.CreateAsync(userId, dto);
+            var created = await _objectiveService.CreateAsync(RequesterId, dto);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
         [HttpPut("{id}")]
         public async Task<ActionResult<ObjectiveDto>> Update(int id, UpdateObjectiveDto dto)
         {
+            var existing = await _objectiveService.GetByIdAsync(id);
+            if (existing.UserId != RequesterId) return Forbid();
+
             return Ok(await _objectiveService.UpdateAsync(id, dto));
         }
 
         [HttpPut("{id}/primary")]
-        public async Task<ActionResult<ObjectiveDto>> SetPrimary(int id, [FromQuery] int userId, SetPrimaryObjectiveDto dto)
+        public async Task<ActionResult<ObjectiveDto>> SetPrimary(int id, SetPrimaryObjectiveDto dto)
         {
-            return Ok(await _objectiveService.SetPrimaryAsync(userId, id, dto.IsPrimary));
+            var requesterId = RequesterId;
+            var existing = await _objectiveService.GetByIdAsync(id);
+            if (existing.UserId != requesterId) return Forbid();
+
+            return Ok(await _objectiveService.SetPrimaryAsync(requesterId, id, dto.IsPrimary));
         }
 
         [HttpPut("{id}/privacy")]
-        public async Task<ActionResult<ObjectiveDto>> SetPrivate(int id, [FromQuery] int userId, SetPrivateObjectiveDto dto)
+        public async Task<ActionResult<ObjectiveDto>> SetPrivate(int id, SetPrivateObjectiveDto dto)
         {
-            return Ok(await _objectiveService.SetPrivateAsync(userId, id, dto.IsPrivate));
+            var requesterId = RequesterId;
+            var existing = await _objectiveService.GetByIdAsync(id);
+            if (existing.UserId != requesterId) return Forbid();
+
+            return Ok(await _objectiveService.SetPrivateAsync(requesterId, id, dto.IsPrivate));
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
+            var existing = await _objectiveService.GetByIdAsync(id);
+            if (existing.UserId != RequesterId) return Forbid();
+
             await _objectiveService.DeleteAsync(id);
             return NoContent();
         }

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Application.DTOs.Messages;
 using Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -20,6 +21,10 @@ namespace Api.Controllers
         [HttpGet("conversation")]
         public async Task<ActionResult<IEnumerable<MessageDto>>> GetConversation([FromQuery] int userAId, [FromQuery] int userBId)
         {
+            var requesterId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            if (requesterId != userAId && requesterId != userBId)
+                return Forbid();
+
             return Ok(await _messageService.GetConversationAsync(userAId, userBId));
         }
     }

@@ -16,7 +16,10 @@ builder.Logging.AddAzureWebAppDiagnostics();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
-var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "your-super-secret-key-change-this-in-appsettings";
+// Sin fallback hardcodeado a proposito: si falta la config, la app debe fallar
+// al arrancar en vez de firmar tokens con un secreto conocido/predecible.
+var jwtSecret = builder.Configuration["Jwt:Secret"]
+    ?? throw new InvalidOperationException("Jwt:Secret no esta configurado. Local: 'dotnet user-secrets set Jwt:Secret <valor>'. Azure: Application setting 'Jwt__Secret'.");
 var key = Encoding.ASCII.GetBytes(jwtSecret);
 
 builder.Services
