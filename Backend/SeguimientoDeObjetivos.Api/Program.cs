@@ -4,10 +4,12 @@ using Api.Middleware;
 using Application;
 using Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,13 +62,42 @@ builder.Services
         };
     });
 
+// El frontend se sirve desde este mismo origen (Angular compilado a wwwroot,
+// ver el workflow de deploy), asi que en produccion no deberia ni activarse
+// esta politica para el trafico normal de la app. La dejamos como allowlist
+// explicita igual, en vez de AllowAnyOrigin, para que un sitio de terceros
+// no pueda invocar la API usando un token robado por otro medio (XSS, etc.).
+// En Development se deja abierto porque ahi se prueba con Swagger, un
+// devtunnel u otro puerto local, y no hay datos reales en juego.
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AppCors", policy =>
     {
-        policy.AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader();
+        if (builder.Environment.IsDevelopment())
+        {
+            policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        }
+        else
+        {
+            policy.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader();
+        }
+    });
+});
+
+// Limite de intentos en login/registro: sin esto, nada impedia probar
+// contraseñas o emails en loop contra /api/auth. 5 intentos por minuto por IP
+// alcanza de sobra para un usuario real que se equivoca de contraseña, y
+// frena fuerza bruta/credential stuffing.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddFixedWindowLimiter("auth", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 5;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.QueueLimit = 0;
     });
 });
 
@@ -89,7 +120,44 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseExceptionHandler();
-app.UseCors("AllowAll");
+
+// Headers de seguridad basicos que ASP.NET Core no manda por defecto.
+// CSP: 'self' para todo salvo lo que la app realmente usa (fuente Inter de
+// Google Fonts, estilos inline que inyecta Angular Material/CDK en overlays).
+// OnStarting (no seteo directo antes de next()) porque UseExceptionHandler
+// hace Response.Clear() cuando atrapa una excepcion, y eso borraba headers
+// puestos antes; OnStarting corre justo antes de mandar la respuesta, ya
+// despues de cualquier Clear(), asi que sobrevive tanto en éxito como error.
+app.Use(async (context, next) =>
+{
+    context.Response.OnStarting(() =>
+    {
+        var headers = context.Response.Headers;
+        headers["X-Content-Type-Options"] = "nosniff";
+        headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+        headers["Content-Security-Policy"] =
+            "default-src 'self'; " +
+            "script-src 'self'; " +
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+            "font-src 'self' https://fonts.gstatic.com; " +
+            "img-src 'self' data:; " +
+            "connect-src 'self'; " +
+            "frame-ancestors 'none'; " +
+            "base-uri 'self'; " +
+            "form-action 'self';";
+        return Task.CompletedTask;
+    });
+    await next();
+});
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+    app.UseHttpsRedirection();
+}
+
+app.UseCors("AppCors");
+app.UseRateLimiter();
 
 // index.html (y el manifest) no deben quedar cacheados por el navegador: es el
 // "shell" que referencia los archivos con hash de cada build. Si el navegador
@@ -115,10 +183,6 @@ app.UseStaticFiles(new StaticFileOptions
     FileProvider = new PhysicalFileProvider(PersistentStorage.UploadsPath(app.Environment)),
     RequestPath = "/uploads"
 });
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
