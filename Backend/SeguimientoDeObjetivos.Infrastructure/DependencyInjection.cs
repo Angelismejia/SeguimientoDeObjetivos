@@ -1,6 +1,7 @@
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Infrastructure.BackgroundServices;
+using Infrastructure.Common;
 using Infrastructure.Persistence;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,7 @@ namespace Infrastructure
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddSingleton<IAppClock, AppClock>();
 
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
@@ -31,6 +33,7 @@ namespace Infrastructure
             services.AddScoped<IFriendStreakInvitationRepository, FriendStreakInvitationRepository>();
             services.AddScoped<IFriendStreakRepository, FriendStreakRepository>();
             services.AddScoped<IMessageRepository, MessageRepository>();
+            services.AddScoped<IUserSettingRepository, UserSettingRepository>();
 
             services.AddHostedService<TaskReminderBackgroundService>();
 

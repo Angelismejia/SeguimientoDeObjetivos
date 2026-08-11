@@ -16,6 +16,7 @@ namespace Application.Services
         private readonly IUserRepository _userRepository;
         private readonly ITaskRepository _taskRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IAppClock _appClock;
 
         public FriendStreakService(
             IFriendStreakInvitationRepository invitationRepository,
@@ -23,7 +24,8 @@ namespace Application.Services
             IFollowRepository followRepository,
             IUserRepository userRepository,
             ITaskRepository taskRepository,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IAppClock appClock)
         {
             _invitationRepository = invitationRepository;
             _friendStreakRepository = friendStreakRepository;
@@ -31,6 +33,7 @@ namespace Application.Services
             _userRepository = userRepository;
             _taskRepository = taskRepository;
             _unitOfWork = unitOfWork;
+            _appClock = appClock;
         }
 
         public async Task<IEnumerable<FriendStreakInvitationDto>> GetReceivedInvitationsAsync(int userId)
@@ -155,7 +158,10 @@ namespace Application.Services
             var daysA = CompletedDays(tasksA);
             var daysB = CompletedDays(tasksB);
 
-            var today = DateTime.Today;
+            // DateTime.Today aca era la hora del servidor (UTC en Azure), no la de
+            // ninguno de los dos usuarios; usamos IAppClock para que coincida con el
+            // mismo "hoy" que ya usa BadgeAwardService.
+            var today = _appClock.Today;
             var cursor = today;
             if (!(daysA.Contains(today) && daysB.Contains(today)))
             {

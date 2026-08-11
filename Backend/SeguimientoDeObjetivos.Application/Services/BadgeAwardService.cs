@@ -14,6 +14,7 @@ namespace Application.Services
         private readonly IObjectiveRepository _objectiveRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly INotificationService _notificationService;
+        private readonly IAppClock _appClock;
 
         // BadgeType (tal como se guarda en la tabla Badges) -> condición para ganarla.
         // tasksCompleted, objectivesCompleted y currentStreak son los tres números
@@ -35,13 +36,15 @@ namespace Application.Services
             ITaskRepository taskRepository,
             IObjectiveRepository objectiveRepository,
             IUnitOfWork unitOfWork,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            IAppClock appClock)
         {
             _badgeRepository = badgeRepository;
             _taskRepository = taskRepository;
             _objectiveRepository = objectiveRepository;
             _unitOfWork = unitOfWork;
             _notificationService = notificationService;
+            _appClock = appClock;
         }
 
         public async Task CheckAndAwardAsync(int userId)
@@ -51,7 +54,7 @@ namespace Application.Services
 
             var tasksCompleted = tasks.Count(t => t.Status == TaskItemStatus.Completed);
             var objectivesCompleted = objectives.Count(o => o.Status == ObjectiveStatus.Completed);
-            var currentStreak = ComputeCurrentStreak(tasks);
+            var currentStreak = ComputeCurrentStreak(tasks, _appClock.Today);
 
             var badges = await _badgeRepository.GetAllAsync();
             var awardedAny = false;
@@ -81,14 +84,17 @@ namespace Application.Services
         // Misma regla que usa el frontend: días consecutivos con al menos una
         // tarea completada, contando desde hoy (o desde ayer si hoy todavía no
         // se completó ninguna, para no cortar la racha antes de que termine el día).
-        private static int ComputeCurrentStreak(IEnumerable<TaskItem> tasks)
+        // "hoy" se recibe ya calculado (IAppClock) en vez de usar DateTime.UtcNow.Date:
+        // el servidor corre en UTC y eso desalineaba la racha con las ScheduledDate
+        // locales que guarda TaskService al completar una tarea recurrente.
+        private static int ComputeCurrentStreak(IEnumerable<TaskItem> tasks, DateTime today)
         {
             var completedDays = tasks
                 .Where(t => t.Status == TaskItemStatus.Completed)
                 .Select(t => t.ScheduledDate.Date)
                 .ToHashSet();
 
-            var cursor = DateTime.UtcNow.Date;
+            var cursor = today;
             if (!completedDays.Contains(cursor)) cursor = cursor.AddDays(-1);
 
             var streak = 0;
