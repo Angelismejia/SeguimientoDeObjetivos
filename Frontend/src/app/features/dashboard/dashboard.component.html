@@ -17,9 +17,239 @@
   @if (loading()) {
     <div class="state-msg">Cargando tu progreso...</div>
   } @else if (loadError()) {
-    <div class="state-msg error">No se pudo cargar la información. Intenta de nuevo más tarde.</div>
+    <div class="state-msg error">
+      No se pudo cargar la información. Intenta de nuevo más tarde.
+      <br /><button type="button" class="btn-retry" (click)="loadAll()">Reintentar</button>
+    </div>
   } @else {
 
+    <!-- 1. Calendario -->
+    <div class="panel calendar-panel">
+      <div class="calendar-header">
+        <h2>Calendario</h2>
+        <a class="ver-todas-link calendar-open-btn" routerLink="/calendar">
+          Ver calendario <span class="material-icons-round">chevron_right</span>
+        </a>
+      </div>
+
+      <div class="calendar-nav">
+        <button type="button" class="nav-btn" (click)="prevWeek()" aria-label="Semana anterior">
+          <span class="material-icons-round">chevron_left</span>
+        </button>
+        <span class="calendar-month">{{ weekRangeLabel() }}</span>
+        <button type="button" class="nav-btn" (click)="nextWeek()" aria-label="Semana siguiente">
+          <span class="material-icons-round">chevron_right</span>
+        </button>
+        <button type="button" class="today-btn" (click)="goToday()">Hoy: {{ todayLabel() }}</button>
+      </div>
+
+      <div class="calendar-week">
+        @for (day of weekDays(); track day.key) {
+          <button
+            type="button"
+            class="calendar-day"
+            [class.today]="day.isToday"
+            [class.selected]="selectedDate() === day.key"
+            (click)="selectDay(day.key)"
+          >
+            <span class="day-weekday">{{ day.weekdayShort }}</span>
+            <span class="day-number">{{ day.dayNumber }}</span>
+            @if (day.taskCount > 0) {
+              <span class="day-dot" [class.overdue]="day.hasOverdue"></span>
+            }
+          </button>
+        }
+      </div>
+
+      @if (selectedDate() && !isTodaySelected()) {
+        <div class="calendar-selected">
+          <div class="panel-header-row">
+            <h3 class="calendar-selected-title">Tareas del día seleccionado</h3>
+            <button type="button" class="btn-add" (click)="openCreateTask()" title="Nueva tarea" aria-label="Nueva tarea">
+              <span class="material-icons-round">add</span>
+            </button>
+          </div>
+          @if (selectedDayTasks().length === 0) {
+            <p class="panel-empty">No tienes tareas para este día.</p>
+          } @else {
+            <ul class="task-list">
+              @for (task of selectedDayTasks(); track task.id) {
+                <li class="task-item" [class.overdue]="isOverdue(task)" [style.background]="task.color ? task.color + '33' : null">
+                  <button
+                    type="button"
+                    class="task-check"
+                    [class.checked]="isDone(task, selectedDate() ?? undefined)"
+                    [disabled]="!isDone(task, selectedDate() ?? undefined) && isFuture(task)"
+                    (click)="toggleTaskComplete(task, selectedDate() ?? undefined)"
+                    [title]="!isDone(task, selectedDate() ?? undefined) && isFuture(task) ? 'No puedes completar una tarea programada para el futuro' : 'Marcar como completada'"
+                    [attr.aria-label]="!isDone(task, selectedDate() ?? undefined) && isFuture(task) ? 'No puedes completar una tarea programada para el futuro' : 'Marcar como completada'"
+                  >
+                    <span class="material-icons-round">{{ isDone(task, selectedDate() ?? undefined) ? 'check_circle' : 'radio_button_unchecked' }}</span>
+                  </button>
+                  @if (task.emoji) {
+                    <span class="task-emoji">{{ task.emoji }}</span>
+                  }
+                  <span class="task-title" [class.done]="isDone(task, selectedDate() ?? undefined)" (click)="openEditTask(task)">{{ task.title }}</span>
+                  @if (task.scheduledTime) {
+                    <span class="task-date">{{ timeRangeLabel(task) }}</span>
+                  }
+                  <span class="task-actions">
+                    <button type="button" class="btn-icon-only danger" (click)="askDeleteTask(task)" title="Eliminar" aria-label="Eliminar tarea">
+                      <span class="material-icons-round">delete</span>
+                    </button>
+                  </span>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- 2. Tareas de Hoy + 3. Estado de tus objetivos (fila en desktop) -->
+    <div class="dashboard-row">
+    <div class="panel today-tasks-panel">
+      <div class="panel-header-row">
+        <h2>Tareas de Hoy <span class="count-badge">{{ todayTasks().length }}</span></h2>
+        <a class="ver-todas-link" routerLink="/tasks">Ver todas</a>
+      </div>
+      @if (todayTasks().length === 0) {
+        <p class="panel-empty">No tienes tareas para hoy. ¡Agregá una!</p>
+      } @else {
+        <ul class="task-list">
+          @for (task of todayTasks(); track task.id) {
+            <li class="task-item today-task-item" [class.overdue]="isOverdue(task)">
+              <button
+                type="button"
+                class="task-check-round"
+                [class.checked]="isDone(task)"
+                (click)="toggleTaskComplete(task)"
+                [title]="isDone(task) ? 'Marcar como pendiente' : 'Marcar como completada'"
+                [attr.aria-label]="isDone(task) ? 'Marcar como pendiente' : 'Marcar como completada'"
+              >
+                @if (isDone(task)) {
+                  <span class="material-icons-round">check</span>
+                }
+              </button>
+              <span class="task-icon-box" [style.background]="task.color ?? '#c7d2fe'">
+                @if (task.emoji) {
+                  <span class="task-emoji">{{ task.emoji }}</span>
+                } @else {
+                  <span class="material-icons-round">task_alt</span>
+                }
+              </span>
+              <div class="today-task-main" (click)="openEditTask(task)">
+                <span class="task-title" [class.done]="isDone(task)">{{ task.title }}</span>
+                <span class="today-task-subtitle">
+                  @if (taskDurationLabel(task); as dur) {
+                    <span class="today-task-duration">
+                      <span class="material-icons-round">schedule</span>{{ dur }}
+                    </span>
+                    <span class="today-task-dot">·</span>
+                  }
+                  <span class="priority-tag" [class]="'priority-' + task.priority">{{ taskPriorityLabel(task.priority) }}</span>
+                </span>
+              </div>
+              @if (isDone(task)) {
+                <span class="task-done-badge">
+                  <span class="material-icons-round">check</span> Completada
+                </span>
+              } @else if (task.scheduledTime) {
+                <span class="task-time">{{ timeRangeLabel(task) }}</span>
+              }
+              <button type="button" class="btn-icon-only danger today-task-delete" (click)="askDeleteTask(task)" title="Eliminar" aria-label="Eliminar tarea">
+                <span class="material-icons-round">delete</span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+      <button type="button" class="btn-add-task-dashed" (click)="openCreateTask()">
+        <span class="material-icons-round">add</span> Agregar tarea
+      </button>
+    </div>
+
+    <!-- 3. Estado de tus objetivos (resumen compacto, reemplaza el doughnut) -->
+    <div class="panel objective-status-panel">
+      <div class="panel-header-row">
+        <h2>Estado de tus objetivos</h2>
+      </div>
+      @if (objectiveStatusSummary().total === 0) {
+        <p class="panel-empty">Todavía no tienes objetivos creados.</p>
+      } @else {
+        <div class="status-summary-grid">
+          @for (item of objectiveStatusSummary().items; track item.key) {
+            <div class="status-summary-cell">
+              <span class="status-summary-label">
+                <span class="status-dot" [class]="item.dotClass"></span>
+                {{ item.label }}
+              </span>
+              <span class="status-summary-numbers">{{ item.count }} · {{ item.pct }}%</span>
+              <div class="status-summary-track">
+                <div class="status-summary-fill" [class]="item.dotClass" [style.width.%]="item.pct"></div>
+              </div>
+            </div>
+          }
+        </div>
+        <p class="status-summary-total">Total objetivos: {{ objectiveStatusSummary().total }}</p>
+      }
+    </div>
+    </div>
+
+    <!-- 4. Resumen de hoy + 5. Objetivos recientes (fila en desktop) -->
+    <div class="dashboard-row">
+    <div class="panel today-summary-panel">
+      <div class="panel-header-row">
+        <h2>Resumen de hoy</h2>
+        <a class="ver-todas-link" routerLink="/tasks">Ver todas</a>
+      </div>
+      <div class="today-summary-grid">
+        <div class="today-summary-tile summary-pending">
+          <span class="material-icons-round">radio_button_unchecked</span>
+          <span class="today-summary-value">{{ todaySummary().pending }}</span>
+          <span class="today-summary-label">Tareas pendientes</span>
+        </div>
+        <div class="today-summary-tile summary-completed">
+          <span class="material-icons-round">check_circle</span>
+          <span class="today-summary-value">{{ todaySummary().completed }}</span>
+          <span class="today-summary-label">Tareas completadas</span>
+        </div>
+        <div class="today-summary-tile summary-streak">
+          <span class="material-icons-round">local_fire_department</span>
+          <span class="today-summary-value">{{ todaySummary().streakDays }} días</span>
+          <span class="today-summary-label">Racha actual</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel recent-objectives-panel">
+      <div class="panel-header-row">
+        <h2>Objetivos recientes</h2>
+        <a class="ver-todas-link" routerLink="/objectives">Ver todos</a>
+      </div>
+      @if (recentObjectives().length === 0) {
+        <p class="panel-empty">Todavía no tienes objetivos creados.</p>
+      } @else {
+        <ul class="recent-objectives-list">
+          @for (obj of recentObjectives(); track obj.id) {
+            <a class="recent-objective-item" routerLink="/objectives">
+              <span class="recent-objective-icon material-icons-round">track_changes</span>
+              <div class="recent-objective-main">
+                <span class="recent-objective-title">{{ obj.title }}</span>
+                <span class="recent-objective-status">{{ obj.statusLabel }} · {{ obj.progressPercentage }}%</span>
+                <div class="progress-track">
+                  <div class="progress-fill" [style.width.%]="obj.progressPercentage"></div>
+                </div>
+              </div>
+              <span class="material-icons-round recent-objective-chevron">chevron_right</span>
+            </a>
+          }
+        </ul>
+      }
+    </div>
+    </div>
+
+    <!-- 6. Resto del dashboard -->
     <div class="stats-row">
       <div class="stat-tile">
         <span class="stat-icon stat-icon-purple material-icons-round">track_changes</span>
@@ -58,66 +288,6 @@
       </a>
     }
 
-    <div class="panel today-tasks-panel">
-      <div class="panel-header-row">
-        <h2>Tareas de Hoy <span class="count-badge">{{ todayTasks().length }}</span></h2>
-        <a class="ver-todas-link" routerLink="/tasks">Ver todas</a>
-      </div>
-      @if (todayTasks().length === 0) {
-        <p class="panel-empty">No tienes tareas para hoy. ¡Agregá una!</p>
-      } @else {
-        <ul class="task-list">
-          @for (task of todayTasks(); track task.id) {
-            <li class="task-item today-task-item" [class.overdue]="isOverdue(task)">
-              <button
-                type="button"
-                class="task-check-round"
-                [class.checked]="isDone(task)"
-                (click)="toggleTaskComplete(task)"
-                title="Marcar como completada"
-              >
-                @if (isDone(task)) {
-                  <span class="material-icons-round">check</span>
-                }
-              </button>
-              <span class="task-icon-box" [style.background]="task.color ?? '#c7d2fe'">
-                @if (task.emoji) {
-                  <span class="task-emoji">{{ task.emoji }}</span>
-                } @else {
-                  <span class="material-icons-round">task_alt</span>
-                }
-              </span>
-              <div class="today-task-main" (click)="openEditTask(task)">
-                <span class="task-title" [class.done]="isDone(task)">{{ task.title }}</span>
-                <span class="today-task-subtitle">
-                  @if (taskDurationLabel(task); as dur) {
-                    <span class="today-task-duration">
-                      <span class="material-icons-round">schedule</span>{{ dur }}
-                    </span>
-                    <span class="today-task-dot">·</span>
-                  }
-                  <span class="priority-tag" [class]="'priority-' + task.priority">{{ taskPriorityLabel(task.priority) }}</span>
-                </span>
-              </div>
-              @if (isDone(task)) {
-                <span class="task-done-badge">
-                  <span class="material-icons-round">check</span> Completada
-                </span>
-              } @else if (task.scheduledTime) {
-                <span class="task-time">{{ timeRangeLabel(task) }}</span>
-              }
-              <button type="button" class="btn-icon-only danger today-task-delete" (click)="askDeleteTask(task)" title="Eliminar">
-                <span class="material-icons-round">delete</span>
-              </button>
-            </li>
-          }
-        </ul>
-      }
-      <button type="button" class="btn-add-task-dashed" (click)="openCreateTask()">
-        <span class="material-icons-round">add</span> Agregar tarea
-      </button>
-    </div>
-
     <div class="panel quick-actions-panel">
       <h2>Acciones rápidas</h2>
       <div class="quick-actions-row">
@@ -133,98 +303,6 @@
           <span class="material-icons-round qa-icon">menu_book</span>
           <span>Escribir diario</span>
         </a>
-      </div>
-    </div>
-
-    <div class="panel calendar-panel">
-      <div class="calendar-header">
-        <h2>Calendario</h2>
-        <button type="button" class="ver-todas-link calendar-open-btn" (click)="openBigCalendar()">
-          Ver calendario <span class="material-icons-round">chevron_right</span>
-        </button>
-      </div>
-
-      <div class="calendar-nav">
-        <button type="button" class="nav-btn" (click)="prevWeek()">
-          <span class="material-icons-round">chevron_left</span>
-        </button>
-        <span class="calendar-month">{{ weekRangeLabel() }}</span>
-        <button type="button" class="nav-btn" (click)="nextWeek()">
-          <span class="material-icons-round">chevron_right</span>
-        </button>
-        <button type="button" class="today-btn" (click)="goToday()">Hoy: {{ todayLabel() }}</button>
-      </div>
-
-      <div class="calendar-week">
-        @for (day of weekDays(); track day.key) {
-          <button
-            type="button"
-            class="calendar-day"
-            [class.today]="day.isToday"
-            [class.selected]="selectedDate() === day.key"
-            (click)="selectDay(day.key)"
-          >
-            <span class="day-weekday">{{ day.weekdayShort }}</span>
-            <span class="day-number">{{ day.dayNumber }}</span>
-            @if (day.taskCount > 0) {
-              <span class="day-dot" [class.overdue]="day.hasOverdue"></span>
-            }
-          </button>
-        }
-      </div>
-
-      @if (selectedDate() && !isTodaySelected()) {
-        <div class="calendar-selected">
-          <div class="panel-header-row">
-            <h3 class="calendar-selected-title">Tareas del día seleccionado</h3>
-            <button type="button" class="btn-add" (click)="openCreateTask()" title="Nueva tarea">
-              <span class="material-icons-round">add</span>
-            </button>
-          </div>
-          @if (selectedDayTasks().length === 0) {
-            <p class="panel-empty">No tienes tareas para este día.</p>
-          } @else {
-            <ul class="task-list">
-              @for (task of selectedDayTasks(); track task.id) {
-                <li class="task-item" [class.overdue]="isOverdue(task)" [style.background]="task.color ? task.color + '33' : null">
-                  <button
-                    type="button"
-                    class="task-check"
-                    [class.checked]="isDone(task, selectedDate() ?? undefined)"
-                    [disabled]="!isDone(task, selectedDate() ?? undefined) && isFuture(task)"
-                    (click)="toggleTaskComplete(task, selectedDate() ?? undefined)"
-                    [title]="!isDone(task, selectedDate() ?? undefined) && isFuture(task) ? 'No puedes completar una tarea programada para el futuro' : 'Marcar como completada'"
-                  >
-                    <span class="material-icons-round">{{ isDone(task, selectedDate() ?? undefined) ? 'check_circle' : 'radio_button_unchecked' }}</span>
-                  </button>
-                  @if (task.emoji) {
-                    <span class="task-emoji">{{ task.emoji }}</span>
-                  }
-                  <span class="task-title" [class.done]="isDone(task, selectedDate() ?? undefined)" (click)="openEditTask(task)">{{ task.title }}</span>
-                  @if (task.scheduledTime) {
-                    <span class="task-date">{{ timeRangeLabel(task) }}</span>
-                  }
-                  <span class="task-actions">
-                    <button type="button" class="btn-icon-only danger" (click)="askDeleteTask(task)" title="Eliminar">
-                      <span class="material-icons-round">delete</span>
-                    </button>
-                  </span>
-                </li>
-              }
-            </ul>
-          }
-        </div>
-      }
-    </div>
-
-    <div class="panel chart-panel">
-      <h2>Estado de tus objetivos</h2>
-      <div class="chart-wrap">
-        <canvas baseChart
-          [data]="chartData()"
-          [options]="chartOptions"
-          type="doughnut">
-        </canvas>
       </div>
     </div>
 
@@ -436,49 +514,6 @@
           </button>
         </div>
       </form>
-    </div>
-  </div>
-}
-
-@if (showBigCalendar()) {
-  <div class="dialog-overlay" (click)="closeBigCalendar()">
-    <div class="dialog-card big-calendar-card" (click)="$event.stopPropagation()">
-      <div class="calendar-header">
-        <h2 class="calendar-month-title">{{ monthRangeLabel() }}</h2>
-        <div class="calendar-nav">
-          <button type="button" class="nav-btn" (click)="prevMonth()">
-            <span class="material-icons-round">chevron_left</span>
-          </button>
-          <button type="button" class="nav-btn" (click)="nextMonth()">
-            <span class="material-icons-round">chevron_right</span>
-          </button>
-          <button type="button" class="btn-icon-only" (click)="closeBigCalendar()" title="Cerrar">
-            <span class="material-icons-round">close</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="month-weekday-row">
-        <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
-      </div>
-
-      <div class="month-grid">
-        @for (day of monthDays(); track day.key) {
-          <button
-            type="button"
-            class="month-day"
-            [class.today]="day.isToday"
-            [class.selected]="selectedDate() === day.key"
-            [class.other-month]="!day.inMonth"
-            (click)="selectDayFromMonth(day.key)"
-          >
-            <span class="day-number">{{ day.dayNumber }}</span>
-            @if (day.taskCount > 0) {
-              <span class="day-dot" [class.overdue]="day.hasOverdue"></span>
-            }
-          </button>
-        }
-      </div>
     </div>
   </div>
 }
