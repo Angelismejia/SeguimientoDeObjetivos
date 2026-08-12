@@ -1,0 +1,196 @@
+<div class="statistics-page">
+  <div class="page-header">
+    <div>
+      <h1>📊 Estadísticas</h1>
+      <p>Cómo has progresado con el tiempo y qué patrones tenés.</p>
+    </div>
+    <div class="period-switch">
+      @for (p of periods; track p.key) {
+        <button type="button" [class.active]="period() === p.key" (click)="setPeriod(p.key)">{{ p.label }}</button>
+      }
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="state-msg">Cargando estadísticas...</div>
+  } @else if (loadError()) {
+    <div class="state-msg error">
+      No se pudo cargar la información. Intenta de nuevo más tarde.
+      <br /><button type="button" class="btn-retry" (click)="loadAll()">Reintentar</button>
+    </div>
+  } @else {
+
+    <!-- Tu progreso -->
+    <div class="panel">
+      <div class="panel-header-row">
+        <h2>Tu progreso</h2>
+      </div>
+      @if (hasProgressData()) {
+        <div class="progress-headline">
+          <span class="progress-pct">{{ currentPeriodRate() }}%</span>
+          <span class="progress-label">de cumplimiento</span>
+          @if (previousPeriodRate() !== null) {
+            @if (currentPeriodRate() - previousPeriodRate()! > 0) {
+              <span class="progress-delta up">
+                <span class="material-icons-round">arrow_upward</span>
+                {{ currentPeriodRate() - previousPeriodRate()! }}% vs. período anterior
+              </span>
+            } @else if (currentPeriodRate() - previousPeriodRate()! < 0) {
+              <span class="progress-delta down">
+                <span class="material-icons-round">arrow_downward</span>
+                {{ (previousPeriodRate()! - currentPeriodRate()) }}% vs. período anterior
+              </span>
+            } @else {
+              <span class="progress-delta flat">= vs. período anterior</span>
+            }
+          }
+        </div>
+        <div class="chart-wrap">
+          <canvas baseChart [data]="progressChartData()" [options]="progressChartOptions" type="line"></canvas>
+        </div>
+      } @else {
+        <p class="panel-empty">Todavía no tienes tareas programadas en este período.</p>
+      }
+    </div>
+
+    <!-- Constancia -->
+    <div class="panel">
+      <div class="panel-header-row">
+        <h2>🔥 Constancia</h2>
+      </div>
+
+      <div class="heatmap-scroll">
+        <div class="heatmap">
+          <div class="heatmap-months">
+            @for (label of heatmapMonthLabels(); track $index) {
+              <span class="heatmap-month">{{ label }}</span>
+            }
+          </div>
+          <div class="heatmap-grid">
+            @for (week of heatmapWeeks(); track $index) {
+              <div class="heatmap-col">
+                @for (cell of week; track cell.key) {
+                  <div
+                    class="heatmap-cell"
+                    [class.empty]="cell.level === 0"
+                    [class.future]="cell.inFuture"
+                    [style.background]="cell.level === 0 ? null : heatCellColor(cell)"
+                    [title]="heatCellTitle(cell)"
+                  ></div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="streak-stats">
+        <div class="streak-stat">
+          <span class="streak-icon">🔥</span>
+          <span class="streak-value">{{ currentStreak() }} días</span>
+          <span class="streak-label">Racha actual</span>
+        </div>
+        <div class="streak-stat">
+          <span class="streak-icon">🏆</span>
+          <span class="streak-value">{{ bestStreak() }} días</span>
+          <span class="streak-label">Mejor racha</span>
+        </div>
+        <div class="streak-stat">
+          <span class="streak-icon">📅</span>
+          <span class="streak-value">{{ activeDays().active }}/{{ activeDays().total }}</span>
+          <span class="streak-label">Días activos</span>
+        </div>
+      </div>
+
+      <p class="panel-note">
+        Las tareas recurrentes solo pueden mostrar su último día marcado — todavía no guardamos
+        un historial completo por día para ellas.
+      </p>
+    </div>
+
+    <!-- Rendimiento de objetivos -->
+    <div class="panel">
+      <div class="panel-header-row">
+        <h2>🎯 Rendimiento de objetivos</h2>
+        <a class="panel-link" routerLink="/objectives">Ver todos ›</a>
+      </div>
+      @if (topObjectives().length > 0) {
+        <ul class="objective-perf-list">
+          @for (o of topObjectives(); track o.id) {
+            <li>
+              <div class="objective-perf-top">
+                <span class="objective-perf-title">{{ o.title }}</span>
+                <span class="objective-perf-pct">{{ o.progressPercentage }}%</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" [style.width.%]="o.progressPercentage"></div>
+              </div>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="panel-empty">Todavía no tienes objetivos para mostrar aquí.</p>
+      }
+    </div>
+
+    <!-- Actividad -->
+    <div class="panel">
+      <div class="panel-header-row">
+        <h2>📈 Actividad</h2>
+        <span class="panel-caption">Tareas completadas por período</span>
+      </div>
+      @if (hasActivityData()) {
+        <div class="chart-wrap">
+          <canvas baseChart [data]="activityChartData()" [options]="activityChartOptions" type="bar"></canvas>
+        </div>
+      } @else {
+        <p class="panel-empty">Todavía no tienes tareas completadas en este período.</p>
+      }
+    </div>
+
+    <!-- Insights -->
+    @if (insights().length > 0) {
+      <div class="panel">
+        <div class="panel-header-row">
+          <h2>💡 Insights</h2>
+        </div>
+        <ul class="insights-list">
+          @for (insight of insights(); track insight.title) {
+            <li>
+              <span class="insight-icon">{{ insight.icon }}</span>
+              <div>
+                <span class="insight-title">{{ insight.title }}</span>
+                <p class="insight-body">{{ insight.body }}</p>
+              </div>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    <!-- Resumen -->
+    <div class="panel">
+      <div class="panel-header-row">
+        <h2>🏆 Resumen</h2>
+      </div>
+      <div class="summary-grid">
+        <div class="summary-stat">
+          <span class="summary-value">{{ summary().objectivesCompleted }}</span>
+          <span class="summary-label">Objetivos completados</span>
+        </div>
+        <div class="summary-stat">
+          <span class="summary-value">{{ summary().completionRate }}%</span>
+          <span class="summary-label">Tasa de cumplimiento</span>
+        </div>
+        <div class="summary-stat">
+          <span class="summary-value">{{ summary().bestStreak }} días</span>
+          <span class="summary-label">Mejor racha</span>
+        </div>
+        <div class="summary-stat">
+          <span class="summary-value">{{ summary().bestDayName }}</span>
+          <span class="summary-label">Tu día más productivo</span>
+        </div>
+      </div>
+    </div>
+  }
+</div>

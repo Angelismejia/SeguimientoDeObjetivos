@@ -1,0 +1,112 @@
+<div class="calendar-page">
+  <div class="page-header">
+    <div>
+      <h1>Calendario</h1>
+      <p>Todas tus tareas, mes a mes.</p>
+    </div>
+    <a class="link-back" routerLink="/tasks">
+      <span class="material-icons-round">task_alt</span> Ir a Tareas
+    </a>
+  </div>
+
+  @if (loading()) {
+    <div class="state-msg">Cargando calendario...</div>
+  } @else if (loadError()) {
+    <div class="state-msg error">
+      No se pudo cargar la información. Intenta de nuevo más tarde.
+      <br /><button type="button" class="btn-retry" (click)="loadAll()">Reintentar</button>
+    </div>
+  } @else {
+
+    <div class="panel">
+      <div class="calendar-header">
+        <h2 class="calendar-month-title">{{ monthRangeLabel() }}</h2>
+        <div class="calendar-nav">
+          <button type="button" class="nav-btn" (click)="prevMonth()" aria-label="Mes anterior">
+            <span class="material-icons-round">chevron_left</span>
+          </button>
+          <button type="button" class="nav-btn" (click)="nextMonth()" aria-label="Mes siguiente">
+            <span class="material-icons-round">chevron_right</span>
+          </button>
+          <button type="button" class="today-btn" (click)="goToday()">Hoy</button>
+        </div>
+      </div>
+
+      <div class="month-weekday-row">
+        <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
+      </div>
+
+      <div class="month-grid">
+        @for (day of monthDays(); track day.key) {
+          <button
+            type="button"
+            class="month-day"
+            [class.today]="day.isToday"
+            [class.selected]="selectedDate() === day.key"
+            [class.other-month]="!day.inMonth"
+            (click)="selectDay(day.key)"
+          >
+            <span class="day-number">{{ day.dayNumber }}</span>
+            @if (day.taskCount > 0) {
+              <span class="day-dot" [class.overdue]="day.hasOverdue"></span>
+            }
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (selectedDate()) {
+      <div class="panel">
+        <div class="panel-header-row">
+          <h3 class="calendar-selected-title">{{ selectedDateLabel() }}</h3>
+        </div>
+        @if (selectedDayTasks().length === 0) {
+          <p class="panel-empty">No tienes tareas para este día.</p>
+        } @else {
+          <ul class="task-list">
+            @for (task of selectedDayTasks(); track task.id) {
+              <li class="task-item" [style.background]="task.color ? task.color + '33' : null">
+                <button
+                  type="button"
+                  class="task-check"
+                  [class.checked]="isDone(task, selectedDate() ?? undefined)"
+                  [disabled]="!isDone(task, selectedDate() ?? undefined) && isFuture(task)"
+                  (click)="toggleTaskComplete(task, selectedDate() ?? undefined)"
+                  [title]="!isDone(task, selectedDate() ?? undefined) && isFuture(task) ? 'No puedes completar una tarea programada para el futuro' : 'Marcar como completada'"
+                  [attr.aria-label]="!isDone(task, selectedDate() ?? undefined) && isFuture(task) ? 'No puedes completar una tarea programada para el futuro' : 'Marcar como completada'"
+                >
+                  <span class="material-icons-round">{{ isDone(task, selectedDate() ?? undefined) ? 'check_circle' : 'radio_button_unchecked' }}</span>
+                </button>
+                @if (task.emoji) {
+                  <span class="task-emoji">{{ task.emoji }}</span>
+                }
+                <span class="task-title" [class.done]="isDone(task, selectedDate() ?? undefined)">{{ task.title }}</span>
+                @if (task.scheduledTime) {
+                  <span class="task-date">{{ timeRangeLabel(task) }}</span>
+                }
+                <span class="task-actions">
+                  <button type="button" class="btn-icon-only danger" (click)="askDeleteTask(task)" title="Eliminar" aria-label="Eliminar tarea">
+                    <span class="material-icons-round">delete</span>
+                  </button>
+                </span>
+              </li>
+            }
+          </ul>
+        }
+        <a class="btn-add-task-dashed" routerLink="/tasks">
+          <span class="material-icons-round">add</span> Agregar tarea
+        </a>
+      </div>
+    }
+  }
+</div>
+
+<app-confirm-dialog
+  [open]="!!deleteTaskTarget()"
+  title="Eliminar tarea"
+  [message]="'¿Seguro que quieres eliminar &quot;' + (deleteTaskTarget()?.title ?? '') + '&quot;? Esta acción no se puede deshacer.'"
+  confirmText="Eliminar"
+  [danger]="true"
+  (confirmed)="confirmDeleteTask()"
+  (cancelled)="cancelDeleteTask()"
+></app-confirm-dialog>
