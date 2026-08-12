@@ -46,5 +46,13 @@ namespace Infrastructure.Repositories
             _context.FriendStreakInvitations.Update(invitation);
             return Task.FromResult(invitation);
         }
+
+        public async Task DeleteAllForUserAsync(int userId)
+        {
+            var invitations = await _context.FriendStreakInvitations
+                .Where(i => i.FromUserId == userId || i.ToUserId == userId)
+                .ToListAsync();
+            _context.FriendStreakInvitations.RemoveRange(invitations);
+        }
     }
 }

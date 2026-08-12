@@ -1,12 +1,13 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { ChatService } from '../../core/services/chat.service';
 import { UserService } from '../../core/services/user.service';
 import { FollowService } from '../../core/services/follow.service';
+import { ThemeService } from '../../core/services/theme.service';
 import { FriendStreakService } from '../../core/services/friend-streak.service';
 import { TaskService } from '../../core/services/task.service';
 import { ObjectiveService } from '../../core/services/objective.service';
@@ -58,6 +59,10 @@ export class ProfileComponent implements OnInit, AfterViewInit {
   // ── Configuración ────────────────────────────────────
   showSettings = signal(false);
 
+  // ── Tema ──────────────────────────────────────────────
+  theme = signal<'Light' | 'Dark'>('Light');
+  savingTheme = signal(false);
+
   // ── Editar perfil ───────────────────────────────────
   showEditProfile = signal(false);
   editProfileForm: FormGroup;
@@ -73,6 +78,19 @@ export class ProfileComponent implements OnInit, AfterViewInit {
 
   // ── Compartir perfil ─────────────────────────────────
   shareCopied = signal(false);
+
+  // ── Privacidad: quién puede seguirme ─────────────────
+  savingFollowPrivacy = signal(false);
+
+  // ── Exportar datos ────────────────────────────────────
+  exportingData = signal(false);
+  exportError = signal('');
+
+  // ── Eliminar cuenta ────────────────────────────────────
+  showDeleteAccount = signal(false);
+  deleteAccountForm: FormGroup;
+  deletingAccount = signal(false);
+  deleteAccountError = signal('');
 
   private apiOrigin = environment.apiUrl.replace('/api', '');
 
@@ -96,10 +114,12 @@ export class ProfileComponent implements OnInit, AfterViewInit {
   constructor(
     private fb: FormBuilder,
     private router: Router,
+    private route: ActivatedRoute,
     private auth: AuthService,
     private chatService: ChatService,
     private userService: UserService,
     private followService: FollowService,
+    private themeService: ThemeService,
     private friendStreakService: FriendStreakService,
     private taskService: TaskService,
     private objectiveService: ObjectiveService,
@@ -120,13 +140,22 @@ export class ProfileComponent implements OnInit, AfterViewInit {
       currentPassword: ['', Validators.required],
       newPassword: ['', [Validators.required, Validators.minLength(6)]]
     });
+
+    this.deleteAccountForm = this.fb.group({
+      password: ['', Validators.required]
+    });
   }
 
   ngOnInit(): void {
     this.loadAll();
+    // El sidebar/drawer enlazan a /profile?settings=1 para "Configuración" en
+    // vez de duplicar ese modal como una pantalla propia.
+    if (this.route.snapshot.queryParamMap.get('settings')) {
+      this.openSettings();
+    }
   }
 
-  private loadAll(): void {
+  loadAll(): void {
     this.loading.set(true);
     this.loadError.set(false);
     const userId = this.auth.getUserId();
@@ -275,10 +304,24 @@ export class ProfileComponent implements OnInit, AfterViewInit {
   // ── Configuración ────────────────────────────────────
   openSettings(): void {
     this.showSettings.set(true);
+    this.themeService.getTheme(this.auth.getUserId()).subscribe(res => this.theme.set(res.theme));
   }
 
   closeSettings(): void {
     this.showSettings.set(false);
+  }
+
+  // ── Tema ──────────────────────────────────────────────
+  setTheme(theme: 'Light' | 'Dark'): void {
+    if (this.theme() === theme || this.savingTheme()) return;
+    this.savingTheme.set(true);
+    this.themeService.setTheme(this.auth.getUserId(), theme).subscribe({
+      next: res => {
+        this.theme.set(res.theme);
+        this.savingTheme.set(false);
+      },
+      error: () => this.savingTheme.set(false)
+    });
   }
 
   logout(): void {
@@ -350,6 +393,79 @@ export class ProfileComponent implements OnInit, AfterViewInit {
         this.changePasswordError.set(
           err?.status === 400 ? 'La contraseña actual es incorrecta.' : 'No se pudo cambiar la contraseña. Intenta de nuevo.'
         );
+      }
+    });
+  }
+
+  // ── Exportar datos ────────────────────────────────────
+  exportData(): void {
+    const u = this.user();
+    if (!u || this.exportingData()) return;
+    this.exportingData.set(true);
+    this.exportError.set('');
+
+    this.userService.exportData(u.id).subscribe({
+      next: data => {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `seguimiento-objetivos-${u.username}-${this.dateKey(new Date())}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+        this.exportingData.set(false);
+      },
+      error: () => {
+        this.exportingData.set(false);
+        this.exportError.set('No se pudieron exportar los datos. Intenta de nuevo.');
+      }
+    });
+  }
+
+  // ── Eliminar cuenta ────────────────────────────────────
+  openDeleteAccount(): void {
+    this.deleteAccountError.set('');
+    this.deleteAccountForm.reset({ password: '' });
+    this.showDeleteAccount.set(true);
+  }
+
+  closeDeleteAccount(): void {
+    this.showDeleteAccount.set(false);
+  }
+
+  submitDeleteAccount(): void {
+    const u = this.user();
+    if (!u || this.deleteAccountForm.invalid) return;
+    this.deletingAccount.set(true);
+    this.deleteAccountError.set('');
+
+    this.userService.deleteAccount(u.id, { password: this.deleteAccountForm.value.password }).subscribe({
+      next: () => {
+        this.chatService.disconnect();
+        this.auth.logout();
+      },
+      error: (err) => {
+        this.deletingAccount.set(false);
+        this.deleteAccountError.set(
+          err?.status === 400 ? 'La contraseña es incorrecta.' : 'No se pudo eliminar la cuenta. Intenta de nuevo.'
+        );
+      }
+    });
+  }
+
+  // ── Privacidad: quién puede seguirme ──────────────────
+  toggleAllowFollows(): void {
+    const u = this.user();
+    if (!u || this.savingFollowPrivacy()) return;
+    this.savingFollowPrivacy.set(true);
+
+    this.userService.updateFollowPrivacy(u.id, { allowFollows: !u.allowFollows }).subscribe({
+      next: updated => {
+        this.user.set(updated);
+        this.savingFollowPrivacy.set(false);
+      },
+      error: () => {
+        this.savingFollowPrivacy.set(false);
       }
     });
   }

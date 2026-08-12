@@ -29,6 +29,18 @@
 .btn-settings:hover { background: #f9fafb; }
 
 /* ── CONFIGURACIÓN ────────────────────────────────────── */
+.theme-picker { padding: 10px 4px 16px; border-bottom: 1px solid #f3f4f6; margin-bottom: 4px; }
+.theme-picker-options { display: flex; gap: 8px; margin-top: 8px; }
+.theme-option {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 10px; border-radius: 10px; border: 2px solid #f3f4f6; background: #fff;
+  font-family: inherit; font-size: 0.78rem; font-weight: 600; color: #6b7280; cursor: pointer;
+}
+.theme-option .material-icons-round { font-size: 20px; }
+.theme-option-active { border-color: #6d28d9; color: #6d28d9; background: #f5f3ff; }
+.theme-option:disabled { opacity: 0.6; cursor: default; }
+.theme-picker-hint { font-size: 0.72rem; color: #9ca3af; margin: 8px 0 0; }
+
 .settings-list { list-style: none; margin: 0; padding: 0; }
 .settings-item {
   width: 100%;
@@ -41,11 +53,41 @@
   cursor: pointer;
   font-family: inherit;
   text-align: left;
+  text-decoration: none;
+  box-sizing: border-box;
 }
 .settings-item:hover { background: #f9fafb; border-radius: 8px; }
 .settings-item-icon { color: #6d28d9; font-size: 20px; }
 .settings-item-label { flex: 1; font-size: 0.9rem; font-weight: 600; color: #111827; }
 .settings-item-arrow { color: #9ca3af; font-size: 18px; }
+.settings-item-toggle { cursor: default; }
+.settings-item-toggle:hover { background: none; }
+
+.toggle-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 40px;
+  height: 22px;
+  border-radius: 999px;
+  border: none;
+  background: #d1d5db;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s ease;
+}
+.toggle-switch:disabled { opacity: 0.6; cursor: default; }
+.toggle-switch-on { background: #6d28d9; }
+.toggle-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s ease;
+}
+.toggle-switch-on .toggle-switch-knob { transform: translateX(18px); }
 
 .settings-logout {
   width: 100%;
@@ -65,6 +107,33 @@
   font-family: inherit;
 }
 .settings-logout:hover { color: #b91c1c; }
+
+.settings-delete-account {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 10px 0 0;
+  border: none;
+  background: none;
+  color: #9ca3af;
+  font-weight: 600;
+  font-size: 0.78rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+.settings-delete-account:hover { color: #dc2626; }
+
+.dialog-title-danger { color: #dc2626; }
+.danger-warning { font-size: 0.82rem; color: #6b7280; margin: 0 0 16px; line-height: 1.4; }
+.btn-danger {
+  background: #dc2626; color: #fff; border: none; border-radius: 8px;
+  padding: 10px 16px; font-weight: 700; font-size: 0.85rem; cursor: pointer;
+}
+.btn-danger:hover { background: #b91c1c; }
+.btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .profile-header {
   display: flex;
@@ -459,6 +528,7 @@
 .found-user-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
 .found-user-name { font-size: 0.88rem; font-weight: 700; color: #111827; }
 .found-user-username { font-size: 0.78rem; color: #7c3aed; }
+.found-user-blocked { font-size: 0.76rem; color: #9ca3af; font-weight: 600; white-space: nowrap; }
 
 .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
 .dialog-actions.split { justify-content: space-between; }

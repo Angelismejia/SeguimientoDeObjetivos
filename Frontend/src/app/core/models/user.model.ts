@@ -31,6 +31,7 @@ export interface User {
   createdAt: string;
   updatedAt?: string;
   profilePhotoUrl?: string;
+  allowFollows: boolean;
 }
 
 export interface UpdateUserDto {
@@ -42,4 +43,12 @@ export interface UpdateUserDto {
 export interface ChangePasswordDto {
   currentPassword: string;
   newPassword: string;
+}
+
+export interface UpdateFollowPrivacyDto {
+  allowFollows: boolean;
+}
+
+export interface DeleteAccountDto {
+  password: string;
 }

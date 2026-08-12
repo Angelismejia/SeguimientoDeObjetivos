@@ -2,7 +2,10 @@
   @if (loading()) {
     <div class="state-msg">Cargando perfil...</div>
   } @else if (loadError()) {
-    <div class="state-msg error">No se pudo cargar este perfil. Intenta de nuevo más tarde.</div>
+    <div class="state-msg error">
+      No se pudo cargar este perfil. Intenta de nuevo más tarde.
+      <br /><button type="button" class="btn-retry" (click)="retry()">Reintentar</button>
+    </div>
   } @else if (user(); as u) {
     <button type="button" class="back-link" (click)="goBack()">
       <span class="material-icons-round">arrow_back</span>
@@ -23,15 +26,25 @@
     </div>
 
     <div class="actions-row">
-      <button type="button" class="btn-confirm" [disabled]="followBusy()" (click)="toggleFollow()">
-        <span class="material-icons-round">{{ isFollowing() ? 'how_to_reg' : 'person_add' }}</span>
-        {{ isFollowing() ? 'Siguiendo' : 'Seguir' }}
-      </button>
+      @if (isFollowing() || u.allowFollows) {
+        <button type="button" class="btn-confirm" [disabled]="followBusy()" (click)="toggleFollow()">
+          <span class="material-icons-round">{{ isFollowing() ? 'how_to_reg' : 'person_add' }}</span>
+          {{ isFollowing() ? 'Siguiendo' : 'Seguir' }}
+        </button>
+      } @else {
+        <span class="follow-blocked-badge">
+          <span class="material-icons-round">block</span>
+          {{ u.name }} no permite ser seguido
+        </span>
+      }
       <button type="button" class="btn-chat" (click)="chatWith()">
         <span class="material-icons-round">chat_bubble</span>
         Hablar
       </button>
     </div>
+    @if (followBlocked()) {
+      <p class="follow-blocked-error">Este usuario no permite ser seguido.</p>
+    }
 
     <div class="stats-row">
       <button type="button" class="stat-item stat-item-clickable" (click)="openList('following')">

@@ -7,5 +7,6 @@ namespace Application.Interfaces.Repositories
         Task<FriendStreak?> GetAsync(int userAId, int userBId);
         Task<IEnumerable<FriendStreak>> GetForUserAsync(int userId);
         Task<FriendStreak> CreateAsync(FriendStreak friendStreak);
+        Task DeleteAllForUserAsync(int userId);
     }
 }

@@ -10,5 +10,6 @@ namespace Application.Interfaces.Repositories
         Task<IEnumerable<Follow>> GetFollowingAsync(int userId);
         Task<Follow> CreateAsync(Follow follow);
         Task<bool> DeleteAsync(int followerId, int followingId);
+        Task DeleteAllForUserAsync(int userId);
     }
 }

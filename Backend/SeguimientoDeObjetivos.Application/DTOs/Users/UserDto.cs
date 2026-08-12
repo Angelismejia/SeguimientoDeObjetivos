@@ -10,5 +10,6 @@ namespace Application.DTOs.Users
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public string ProfilePhotoUrl { get; set; } = string.Empty;
+        public bool AllowFollows { get; set; }
     }
 }

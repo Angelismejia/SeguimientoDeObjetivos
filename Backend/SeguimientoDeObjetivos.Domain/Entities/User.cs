@@ -11,6 +11,7 @@ namespace Domain.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
         public string? ProfilePhotoUrl { get; set; }
+        public bool AllowFollows { get; set; } = true;
 
         public UserSetting? UserSetting { get; set; }
 

@@ -11,11 +11,25 @@ namespace Application.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IFollowRepository _followRepository;
+        private readonly IMessageRepository _messageRepository;
+        private readonly IFriendStreakInvitationRepository _friendStreakInvitationRepository;
+        private readonly IFriendStreakRepository _friendStreakRepository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public UserService(IUserRepository userRepository, IUnitOfWork unitOfWork)
+        public UserService(
+            IUserRepository userRepository,
+            IFollowRepository followRepository,
+            IMessageRepository messageRepository,
+            IFriendStreakInvitationRepository friendStreakInvitationRepository,
+            IFriendStreakRepository friendStreakRepository,
+            IUnitOfWork unitOfWork)
         {
             _userRepository = userRepository;
+            _followRepository = followRepository;
+            _messageRepository = messageRepository;
+            _friendStreakInvitationRepository = friendStreakInvitationRepository;
+            _friendStreakRepository = friendStreakRepository;
             _unitOfWork = unitOfWork;
         }
 
@@ -100,10 +114,41 @@ namespace Application.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
+        public async Task<UserDto> UpdateFollowPrivacyAsync(int id, UpdateFollowPrivacyDto dto)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user is null) throw new NotFoundException("User", id);
+
+            user.AllowFollows = dto.AllowFollows;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _userRepository.UpdateAsync(user);
+            await _unitOfWork.SaveChangesAsync();
+            return ToDto(user);
+        }
+
         public async Task DeleteAsync(int id)
         {
             var deleted = await _userRepository.DeleteAsync(id);
             if (!deleted) throw new NotFoundException("User", id);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task DeleteAccountAsync(int id, DeleteAccountDto dto)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user is null) throw new NotFoundException("User", id);
+
+            var passwordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
+            if (!passwordValid)
+                throw new InvalidOperationException("La contraseña es incorrecta.");
+
+            await _followRepository.DeleteAllForUserAsync(id);
+            await _messageRepository.DeleteAllForUserAsync(id);
+            await _friendStreakInvitationRepository.DeleteAllForUserAsync(id);
+            await _friendStreakRepository.DeleteAllForUserAsync(id);
+            await _userRepository.DeleteAsync(id);
+
             await _unitOfWork.SaveChangesAsync();
         }
 
@@ -116,7 +161,8 @@ namespace Application.Services
             IsActive = u.IsActive,
             CreatedAt = u.CreatedAt,
             UpdatedAt = u.UpdatedAt,
-            ProfilePhotoUrl = u.ProfilePhotoUrl ?? string.Empty
+            ProfilePhotoUrl = u.ProfilePhotoUrl ?? string.Empty,
+            AllowFollows = u.AllowFollows
         };
     }
 }

@@ -46,6 +46,8 @@ namespace Application.Services
 
             var targetUser = await _userRepository.GetByIdAsync(dto.FollowingId);
             if (targetUser is null) throw new NotFoundException("User", dto.FollowingId);
+            if (!targetUser.AllowFollows)
+                throw new InvalidOperationException("Este usuario no permite ser seguido.");
 
             var existing = await _followRepository.GetAsync(followerId, dto.FollowingId);
             if (existing is not null)

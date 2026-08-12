@@ -10,5 +10,6 @@ namespace Application.Interfaces.Repositories
         Task<IEnumerable<FriendStreakInvitation>> GetSentAsync(int userId);
         Task<FriendStreakInvitation> CreateAsync(FriendStreakInvitation invitation);
         Task<FriendStreakInvitation> UpdateAsync(FriendStreakInvitation invitation);
+        Task DeleteAllForUserAsync(int userId);
     }
 }

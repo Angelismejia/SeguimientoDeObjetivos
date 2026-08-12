@@ -48,6 +48,13 @@
 .btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-chat { background: #ede9fe; color: #4f46e5; }
 .btn-chat:hover { background: #ddd6fe; }
+.follow-blocked-badge {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  background: #f3f4f6; color: #6b7280; border-radius: 10px; padding: 12px;
+  font-weight: 600; font-size: 0.82rem; text-align: center;
+}
+.follow-blocked-badge .material-icons-round { font-size: 18px; }
+.follow-blocked-error { color: #dc2626; font-size: 0.82rem; margin: 8px 0 0; }
 
 /* ── STATS ─────────────────────────────────────────── */
 .stats-row {

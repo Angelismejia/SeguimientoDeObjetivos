@@ -32,5 +32,13 @@ namespace Infrastructure.Repositories
             _context.FriendStreaks.Add(friendStreak);
             return Task.FromResult(friendStreak);
         }
+
+        public async Task DeleteAllForUserAsync(int userId)
+        {
+            var streaks = await _context.FriendStreaks
+                .Where(f => f.UserAId == userId || f.UserBId == userId)
+                .ToListAsync();
+            _context.FriendStreaks.RemoveRange(streaks);
+        }
     }
 }
