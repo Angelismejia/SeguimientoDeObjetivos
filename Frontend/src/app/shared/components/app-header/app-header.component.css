@@ -1,0 +1,62 @@
+:host { display: block; font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; }
+* { box-sizing: border-box; }
+a { text-decoration: none; }
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 56px;
+  padding: 0 12px;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+}
+
+.btn-menu {
+  display: flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 8px; flex-shrink: 0;
+  background: transparent; border: none; color: #4b5563; cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-menu:hover { background: #f3f4f6; }
+.btn-menu:focus-visible { outline: 2px solid #4f46e5; outline-offset: 2px; }
+.btn-menu .material-icons-round { font-size: 24px; }
+
+.header-brand { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.header-logo { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.header-brand-name { font-weight: 800; color: #4f46e5; font-size: 1rem; white-space: nowrap; }
+
+.header-spacer { flex: 1; }
+
+.btn-icon-action {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 8px; flex-shrink: 0;
+  background: transparent; border: 1.5px solid #e5e7eb;
+  color: #6b7280; cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.btn-icon-action:hover { background: #f3f4f6; border-color: #d1d5db; }
+.btn-icon-action.active { color: #4f46e5; border-color: #c7d2fe; background: #eef2ff; }
+.btn-icon-action:focus-visible { outline: 2px solid #4f46e5; outline-offset: 2px; }
+.btn-icon-action .material-icons-round { font-size: 19px; }
+
+.header-badge {
+  position: absolute; top: -4px; right: -4px;
+  min-width: 16px; height: 16px; padding: 0 3px;
+  border-radius: 999px; background: #f59e0b; color: #111827;
+  font-size: 0.6rem; font-weight: 800; line-height: 16px; text-align: center;
+  border: 2px solid #fff;
+}
+
+/* Desktop (>=1024px): el sidebar ya muestra el logo y agrupa "Cuenta", asi
+   que el header solo deja las acciones globales a la derecha, como el
+   .topbar que reemplaza. */
+@media (min-width: 1024px) {
+  .btn-menu, .header-brand { display: none; }
+  .app-header { height: 64px; padding: 0 24px; justify-content: flex-end; }
+  .btn-icon-action { width: 34px; height: 34px; }
+}

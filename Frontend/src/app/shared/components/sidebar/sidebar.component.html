@@ -1,0 +1,65 @@
+<aside class="sidebar">
+  <div class="sidebar-top">
+    <a class="brand" routerLink="/dashboard">
+      <img class="brand-img" src="BetterMeLogo.png" alt="BetterMe">
+      <span class="brand-name">BetterMe</span>
+    </a>
+  </div>
+
+  <nav class="nav-groups">
+    <div class="nav-group">
+      <span class="nav-group-label">Navegación</span>
+      @for (link of navLinks; track link.path) {
+        <a class="nav-link" [routerLink]="link.path" routerLinkActive="active" ariaCurrentWhenActive="page">
+          <span class="material-icons-round">{{ link.icon }}</span>
+          <span class="link-label">{{ link.label }}</span>
+        </a>
+      }
+    </div>
+
+    <div class="nav-divider"></div>
+
+    <div class="nav-group">
+      <span class="nav-group-label">Personal</span>
+      @for (link of personalLinks; track link.path) {
+        <a
+          class="nav-link"
+          [routerLink]="link.path"
+          [fragment]="link.fragment"
+          routerLinkActive="active"
+          ariaCurrentWhenActive="page"
+        >
+          <span class="material-icons-round">{{ link.icon }}</span>
+          <span class="link-label">{{ link.label }}</span>
+        </a>
+      }
+    </div>
+  </nav>
+
+  <div class="nav-divider"></div>
+
+  <div class="sidebar-account">
+    <a class="account-link" routerLink="/profile">
+      <span class="account-avatar">
+        @if (userPhotoUrl) {
+          <img [src]="userPhotoUrl" alt="" />
+        } @else {
+          <span class="material-icons-round">account_circle</span>
+        }
+      </span>
+      <span class="account-info">
+        <span class="account-name">{{ userName }}</span>
+        <span class="account-viewprofile">Ver perfil <span class="material-icons-round">chevron_right</span></span>
+      </span>
+    </a>
+    <a class="nav-link" routerLink="/profile" [queryParams]="{ settings: 1 }">
+      <span class="material-icons-round">settings</span>
+      <span class="link-label">Configuración</span>
+    </a>
+  </div>
+
+  <button type="button" class="nav-link logout-link" (click)="logoutClick.emit()">
+    <span class="material-icons-round">logout</span>
+    <span class="link-label">Cerrar sesión</span>
+  </button>
+</aside>

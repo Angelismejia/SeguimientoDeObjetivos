@@ -1,0 +1,11 @@
+<nav class="bottom-nav" aria-label="Navegación principal">
+  @for (link of links; track link.path) {
+    <a class="bottom-nav-link" [routerLink]="link.path" routerLinkActive="active" ariaCurrentWhenActive="page">
+      <span class="bottom-nav-icon-wrap">
+        <span class="bottom-nav-pill"></span>
+        <span class="material-icons-round">{{ link.icon }}</span>
+      </span>
+      <span class="bottom-nav-label">{{ link.label }}</span>
+    </a>
+  }
+</nav>
