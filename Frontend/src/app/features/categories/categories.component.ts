@@ -52,7 +52,7 @@ export class CategoriesComponent implements OnInit {
     this.loadAll();
   }
 
-  private loadAll(): void {
+  loadAll(): void {
     this.loading.set(true);
     this.loadError.set(false);
     this.categoryService.getAll(this.auth.getUserId()).subscribe({

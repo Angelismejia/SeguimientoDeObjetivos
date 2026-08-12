@@ -42,7 +42,7 @@ export class DiaryComponent implements OnInit {
     this.loadAll();
   }
 
-  private loadAll(): void {
+  loadAll(): void {
     this.loading.set(true);
     this.loadError.set(false);
     this.diaryEntryService.getAll(this.auth.getUserId()).subscribe({
