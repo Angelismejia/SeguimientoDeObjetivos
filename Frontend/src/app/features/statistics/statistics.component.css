@@ -1,0 +1,316 @@
+.statistics-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px 60px;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.page-header h1 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 4px;
+}
+.page-header p {
+  color: #6b7280;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.period-switch {
+  display: flex;
+  gap: 2px;
+  background: #f3f4f6;
+  border-radius: 10px;
+  padding: 3px;
+}
+.period-switch button {
+  border: none;
+  background: transparent;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.period-switch button.active {
+  background: #fff;
+  color: #4f46e5;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.state-msg {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+.state-msg.error {
+  color: #dc2626;
+}
+
+.panel {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  margin-bottom: 16px;
+}
+
+.panel-header-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.panel h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+.panel-link {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #4f46e5;
+  text-decoration: none;
+}
+.panel-caption {
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+.panel-empty {
+  color: #9ca3af;
+  font-size: 0.88rem;
+  padding: 20px 0;
+  text-align: center;
+}
+.panel-note {
+  margin: 14px 0 0;
+  color: #9ca3af;
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+/* ── Tu progreso ─────────────────────────────── */
+.progress-headline {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.progress-pct {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #111827;
+}
+.progress-label {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+.progress-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-left: auto;
+}
+.progress-delta .material-icons-round {
+  font-size: 1rem;
+}
+.progress-delta.up { color: #0ca30c; }
+.progress-delta.down { color: #d03b3b; }
+.progress-delta.flat { color: #9ca3af; }
+
+.chart-wrap {
+  position: relative;
+  height: 200px;
+}
+
+/* ── Heatmap ─────────────────────────────── */
+.heatmap-scroll {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.heatmap {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: min-content;
+}
+.heatmap-months {
+  display: flex;
+  gap: 3px;
+  padding-left: 2px;
+}
+.heatmap-month {
+  width: 13px;
+  font-size: 0.68rem;
+  color: #9ca3af;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+.heatmap-grid {
+  display: flex;
+  gap: 3px;
+}
+.heatmap-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.heatmap-cell {
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  background: #eef0f4;
+}
+.heatmap-cell.empty {
+  box-shadow: inset 0 0 0 1px #e0e2e8;
+}
+.heatmap-cell.future {
+  visibility: hidden;
+}
+
+.streak-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+}
+.streak-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: #f9fafb;
+  border-radius: 10px;
+  padding: 12px 8px;
+  text-align: center;
+}
+.streak-icon { font-size: 1.1rem; }
+.streak-value { font-weight: 800; color: #111827; font-size: 0.95rem; }
+.streak-label { color: #6b7280; font-size: 0.72rem; }
+
+/* ── Rendimiento de objetivos ─────────────────────────────── */
+.objective-perf-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.objective-perf-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 0.88rem;
+}
+.objective-perf-title {
+  color: #111827;
+  font-weight: 600;
+}
+.objective-perf-pct {
+  color: #4f46e5;
+  font-weight: 700;
+}
+.progress-track {
+  height: 8px;
+  background: #eef0f4;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: #4f46e5;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+/* ── Insights ─────────────────────────────── */
+.insights-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.insights-list li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.insight-icon {
+  font-size: 1.2rem;
+  line-height: 1.3;
+}
+.insight-title {
+  display: block;
+  font-weight: 700;
+  color: #111827;
+  font-size: 0.88rem;
+}
+.insight-body {
+  margin: 2px 0 0;
+  color: #6b7280;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+/* ── Resumen ─────────────────────────────── */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.summary-stat {
+  background: #f9fafb;
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+}
+.summary-value {
+  display: block;
+  font-weight: 800;
+  color: #111827;
+  font-size: 1.15rem;
+}
+.summary-label {
+  color: #6b7280;
+  font-size: 0.72rem;
+}
+
+@media (min-width: 640px) {
+  .summary-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .statistics-page {
+    padding: 20px 14px 60px;
+  }
+  .panel {
+    padding: 16px;
+  }
+  .progress-pct {
+    font-size: 1.7rem;
+  }
+}
