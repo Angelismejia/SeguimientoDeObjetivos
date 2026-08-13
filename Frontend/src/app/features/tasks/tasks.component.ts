@@ -145,7 +145,7 @@ export class TasksComponent implements OnInit {
     this.loadAll();
   }
 
-  private loadAll(): void {
+  loadAll(): void {
     this.loading.set(true);
     this.loadError.set(false);
     const userId = this.auth.getUserId();

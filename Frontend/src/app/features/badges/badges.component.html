@@ -7,7 +7,10 @@
   @if (loading()) {
     <div class="state-msg">Cargando insignias...</div>
   } @else if (loadError()) {
-    <div class="state-msg error">No se pudo cargar la información. Intenta de nuevo más tarde.</div>
+    <div class="state-msg error">
+      No se pudo cargar la información. Intenta de nuevo más tarde.
+      <br /><button type="button" class="btn-retry" (click)="loadAll()">Reintentar</button>
+    </div>
   } @else if (allBadges().length === 0) {
     <div class="empty-state">
       <span class="material-icons-round empty-icon">workspace_premium</span>

@@ -25,7 +25,7 @@ export class NotificationsComponent implements OnInit {
     this.loadAll();
   }
 
-  private loadAll(): void {
+  loadAll(): void {
     this.loading.set(true);
     this.loadError.set(false);
     this.notificationService.getAll(this.auth.getUserId()).subscribe({
