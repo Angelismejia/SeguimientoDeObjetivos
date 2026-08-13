@@ -21,7 +21,7 @@
 }
 .dashboard-header p {
   color: #6b7280;
-  margin: 0 0 28px;
+  margin: 0;
 }
 
 .streak-card {
@@ -77,12 +77,26 @@
 .panel {
   background: #fff;
   border-radius: 14px;
-  padding: 24px;
+  padding: 20px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.06);
 }
-.dashboard > .panel {
-  margin-bottom: 20px;
+.dashboard > .panel,
+.dashboard > .dashboard-row {
+  margin-bottom: 16px;
   display: block;
+}
+.dashboard-row > .panel { margin-bottom: 0; }
+
+/* Desktop (>=1024px): "Tareas de hoy" + "Estado de objetivos" en una fila, y
+   "Resumen de hoy" + "Objetivos recientes" en otra, en vez de estirar cards
+   pensadas para una sola columna. */
+@media (min-width: 1024px) {
+  .dashboard-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
 }
 .panel h2 {
   font-size: 1rem;
@@ -232,7 +246,66 @@
 .fab:hover { opacity: 0.92; }
 .fab .material-icons-round { font-size: 26px; }
 
-.chart-wrap { height: 260px; }
+/* ── Estado de tus objetivos (resumen compacto) ───────── */
+.status-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 16px;
+}
+.status-summary-cell { min-width: 0; }
+.status-summary-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 3px;
+}
+.status-summary-numbers {
+  display: block;
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin-bottom: 5px;
+}
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot-pending { background: #c7d2fe; }
+.dot-inprogress { background: #818cf8; }
+.dot-completed { background: #4f46e5; }
+.dot-cancelled { background: #9ca3af; }
+
+.status-summary-track {
+  height: 6px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  overflow: hidden;
+}
+.status-summary-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+.status-summary-fill.dot-pending { background: #c7d2fe; }
+.status-summary-fill.dot-inprogress { background: #818cf8; }
+.status-summary-fill.dot-completed { background: #4f46e5; }
+.status-summary-fill.dot-cancelled { background: #9ca3af; }
+
+.status-summary-total {
+  margin: 14px 0 0;
+  text-align: right;
+  font-size: 0.76rem;
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+@media (min-width: 480px) {
+  .status-summary-grid { grid-template-columns: repeat(4, 1fr); }
+}
 
 /* ── OBJETIVOS ────────────────────────────────────── */
 .panel-header-row {
@@ -264,7 +337,7 @@
 .objective-title { font-size: 0.88rem; font-weight: 600; color: #374151; }
 .objective-pct { font-size: 0.82rem; font-weight: 700; color: #7c3aed; }
 .progress-track { height: 8px; border-radius: 4px; background: #ede9fe; overflow: hidden; }
-.progress-fill { height: 100%; background: linear-gradient(90deg, #4f46e5, #7c3aed); border-radius: 4px; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #4f46e5, #7c3aed); border-radius: 4px; transition: width 0.4s ease; }
 
 .objective-bottom {
   display: flex;
@@ -385,6 +458,15 @@
 .task-check-round.checked {
   background: linear-gradient(135deg, #4f46e5, #7c3aed);
   border-color: transparent;
+  animation: check-pop 0.2s ease;
+}
+@keyframes check-pop {
+  0% { transform: scale(0.85); }
+  60% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .task-check-round.checked { animation: none; }
 }
 
 .task-icon-box {
@@ -457,7 +539,12 @@
 }
 .task-check .material-icons-round { font-size: 22px; }
 .task-check:hover { color: #818cf8; }
+.task-check .material-icons-round { transition: transform 0.15s ease; }
 .task-check.checked { color: #16a34a; }
+.task-check.checked .material-icons-round { animation: check-pop 0.2s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .task-check.checked .material-icons-round { animation: none; }
+}
 .task-check:disabled { color: #e5e7eb; cursor: not-allowed; }
 .task-check:disabled:hover { color: #e5e7eb; }
 
@@ -470,7 +557,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 .calendar-header h2 { margin: 0; }
 
@@ -478,6 +565,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-bottom: 10px;
 }
 .nav-btn {
   border: none;
@@ -522,28 +610,28 @@
   border: 1px solid #f3f4f6;
   background: transparent;
   border-radius: 10px;
-  padding: 10px 0 12px;
+  padding: 7px 0 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   cursor: pointer;
   font-family: inherit;
 }
 .calendar-day:hover { background: #f9fafb; }
 .day-weekday {
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 700;
   color: #9ca3af;
   text-transform: capitalize;
 }
-.day-number { font-size: 0.95rem; color: #374151; font-weight: 600; }
+.day-number { font-size: 0.9rem; color: #374151; font-weight: 600; }
 .calendar-day.today .day-number {
   color: #fff;
   background: linear-gradient(135deg, #4f46e5, #7c3aed);
   border-radius: 50%;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -719,67 +807,69 @@
 
 .detail-tasks-title { font-size: 0.9rem; font-weight: 700; color: #111827; margin: 0 0 12px; }
 
-/* ── CALENDARIO GRANDE (modal mensual) ────────────────── */
-.big-calendar-card { max-width: 820px; padding: 32px; }
-
-.calendar-month-title {
-  margin: 0;
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: #111827;
-  text-transform: capitalize;
-}
-
-.month-weekday-row {
+/* ── Resumen de hoy ─────────────────────────────────── */
+.today-summary-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
-  margin: 20px 0 10px;
 }
-.month-weekday-row span {
-  text-align: center;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #9ca3af;
-}
-
-.month-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
-}
-
-.month-day {
-  position: relative;
-  border: 1px solid #f3f4f6;
-  background: transparent;
-  border-radius: 12px;
-  padding: 16px 0 18px;
-  min-height: 64px;
+.today-summary-tile {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  font-family: inherit;
+  gap: 4px;
+  padding: 14px 8px;
+  border-radius: 12px;
+  text-align: center;
 }
-.month-day:hover { background: #f9fafb; }
-.month-day.other-month { opacity: 0.35; }
-.month-day .day-number { font-size: 1rem; color: #374151; font-weight: 600; }
-.month-day.today .day-number {
-  color: #fff;
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
+.today-summary-tile .material-icons-round { font-size: 20px; }
+.today-summary-value { font-size: 1.2rem; font-weight: 800; color: #111827; }
+.today-summary-label { font-size: 0.68rem; color: #6b7280; line-height: 1.2; }
+.summary-pending { background: #f5f3ff; }
+.summary-pending .material-icons-round { color: #7c3aed; }
+.summary-completed { background: #ecfdf5; }
+.summary-completed .material-icons-round { color: #16a34a; }
+.summary-streak { background: #fff7ed; }
+.summary-streak .material-icons-round { color: #ea580c; }
+
+/* ── Objetivos recientes ────────────────────────────── */
+.recent-objectives-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.recent-objective-item {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 12px;
+  padding: 6px;
+  margin: -6px;
+  border-radius: 10px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
 }
-.month-day.selected { background: #ede9fe; border-color: #ddd6fe; }
+.recent-objective-item:hover { background: #f9fafb; }
+.recent-objective-icon {
+  width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #fff; font-size: 18px;
+}
+.recent-objective-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.recent-objective-title {
+  font-size: 0.86rem; font-weight: 700; color: #111827;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.recent-objective-status { font-size: 0.74rem; color: #6b7280; }
+.recent-objective-chevron { color: #9ca3af; flex-shrink: 0; }
 
 /* ── RESPONSIVE ───────────────────────────────────── */
+/* mobile-first: por debajo de 680px la barra lateral se convierte en topbar +
+   tab-bar fija (ver navbar.component.css), asi que ahi es donde mas importa
+   reducir densidad. Los breakpoints de abajo cubren 320–430px de ancho. */
+@media (max-width: 680px) {
+  .dashboard { padding-top: 16px; }
+  .dashboard-header { margin-bottom: 16px; }
+  .panel, .stat-tile { padding: 16px; }
+}
+
 @media (max-width: 600px) {
   .stats-row { gap: 8px; }
   .stat-tile { padding: 10px 6px; gap: 4px; align-items: center; text-align: center; }
@@ -792,16 +882,19 @@
 }
 
 @media (max-width: 480px) {
-  .dashboard { padding: 24px 16px 76px; }
+  .dashboard {
+    padding: 16px 16px calc(76px + env(safe-area-inset-bottom));
+  }
+  .dashboard-header h1 { font-size: 1.35rem; }
   .calendar-week { gap: 4px; }
   .day-weekday { font-size: 0.6rem; }
   .calendar-month { min-width: auto; }
   .dashboard-header { flex-direction: column; align-items: stretch; }
-  .streak-card { width: 100%; box-sizing: border-box; }
-  .big-calendar-card { padding: 18px; }
-  .month-grid { gap: 4px; }
-  .month-day { min-height: 48px; padding: 8px 0 10px; }
+  .streak-card { width: 100%; box-sizing: border-box; padding: 9px 14px; }
+  .streak-card-icon { font-size: 22px; }
+  .streak-card-days { font-size: 1rem; }
   .today-task-item { flex-wrap: wrap; }
   .today-task-main { min-width: 55%; }
   .task-time, .task-done-badge { margin-left: auto; }
+  .status-summary-grid { gap: 10px 14px; }
 }

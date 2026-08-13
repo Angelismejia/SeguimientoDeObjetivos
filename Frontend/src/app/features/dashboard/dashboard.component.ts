@@ -3,13 +3,11 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
-import { ChartConfiguration, ChartData } from 'chart.js';
-import { BaseChartDirective } from 'ng2-charts';
 import { AuthService } from '../../core/services/auth.service';
 import { ObjectiveService } from '../../core/services/objective.service';
 import { TaskService } from '../../core/services/task.service';
 import { CategoryService } from '../../core/services/category.service';
-import { Objective } from '../../core/models/objective.model';
+import { Objective, ObjectiveStatus } from '../../core/models/objective.model';
 import { TaskItem, TaskStatus, TaskPriority, RecurrenceType } from '../../core/models/task.model';
 import { Category } from '../../core/models/category.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -19,7 +17,7 @@ import { TASK_EMOJIS } from '../../core/constants/task-emojis';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, BaseChartDirective, ConfirmDialogComponent, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, ConfirmDialogComponent, RouterLink],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
@@ -33,12 +31,54 @@ export class DashboardComponent implements OnInit {
   categories = signal<Category[]>([]);
   allTasks = signal<TaskItem[]>([]);
 
-  chartData = signal<ChartData<'doughnut'>>({ labels: [], datasets: [{ data: [] }] });
-  chartOptions: ChartConfiguration<'doughnut'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { position: 'bottom' } }
+  // "Estado de tus objetivos": antes se dibujaba con un doughnut de chart.js que
+  // dejaba mucho espacio vacio en movil. Se reemplazo por un resumen compacto
+  // (mismos conteos reales, solo cambia como se muestran) — ver dashboard.component.html.
+  objectiveStatusSummary = computed(() => {
+    const objs = this.objectives();
+    const total = objs.length;
+    const pct = (n: number) => total > 0 ? Math.round((n / total) * 100) : 0;
+    const counts = {
+      Pending: objs.filter(o => o.status === 'Pending').length,
+      InProgress: objs.filter(o => o.status === 'InProgress').length,
+      Completed: objs.filter(o => o.status === 'Completed').length,
+      Cancelled: objs.filter(o => o.status === 'Cancelled').length
+    };
+    return {
+      total,
+      items: [
+        { key: 'Pending', label: 'Pendientes', dotClass: 'dot-pending', count: counts.Pending, pct: pct(counts.Pending) },
+        { key: 'InProgress', label: 'En progreso', dotClass: 'dot-inprogress', count: counts.InProgress, pct: pct(counts.InProgress) },
+        { key: 'Completed', label: 'Completados', dotClass: 'dot-completed', count: counts.Completed, pct: pct(counts.Completed) },
+        { key: 'Cancelled', label: 'Cancelados', dotClass: 'dot-cancelled', count: counts.Cancelled, pct: pct(counts.Cancelled) }
+      ]
+    };
+  });
+
+  // "Resumen de hoy": reutiliza exactamente los mismos datos que ya calculaba
+  // todayProgress()/streak() — solo agrega la lectura de "pendientes" (lo que
+  // falta) al lado de lo que ya se completo hoy.
+  todaySummary = computed(() => {
+    const { done, total } = this.todayProgress();
+    return { pending: total - done, completed: done, streakDays: this.streak() };
+  });
+
+  private static readonly OBJECTIVE_STATUS_LABEL: Record<ObjectiveStatus, string> = {
+    Pending: 'Pendiente',
+    InProgress: 'En progreso',
+    Completed: 'Completado',
+    Cancelled: 'Cancelado'
   };
+
+  // "Objetivos recientes": los ultimos creados que siguen vigentes (no
+  // cancelados), para que el usuario vea a que le esta metiendo mano ahora.
+  recentObjectives = computed(() =>
+    [...this.objectives()]
+      .filter(o => o.status !== 'Cancelled')
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 4)
+      .map(o => ({ ...o, statusLabel: DashboardComponent.OBJECTIVE_STATUS_LABEL[o.status] }))
+  );
 
   // ── Calendario (vista semanal) ──────────────────────
   weekCursor = signal(this.startOfWeek(new Date()));
@@ -174,69 +214,6 @@ export class DashboardComponent implements OnInit {
     const fmt = (d: Date) => d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
     return `${fmt(start)} – ${fmt(end)} ${end.getFullYear()}`;
   });
-
-  // ── Calendario (vista mensual ampliada) ──────────────
-  showBigCalendar = signal(false);
-  monthCursor = signal(this.startOfMonth(new Date()));
-
-  monthRangeLabel = computed(() =>
-    this.monthCursor().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
-  );
-
-  monthDays = computed(() => {
-    const monthStart = this.monthCursor();
-    const tasks = this.allTasks();
-    const todayKey = this.dateKey(new Date());
-    const gridStart = this.startOfWeek(monthStart);
-
-    return Array.from({ length: 42 }, (_, i) => {
-      const date = new Date(gridStart);
-      date.setDate(date.getDate() + i);
-      const key = this.dateKey(date);
-      const dayTasks = tasks.filter(t => this.taskOccursOn(t, date));
-      return {
-        date,
-        key,
-        dayNumber: date.getDate(),
-        isToday: key === todayKey,
-        inMonth: date.getMonth() === monthStart.getMonth(),
-        hasOverdue: dayTasks.some(t => this.isOverdue(t)),
-        taskCount: dayTasks.length
-      };
-    });
-  });
-
-  openBigCalendar(): void {
-    this.monthCursor.set(this.startOfMonth(this.weekCursor()));
-    this.showBigCalendar.set(true);
-  }
-
-  closeBigCalendar(): void {
-    this.showBigCalendar.set(false);
-  }
-
-  prevMonth(): void {
-    const d = new Date(this.monthCursor());
-    d.setMonth(d.getMonth() - 1);
-    this.monthCursor.set(this.startOfMonth(d));
-  }
-
-  nextMonth(): void {
-    const d = new Date(this.monthCursor());
-    d.setMonth(d.getMonth() + 1);
-    this.monthCursor.set(this.startOfMonth(d));
-  }
-
-  selectDayFromMonth(key: string): void {
-    const date = this.parseDateKey(key);
-    this.weekCursor.set(this.startOfWeek(date));
-    this.selectedDate.set(key);
-    this.showBigCalendar.set(false);
-  }
-
-  private startOfMonth(date: Date): Date {
-    return new Date(date.getFullYear(), date.getMonth(), 1);
-  }
 
   private taskOccursOn(task: TaskItem, date: Date): boolean {
     if (!task.scheduledDate) return false;
@@ -383,7 +360,7 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  private loadAll(): void {
+  loadAll(): void {
     this.loading.set(true);
     this.loadError.set(false);
     const userId = this.auth.getUserId();
@@ -396,29 +373,12 @@ export class DashboardComponent implements OnInit {
         this.objectives.set(objectives);
         this.allTasks.set(tasks);
         this.categories.set(categories);
-        this.computeStats(objectives);
         this.loading.set(false);
       },
       error: () => {
         this.loading.set(false);
         this.loadError.set(true);
       }
-    });
-  }
-
-  private computeStats(objectives: Objective[]): void {
-    const completed = objectives.filter(o => o.status === 'Completed').length;
-    const pending = objectives.filter(o => o.status === 'Pending').length;
-    const inProgress = objectives.filter(o => o.status === 'InProgress').length;
-    const cancelled = objectives.filter(o => o.status === 'Cancelled').length;
-
-    this.chartData.set({
-      labels: ['Pendientes', 'En progreso', 'Completados', 'Cancelados'],
-      datasets: [{
-        data: [pending, inProgress, completed, cancelled],
-        backgroundColor: ['#c7d2fe', '#818cf8', '#4f46e5', '#e5e7eb'],
-        borderWidth: 0
-      }]
     });
   }
 
@@ -473,7 +433,6 @@ export class DashboardComponent implements OnInit {
       next: updated => {
         const updatedTasks = this.allTasks().map(t => t.id === updated.id ? updated : t);
         this.allTasks.set(updatedTasks);
-        this.computeStats(this.objectives());
         if (updated.objectiveId) {
           this.recomputeObjectiveProgress(updated.objectiveId, updatedTasks);
         }
@@ -595,7 +554,6 @@ export class DashboardComponent implements OnInit {
         next: created => {
           const updatedTasks = [...this.allTasks(), created];
           this.allTasks.set(updatedTasks);
-          this.computeStats(this.objectives());
           this.savingTask.set(false);
           this.showTaskForm.set(false);
           if (created.objectiveId) {
@@ -627,7 +585,6 @@ export class DashboardComponent implements OnInit {
         next: updated => {
           const updatedTasks = this.allTasks().map(t => t.id === updated.id ? updated : t);
           this.allTasks.set(updatedTasks);
-          this.computeStats(this.objectives());
           this.savingTask.set(false);
           this.showTaskForm.set(false);
           if (updated.objectiveId) {
@@ -660,7 +617,6 @@ export class DashboardComponent implements OnInit {
       next: () => {
         const remaining = this.allTasks().filter(t => t.id !== target.id);
         this.allTasks.set(remaining);
-        this.computeStats(this.objectives());
         this.deleteTaskTarget.set(null);
         if (target.objectiveId) {
           this.recomputeObjectiveProgress(target.objectiveId, remaining);
@@ -705,9 +661,7 @@ export class DashboardComponent implements OnInit {
       status,
       progressPercentage
     }).subscribe(updated => {
-      const updatedObjectives = this.objectives().map(o => o.id === updated.id ? updated : o);
-      this.objectives.set(updatedObjectives);
-      this.computeStats(updatedObjectives);
+      this.objectives.set(this.objectives().map(o => o.id === updated.id ? updated : o));
     });
   }
 
