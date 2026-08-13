@@ -1,8 +1,11 @@
 import { Component, signal } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd, NavigationError } from '@angular/router';
+import { RouterOutlet, Router, NavigationEnd, NavigationError } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { interval, startWith } from 'rxjs';
-import { NavbarComponent } from './shared/components/navbar/navbar.component';
+import { AppHeaderComponent } from './shared/components/app-header/app-header.component';
+import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
+import { MobileDrawerComponent } from './shared/components/mobile-drawer/mobile-drawer.component';
+import { BottomNavComponent } from './shared/components/bottom-nav/bottom-nav.component';
 import { AuthService } from './core/services/auth.service';
 import { NotificationService } from './core/services/notification.service';
 import { UserService } from './core/services/user.service';
@@ -11,7 +14,7 @@ import { ChatService } from './core/services/chat.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, NavbarComponent],
+  imports: [RouterOutlet, AppHeaderComponent, SidebarComponent, MobileDrawerComponent, BottomNavComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -21,6 +24,7 @@ export class App {
   protected readonly userName = signal('');
   protected readonly userPhotoUrl = signal<string | null>(null);
   protected readonly unreadCount = signal(0);
+  protected readonly drawerOpen = signal(false);
 
   private apiOrigin = environment.apiUrl.replace('/api', '');
 
@@ -34,7 +38,10 @@ export class App {
     this.updateNavbarVisibility();
     this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
-      .subscribe(() => this.updateNavbarVisibility());
+      .subscribe(() => {
+        this.updateNavbarVisibility();
+        this.drawerOpen.set(false);
+      });
 
     // Si una navegación falla (ej: un chunk lazy-load que ya no existe porque se
     // redesplegó el front con nuevos hashes), recargamos la página en vez de dejar
@@ -88,5 +95,13 @@ export class App {
   logout(): void {
     this.chatService.disconnect();
     this.authService.logout();
+  }
+
+  openDrawer(): void {
+    this.drawerOpen.set(true);
+  }
+
+  closeDrawer(): void {
+    this.drawerOpen.set(false);
   }
 }

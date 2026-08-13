@@ -1,0 +1,73 @@
+@if (open) {
+  <div class="drawer-overlay" (click)="close()"></div>
+}
+
+<aside
+  #panel
+  id="mobile-drawer"
+  class="drawer"
+  [class.open]="open"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Menú de navegación"
+  tabindex="-1"
+>
+  <div class="drawer-header">
+    <span class="drawer-brand">BetterMe</span>
+    <button type="button" class="btn-close-drawer" (click)="close()" aria-label="Cerrar menú">
+      <span class="material-icons-round">close</span>
+    </button>
+  </div>
+
+  <nav class="drawer-nav">
+    <div class="drawer-group">
+      <span class="drawer-group-label">Navegación</span>
+      @for (link of navLinks; track link.path) {
+        <a class="drawer-link" [routerLink]="link.path" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="close()">
+          <span class="material-icons-round">{{ link.icon }}</span>
+          <span>{{ link.label }}</span>
+        </a>
+      }
+    </div>
+
+    <div class="drawer-divider"></div>
+
+    <div class="drawer-group">
+      <span class="drawer-group-label">Personal</span>
+      @for (link of personalLinks; track link.path) {
+        <a class="drawer-link" [routerLink]="link.path" [fragment]="link.fragment" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="close()">
+          <span class="material-icons-round">{{ link.icon }}</span>
+          <span>{{ link.label }}</span>
+        </a>
+      }
+    </div>
+
+    <div class="drawer-divider"></div>
+
+    <div class="drawer-group">
+      <span class="drawer-group-label">Cuenta</span>
+      <a class="drawer-account" routerLink="/profile" (click)="close()">
+        <span class="drawer-avatar">
+          @if (userPhotoUrl) {
+            <img [src]="userPhotoUrl" alt="" />
+          } @else {
+            <span class="material-icons-round">account_circle</span>
+          }
+        </span>
+        <span class="drawer-account-info">
+          <span class="drawer-account-name">{{ userName }}</span>
+          <span class="drawer-account-viewprofile">Ver perfil <span class="material-icons-round">chevron_right</span></span>
+        </span>
+      </a>
+      <a class="drawer-link" routerLink="/profile" [queryParams]="{ settings: 1 }" (click)="close()">
+        <span class="material-icons-round">settings</span>
+        <span>Configuración</span>
+      </a>
+    </div>
+  </nav>
+
+  <button type="button" class="drawer-logout" (click)="logout()">
+    <span class="material-icons-round">logout</span>
+    <span>Cerrar sesión</span>
+  </button>
+</aside>

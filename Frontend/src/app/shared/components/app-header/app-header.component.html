@@ -1,0 +1,48 @@
+<header class="app-header">
+  <button
+    type="button"
+    id="menu-toggle-btn"
+    class="btn-menu"
+    (click)="menuClick.emit()"
+    aria-label="Abrir menú"
+    aria-controls="mobile-drawer"
+    [attr.aria-expanded]="menuOpen"
+  >
+    <span class="material-icons-round">menu</span>
+  </button>
+
+  <a class="header-brand" routerLink="/dashboard">
+    <img class="header-logo" src="BetterMeLogo.png" alt="" />
+    <span class="header-brand-name">BetterMe</span>
+  </a>
+
+  <div class="header-spacer"></div>
+
+  <a
+    class="btn-icon-action"
+    routerLink="/notifications"
+    routerLinkActive="active"
+    ariaCurrentWhenActive="page"
+    aria-label="Notificaciones"
+    title="Notificaciones"
+  >
+    <span class="material-icons-round">notifications</span>
+    @if (unreadNotifications > 0) {
+      <span class="header-badge">{{ unreadNotifications > 9 ? '9+' : unreadNotifications }}</span>
+    }
+  </a>
+
+  <a
+    class="btn-icon-action"
+    routerLink="/chat"
+    routerLinkActive="active"
+    ariaCurrentWhenActive="page"
+    aria-label="Mensajes"
+    title="Chat"
+  >
+    <span class="material-icons-round">chat_bubble</span>
+    @if (unreadChat > 0) {
+      <span class="header-badge">{{ unreadChat > 9 ? '9+' : unreadChat }}</span>
+    }
+  </a>
+</header>
