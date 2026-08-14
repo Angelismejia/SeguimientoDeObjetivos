@@ -34,6 +34,7 @@ namespace Domain.Entities
         public Category? Category { get; set; }
 
         public ICollection<TaskRepeatDay> TaskRepeatDays { get; set; } = new List<TaskRepeatDay>();
+        public ICollection<TaskCompletion> Completions { get; set; } = new List<TaskCompletion>();
 
 
     }

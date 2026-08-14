@@ -17,6 +17,7 @@ namespace Infrastructure.Persistence
         public DbSet<TaskItem> Tasks { get; set; }
 
         public DbSet<TaskRepeatDay> TaskRepeatDays { get; set; }
+        public DbSet<TaskCompletion> TaskCompletions { get; set; }
         public DbSet<DiaryEntry> DiaryEntries { get; set; }
         public DbSet<Streak> Streaks { get; set; }
         public DbSet<Badge> Badges { get; set; }
@@ -67,6 +68,19 @@ namespace Infrastructure.Persistence
                 entity.Property(t => t.Title).HasMaxLength(150).IsRequired();
                 entity.HasIndex(t => t.UserId);
                 entity.HasIndex(t => t.ObjectiveId);
+            });
+
+            modelBuilder.Entity<TaskCompletion>(entity =>
+            {
+                entity.Property(c => c.Date).HasColumnType("date");
+
+                // Evita duplicados: una tarea no puede estar completada dos veces el mismo dia.
+                entity.HasIndex(c => new { c.TaskId, c.Date }).IsUnique();
+
+                entity.HasOne(c => c.Task)
+                    .WithMany(t => t.Completions)
+                    .HasForeignKey(c => c.TaskId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<DiaryEntry>(entity =>
