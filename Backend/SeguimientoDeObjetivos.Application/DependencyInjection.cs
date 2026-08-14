@@ -20,6 +20,8 @@ namespace Application
             services.AddScoped<IFollowService, FollowService>();
             services.AddScoped<IFriendStreakService, FriendStreakService>();
             services.AddScoped<IMessageService, MessageService>();
+            services.AddScoped<IUserDataExportService, UserDataExportService>();
+            services.AddScoped<IUserSettingService, UserSettingService>();
 
             return services;
         }

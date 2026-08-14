@@ -2,7 +2,10 @@
   @if (loading()) {
     <div class="state-msg">Cargando perfil...</div>
   } @else if (loadError()) {
-    <div class="state-msg error">No se pudo cargar el perfil. Intenta de nuevo más tarde.</div>
+    <div class="state-msg error">
+      No se pudo cargar el perfil. Intenta de nuevo más tarde.
+      <br /><button type="button" class="btn-retry" (click)="loadAll()">Reintentar</button>
+    </div>
   } @else if (user(); as u) {
     <div class="profile-top-bar">
       <button type="button" class="btn-settings" (click)="openSettings()" title="Configuración">
@@ -139,7 +142,7 @@
       </div>
     }
 
-    <div class="friends-section">
+    <div class="friends-section" id="amigos">
       <h2>Amigos</h2>
       <div class="friends-row">
         @for (friend of following(); track friend.id) {
@@ -192,6 +195,31 @@
     <div class="dialog-card" (click)="$event.stopPropagation()">
       <h2 class="dialog-title">Configuración</h2>
 
+      <div class="theme-picker">
+        <span class="settings-item-label">Tema</span>
+        <div class="theme-picker-options">
+          <button
+            type="button"
+            class="theme-option"
+            [class.theme-option-active]="theme() === 'Light'"
+            [disabled]="savingTheme()"
+            (click)="setTheme('Light')">
+            <span class="material-icons-round">light_mode</span>
+            Claro
+          </button>
+          <button
+            type="button"
+            class="theme-option"
+            [class.theme-option-active]="theme() === 'Dark'"
+            [disabled]="savingTheme()"
+            (click)="setTheme('Dark')">
+            <span class="material-icons-round">dark_mode</span>
+            Oscuro
+          </button>
+        </div>
+        <p class="theme-picker-hint">Tu preferencia se guarda ya mismo; la apariencia oscura la estamos terminando de pulir.</p>
+      </div>
+
       <ul class="settings-list">
         <li>
           <button type="button" class="settings-item" (click)="closeSettings(); openEditProfile()">
@@ -207,11 +235,44 @@
             <span class="material-icons-round settings-item-arrow">chevron_right</span>
           </button>
         </li>
+        @if (user(); as u) {
+          <li>
+            <div class="settings-item settings-item-toggle">
+              <span class="material-icons-round settings-item-icon">group</span>
+              <span class="settings-item-label">Permitir que me sigan</span>
+              <button
+                type="button"
+                class="toggle-switch"
+                role="switch"
+                [attr.aria-checked]="u.allowFollows"
+                [class.toggle-switch-on]="u.allowFollows"
+                [disabled]="savingFollowPrivacy()"
+                (click)="toggleAllowFollows()">
+                <span class="toggle-switch-knob"></span>
+              </button>
+            </div>
+          </li>
+        }
+        <li>
+          <button type="button" class="settings-item" [disabled]="exportingData()" (click)="exportData()">
+            <span class="material-icons-round settings-item-icon">download</span>
+            <span class="settings-item-label">{{ exportingData() ? 'Exportando...' : 'Exportar mis datos' }}</span>
+          </button>
+        </li>
       </ul>
+
+      @if (exportError()) {
+        <p class="form-error">{{ exportError() }}</p>
+      }
 
       <button type="button" class="settings-logout" (click)="logout()">
         <span class="material-icons-round">logout</span>
         Cerrar sesión
+      </button>
+
+      <button type="button" class="settings-delete-account" (click)="closeSettings(); openDeleteAccount()">
+        <span class="material-icons-round">delete_forever</span>
+        Eliminar cuenta
       </button>
 
       <div class="dialog-actions">
@@ -284,6 +345,36 @@
   </div>
 }
 
+@if (showDeleteAccount()) {
+  <div class="dialog-overlay" (click)="closeDeleteAccount()">
+    <div class="dialog-card" (click)="$event.stopPropagation()">
+      <h2 class="dialog-title dialog-title-danger">Eliminar cuenta</h2>
+      <p class="danger-warning">
+        Esta acción es permanente. Se borrarán tu perfil, objetivos, tareas, categorías, diario, insignias,
+        seguidores/seguidos, mensajes y rachas con amigos. No se puede deshacer.
+      </p>
+
+      <form [formGroup]="deleteAccountForm" (ngSubmit)="submitDeleteAccount()" class="edit-profile-form">
+        <label class="field">
+          <span>Confirmá tu contraseña</span>
+          <input type="password" formControlName="password" placeholder="Tu contraseña" />
+        </label>
+
+        @if (deleteAccountError()) {
+          <p class="form-error">{{ deleteAccountError() }}</p>
+        }
+
+        <div class="dialog-actions">
+          <button type="button" class="btn-cancel" (click)="closeDeleteAccount()">Cancelar</button>
+          <button type="submit" class="btn-danger" [disabled]="deleteAccountForm.invalid || deletingAccount()">
+            {{ deletingAccount() ? 'Eliminando...' : 'Eliminar mi cuenta' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
 @if (showAddFriend()) {
   <div class="dialog-overlay" (click)="closeAddFriend()">
     <div class="dialog-card" (click)="$event.stopPropagation()">
@@ -311,7 +402,11 @@
             <span class="found-user-name">{{ found.name }}</span>
             <span class="found-user-username">&#64;{{ found.username }}</span>
           </div>
-          <button type="button" class="btn-confirm" (click)="follow(found)">Seguir</button>
+          @if (found.allowFollows) {
+            <button type="button" class="btn-confirm" (click)="follow(found)">Seguir</button>
+          } @else {
+            <span class="found-user-blocked">No permite seguidores</span>
+          }
         </div>
       }
 

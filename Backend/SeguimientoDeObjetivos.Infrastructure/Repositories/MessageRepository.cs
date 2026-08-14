@@ -26,5 +26,13 @@ namespace Infrastructure.Repositories
             _context.Messages.Add(message);
             return Task.FromResult(message);
         }
+
+        public async Task DeleteAllForUserAsync(int userId)
+        {
+            var messages = await _context.Messages
+                .Where(m => m.SenderId == userId || m.ReceiverId == userId)
+                .ToListAsync();
+            _context.Messages.RemoveRange(messages);
+        }
     }
 }

@@ -38,6 +38,7 @@ export class FriendProfileComponent implements OnInit {
 
   isFollowing = signal(false);
   followBusy = signal(false);
+  followBlocked = signal(false);
 
   listModal = signal<'following' | 'followers' | null>(null);
 
@@ -58,6 +59,8 @@ export class FriendProfileComponent implements OnInit {
     this.myId = this.auth.getUserId();
   }
 
+  private viewedUserId: number | null = null;
+
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
       const id = Number(params.get('id'));
@@ -65,8 +68,13 @@ export class FriendProfileComponent implements OnInit {
         this.router.navigate(['/profile'], { replaceUrl: true });
         return;
       }
+      this.viewedUserId = id;
       this.loadAll(id);
     });
+  }
+
+  retry(): void {
+    if (this.viewedUserId !== null) this.loadAll(this.viewedUserId);
   }
 
   private loadAll(userId: number): void {
@@ -161,6 +169,7 @@ export class FriendProfileComponent implements OnInit {
     const target = this.user();
     if (!target || this.followBusy()) return;
     this.followBusy.set(true);
+    this.followBlocked.set(false);
 
     const onDone = () => {
       this.isFollowing.set(!this.isFollowing());
@@ -168,12 +177,20 @@ export class FriendProfileComponent implements OnInit {
       this.followService.getFollowers(target.id).subscribe(followers => this.followers.set(followers));
       this.loadPrivateData(target.id);
     };
-    const onError = () => this.followBusy.set(false);
 
     if (this.isFollowing()) {
-      this.followService.unfollow(this.myId, target.id).subscribe({ next: onDone, error: onError });
+      this.followService.unfollow(this.myId, target.id).subscribe({
+        next: onDone,
+        error: () => this.followBusy.set(false)
+      });
     } else {
-      this.followService.follow(this.myId, target.id).subscribe({ next: onDone, error: onError });
+      this.followService.follow(this.myId, target.id).subscribe({
+        next: onDone,
+        error: () => {
+          this.followBusy.set(false);
+          this.followBlocked.set(true);
+        }
+      });
     }
   }
 

@@ -46,5 +46,13 @@ namespace Infrastructure.Repositories
             _context.Follows.Remove(follow);
             return true;
         }
+
+        public async Task DeleteAllForUserAsync(int userId)
+        {
+            var follows = await _context.Follows
+                .Where(f => f.FollowerId == userId || f.FollowingId == userId)
+                .ToListAsync();
+            _context.Follows.RemoveRange(follows);
+        }
     }
 }

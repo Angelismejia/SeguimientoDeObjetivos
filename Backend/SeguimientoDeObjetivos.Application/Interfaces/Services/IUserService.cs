@@ -11,6 +11,8 @@ namespace Application.Interfaces.Services
         Task<UserDto> UpdateAsync(int id, UpdateUserDto dto);
         Task<UserDto> UpdatePhotoAsync(int id, string photoUrl);
         Task ChangePasswordAsync(int id, ChangePasswordDto dto);
+        Task<UserDto> UpdateFollowPrivacyAsync(int id, UpdateFollowPrivacyDto dto);
+        Task DeleteAccountAsync(int id, DeleteAccountDto dto);
         Task DeleteAsync(int id);
     }
 }
