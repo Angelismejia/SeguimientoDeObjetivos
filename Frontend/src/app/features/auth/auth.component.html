@@ -32,8 +32,13 @@
           <button type="button" class="forgot-btn">¿Olvidaste tu contraseña?</button>
           <p class="form-error" *ngIf="loginError()">{{ loginError() }}</p>
           <button class="btn-main" type="submit" [disabled]="loginForm.invalid || loading()">
+            <span class="spinner" *ngIf="loading()" aria-hidden="true"></span>
             {{ loading() ? 'Ingresando...' : 'Entrar' }}
           </button>
+          <p class="form-hint" *ngIf="slowLoading()" role="status">
+            Esto esta tardando mas de lo normal. El servidor estaba en reposo y
+            puede tardar hasta un minuto en responder la primera vez.
+          </p>
         </form>
       </div>
 
@@ -71,8 +76,13 @@
           </div>
           <p class="form-error" *ngIf="registerError()">{{ registerError() }}</p>
           <button class="btn-main" type="submit" [disabled]="registerForm.invalid || loading()">
+            <span class="spinner" *ngIf="loading()" aria-hidden="true"></span>
             {{ loading() ? 'Creando...' : 'Registrarme' }}
           </button>
+          <p class="form-hint" *ngIf="slowLoading()" role="status">
+            Esto esta tardando mas de lo normal. El servidor estaba en reposo y
+            puede tardar hasta un minuto en responder la primera vez.
+          </p>
         </form>
       </div>
 
