@@ -7,12 +7,6 @@
       <br /><button type="button" class="btn-retry" (click)="loadAll()">Reintentar</button>
     </div>
   } @else if (user(); as u) {
-    <div class="profile-top-bar">
-      <button type="button" class="btn-settings" (click)="openSettings()" title="Configuración">
-        <span class="material-icons-round">settings</span>
-      </button>
-    </div>
-
     <div class="profile-header">
       <label class="photo-wrap" for="photo-input">
         @if (photoUrl()) {
