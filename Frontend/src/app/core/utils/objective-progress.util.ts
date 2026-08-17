@@ -33,19 +33,27 @@ export function computeObjectiveProgress(
   if (linkedTasks.length === 0) return null;
 
   const completed = linkedTasks.filter(t => t.status === 'Completed').length;
-  const progressPercentage = Math.round((completed / linkedTasks.length) * 100);
   const hasRecurring = linkedTasks.some(t => t.isRecurring);
 
   let status = objective.status;
   if (status !== 'Cancelled' && status !== 'Completed') {
-    status = progressPercentage > 0 ? 'InProgress' : 'Pending';
+    status = completed > 0 ? 'InProgress' : 'Pending';
+  }
+
+  // Un objetivo "En progreso" al 100% se lee como una contradiccion, y ademas no
+  // es exacto: si el usuario dijo que va a agregar mas tareas, queda trabajo que
+  // todavia no existe como tarea. El 100% se reserva para cuando el objetivo
+  // esta realmente completado.
+  let progressPercentage = Math.round((completed / linkedTasks.length) * 100);
+  if (progressPercentage === 100 && status !== 'Completed') {
+    progressPercentage = 99;
   }
 
   // Si ya respondio "todavia no" con esta misma cantidad de tareas, no se
   // vuelve a preguntar: recien cuando agregue tareas nuevas y las complete.
   const asked = objective.completionAskedAtTaskCount;
   const askIfFinished =
-    progressPercentage === 100 &&
+    completed === linkedTasks.length &&
     !hasRecurring &&
     objective.status !== 'Completed' &&
     objective.status !== 'Cancelled' &&

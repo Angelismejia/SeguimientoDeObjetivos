@@ -682,7 +682,9 @@ export class DashboardComponent implements OnInit {
     const pendiente = this.objetivoPorConfirmar();
     if (!pendiente) return;
     this.objetivoPorConfirmar.set(null);
-    this.guardarObjetivo(pendiente.objective, { status: 'Completed' });
+    // Al confirmar, el objetivo si llega al 100%: es el unico caso donde
+    // corresponde ese numero.
+    this.guardarObjetivo(pendiente.objective, { status: 'Completed', progressPercentage: 100 });
   }
 
   posponerObjetivoTerminado(): void {

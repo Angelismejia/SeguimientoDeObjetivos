@@ -69,6 +69,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/badges/badges.component').then(m => m.BadgesComponent)
   },
   {
+    path: 'community',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/community/community.component').then(m => m.CommunityComponent)
+  },
+  {
     path: 'profile',
     canActivate: [authGuard],
     loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent)
