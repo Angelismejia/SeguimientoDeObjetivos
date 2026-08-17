@@ -9,6 +9,8 @@ export interface Objective {
   isPrimary: boolean;
   isPrivate: boolean;
   categoryId?: number;
+  /** Con cuantas tareas el usuario dijo "todavia no" a darlo por terminado. */
+  completionAskedAtTaskCount?: number | null;
   categoryName?: string;
   startDate?: string;
   endDate?: string;
@@ -20,6 +22,8 @@ export interface CreateObjectiveDto {
   title: string;
   description?: string;
   categoryId?: number;
+  /** Con cuantas tareas el usuario dijo "todavia no" a darlo por terminado. */
+  completionAskedAtTaskCount?: number | null;
   startDate?: string;
   endDate?: string;
 }
@@ -30,6 +34,8 @@ export interface UpdateObjectiveDto {
   status?: ObjectiveStatus;
   progressPercentage?: number;
   categoryId?: number;
+  /** Con cuantas tareas el usuario dijo "todavia no" a darlo por terminado. */
+  completionAskedAtTaskCount?: number | null;
   startDate?: string;
   endDate?: string;
 }

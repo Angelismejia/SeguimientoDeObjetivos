@@ -15,6 +15,9 @@ namespace Application.DTOs.Objectives
         public bool IsPrivate { get; set; }
         public int UserId { get; set; }
         public int? CategoryId { get; set; }
+
+        // Con cuantas tareas el usuario dijo "todavia no" a darlo por terminado.
+        public int? CompletionAskedAtTaskCount { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
     }

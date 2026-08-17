@@ -21,5 +21,8 @@ namespace Application.DTOs.Objectives
         public int ProgressPercentage { get; set; }
 
         public int? CategoryId { get; set; }
+
+        // Null = nunca se pregunto o hay que volver a preguntar.
+        public int? CompletionAskedAtTaskCount { get; set; }
     }
 }
