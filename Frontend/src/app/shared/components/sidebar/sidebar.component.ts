@@ -27,12 +27,12 @@ export class SidebarComponent {
     { path: '/statistics', label: 'Estadísticas', icon: 'query_stats' },
   ];
 
-  // "Comunidad" no tiene ruta propia hoy: la seccion de amigos/seguidores ya
-  // vive dentro de Perfil, asi que apunta ahi con un fragment para llegar
-  // directo a esa seccion (ver id="amigos" en profile.component.html).
+  // "Comunidad" ya tiene ruta propia, con una pagina de "en construccion"
+  // mientras se arma la seccion. Los amigos y seguidores siguen viviendo en
+  // Perfil, y la pagina enlaza ahi.
   personalLinks = [
     { path: '/diary', label: 'Diario', icon: 'menu_book', fragment: undefined as string | undefined },
     { path: '/badges', label: 'Logros', icon: 'workspace_premium', fragment: undefined as string | undefined },
-    { path: '/profile', label: 'Comunidad', icon: 'group', fragment: 'amigos' },
+    { path: '/community', label: 'Comunidad', icon: 'group', fragment: undefined as string | undefined },
   ];
 }

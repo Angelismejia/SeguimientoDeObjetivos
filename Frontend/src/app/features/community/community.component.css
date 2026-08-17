@@ -1,0 +1,112 @@
+.construction-page {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px 60px;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+.construction-card {
+  width: 100%;
+  max-width: 540px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 40px 32px;
+  text-align: center;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+}
+
+.construction-icon {
+  font-size: 56px;
+  color: #7c3aed;
+  background: #ede9fe;
+  border-radius: 50%;
+  padding: 18px;
+  margin-bottom: 20px;
+}
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 12px;
+  line-height: 1.25;
+}
+
+.lead {
+  font-size: 0.95rem;
+  color: #6b7280;
+  line-height: 1.55;
+  margin: 0 0 28px;
+}
+
+.thanks {
+  font-size: 1rem;
+  color: #4c1d95;
+  line-height: 1.7;
+  font-weight: 600;
+  background: linear-gradient(135deg, #f5f3ff, #faf5ff);
+  border-radius: 14px;
+  padding: 22px 20px;
+  margin: 0 0 28px;
+}
+
+.heart {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  color: #db2777;
+  font-weight: 800;
+}
+.heart .material-icons-round { font-size: 17px; }
+
+.meanwhile {
+  border-top: 1px solid #f3f4f6;
+  padding-top: 24px;
+}
+
+.meanwhile-label {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.meanwhile p {
+  font-size: 0.88rem;
+  color: #6b7280;
+  margin: 0 0 18px;
+}
+
+.btn-main {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.btn-main:hover { opacity: 0.9; transform: translateY(-1px); }
+.btn-main .material-icons-round { font-size: 18px; }
+
+/* En pantallas chicas la tarjeta ocupa el ancho y se aliviana el padding,
+   en vez de encogerse y dejar el texto apretado en el centro. */
+@media (max-width: 520px) {
+  .construction-page { padding: 20px 14px 48px; }
+  .construction-card { padding: 30px 20px; border-radius: 14px; }
+  .construction-icon { font-size: 46px; padding: 15px; }
+  h1 { font-size: 1.28rem; }
+  .thanks { padding: 18px 15px; font-size: 0.94rem; }
+  .btn-main { width: 100%; }
+}

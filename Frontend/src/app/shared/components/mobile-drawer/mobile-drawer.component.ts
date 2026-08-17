@@ -33,7 +33,7 @@ export class MobileDrawerComponent implements OnChanges {
   personalLinks = [
     { path: '/diary', label: 'Diario', icon: 'menu_book', fragment: undefined as string | undefined },
     { path: '/badges', label: 'Logros', icon: 'workspace_premium', fragment: undefined as string | undefined },
-    { path: '/profile', label: 'Comunidad', icon: 'group', fragment: 'amigos' },
+    { path: '/community', label: 'Comunidad', icon: 'group', fragment: undefined as string | undefined },
   ];
 
   ngOnChanges(changes: SimpleChanges): void {
