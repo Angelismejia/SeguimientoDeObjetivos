@@ -9,6 +9,7 @@ namespace Application.Interfaces.Services
         Task<NotificationDto> GetByIdAsync(int id);
         Task<NotificationDto> CreateAsync(CreateNotificationDto dto);
         Task MarkAsReadAsync(int id);
+        Task<int> MarkAllAsReadAsync(int userId);
         Task DeleteAsync(int id);
     }
 }

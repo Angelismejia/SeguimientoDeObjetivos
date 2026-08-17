@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Application.DTOs.Notifications;
 using Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -16,6 +17,8 @@ namespace Api.Controllers
         {
             _notificationService = notificationService;
         }
+
+        private int RequesterId => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<NotificationDto>>> GetByUser([FromQuery] int userId)
@@ -46,6 +49,15 @@ namespace Api.Controllers
         public async Task<IActionResult> MarkAsRead(int id)
         {
             await _notificationService.MarkAsReadAsync(id);
+            return NoContent();
+        }
+
+        // Marca todas las del usuario. El userId no se toma de la query para que
+        // nadie pueda marcar las notificaciones de otro: sale del token.
+        [HttpPatch("read-all")]
+        public async Task<IActionResult> MarkAllAsRead()
+        {
+            await _notificationService.MarkAllAsReadAsync(RequesterId);
             return NoContent();
         }
 

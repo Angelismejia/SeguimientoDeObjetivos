@@ -43,6 +43,21 @@ namespace Infrastructure.Repositories
             return true;
         }
 
+        // Se marcan en bloque en vez de una por una desde el frontend: con una
+        // peticion por notificacion, abrir el panel dispararia tantas llamadas
+        // como avisos sin leer hubiera.
+        public async Task<int> MarkAllAsReadAsync(int userId)
+        {
+            var pendientes = await _context.Notifications
+                .Where(n => n.UserId == userId && !n.IsRead)
+                .ToListAsync();
+
+            foreach (var n in pendientes)
+                n.IsRead = true;
+
+            return pendientes.Count;
+        }
+
         public async Task<bool> DeleteAsync(int id)
         {
             var notification = await _context.Notifications.FindAsync(id);
