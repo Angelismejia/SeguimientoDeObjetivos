@@ -51,8 +51,10 @@ jobs:
       - name: Correr tests del backend
         run: dotnet test Backend/SeguimientoDeObjetivos.sln --configuration Release --no-build
 
+      # Con `npx vitest run` faltaba el entorno de pruebas de Angular y los specs
+      # que usan TestBed fallaban con "describe is not defined".
       - name: Correr tests del frontend
-        run: npx vitest run
+        run: npx ng test --watch=false
         working-directory: Frontend
 
       - name: dotnet publish
