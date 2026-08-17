@@ -11,6 +11,7 @@ import { TaskItem } from '../../core/models/task.model';
 import { Category } from '../../core/models/category.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { isTaskDoneOn, isTaskOverdue } from '../../core/utils/task-status.util';
+import { computeObjectiveProgress } from '../../core/utils/objective-progress.util';
 
 interface HeatmapCell {
   key: string;
@@ -259,30 +260,48 @@ export class ObjectivesComponent implements OnInit {
     const objective = this.objectives().find(o => o.id === objectiveId);
     if (!objective) return;
 
-    const completed = linked.filter(t => t.status === 'Completed').length;
-    const progressPercentage = Math.round((completed / linked.length) * 100);
-    if (objective.progressPercentage === progressPercentage) return;
+    const progreso = computeObjectiveProgress(objective, linked);
+    if (!progreso) return;
 
-    // Un objetivo con una tarea recurrente vinculada (un habito diario/semanal, etc.)
-    // nunca "termina" solo porque hoy este al 100%: mañana la tarea vuelve a estar
-    // pendiente. Por eso no lo marcamos Completed automaticamente en ese caso.
-    const hasRecurring = linked.some(t => t.isRecurring);
-
-    let status = objective.status;
-    if (status !== 'Cancelled') {
-      status = progressPercentage === 100 && !hasRecurring
-        ? 'Completed'
-        : progressPercentage > 0 ? 'InProgress' : 'Pending';
+    if (progreso.askIfFinished) {
+      this.objetivoPorConfirmar.set({ objective, taskCount: progreso.taskCount });
     }
+    if (!progreso.changed) return;
 
-    this.objectiveService.update(objectiveId, {
+    this.guardarObjetivo(objective, {
+      status: progreso.status,
+      progressPercentage: progreso.progressPercentage
+    });
+  }
+
+  // ── ¿Terminaste el objetivo? ─────────────────────────
+  objetivoPorConfirmar = signal<{ objective: Objective; taskCount: number } | null>(null);
+
+  confirmarObjetivoTerminado(): void {
+    const pendiente = this.objetivoPorConfirmar();
+    if (!pendiente) return;
+    this.objetivoPorConfirmar.set(null);
+    this.guardarObjetivo(pendiente.objective, { status: 'Completed' });
+  }
+
+  posponerObjetivoTerminado(): void {
+    const pendiente = this.objetivoPorConfirmar();
+    if (!pendiente) return;
+    this.objetivoPorConfirmar.set(null);
+    this.guardarObjetivo(pendiente.objective, { completionAskedAtTaskCount: pendiente.taskCount });
+  }
+
+  private guardarObjetivo(objective: Objective, cambios: Partial<Objective>): void {
+    this.objectiveService.update(objective.id, {
       title: objective.title,
       description: objective.description,
       categoryId: objective.categoryId,
       startDate: objective.startDate,
       endDate: objective.endDate,
-      status,
-      progressPercentage
+      status: cambios.status ?? objective.status,
+      progressPercentage: cambios.progressPercentage ?? objective.progressPercentage,
+      completionAskedAtTaskCount:
+        cambios.completionAskedAtTaskCount ?? objective.completionAskedAtTaskCount
     }).subscribe(updated => {
       this.objectives.set(this.objectives().map(o => o.id === updated.id ? updated : o));
     });

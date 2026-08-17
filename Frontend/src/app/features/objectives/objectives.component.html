@@ -234,3 +234,15 @@
   (confirmed)="confirmDelete()"
   (cancelled)="cancelDelete()"
 ></app-confirm-dialog>
+
+<!-- Al completar la ultima tarea el objetivo ya no se cierra solo: se pregunta,
+     porque quedarse sin tareas pendientes no significa haber logrado la meta. -->
+<app-confirm-dialog
+  [open]="!!objetivoPorConfirmar()"
+  title="¿Terminaste este objetivo?"
+  [message]="'Completaste todas las tareas de &quot;' + (objetivoPorConfirmar()?.objective?.title ?? '') + '&quot;. ¿Lo damos por terminado, o vas a agregar más tareas?'"
+  confirmText="Sí, lo logré"
+  cancelText="Voy a agregar más"
+  (confirmed)="confirmarObjetivoTerminado()"
+  (cancelled)="posponerObjetivoTerminado()"
+></app-confirm-dialog>
