@@ -24,6 +24,8 @@ export interface TaskItem {
   createdAt: string;
   updatedAt?: string;
   completedAt?: string;
+  /** Dias completados, solo en tareas recurrentes (formato ISO). */
+  completedDates?: string[];
 }
 
 export interface CreateTaskDto {
