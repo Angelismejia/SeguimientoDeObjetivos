@@ -396,7 +396,12 @@
             <span class="found-user-name">{{ found.name }}</span>
             <span class="found-user-username">&#64;{{ found.username }}</span>
           </div>
-          @if (found.allowFollows) {
+          @if (yaLoSigo(found.id)) {
+            <span class="found-user-following">
+              <span class="material-icons-round">check</span>
+              Ya lo sigues
+            </span>
+          } @else if (found.allowFollows) {
             <button type="button" class="btn-confirm" (click)="follow(found)">Seguir</button>
           } @else {
             <span class="found-user-blocked">No permite seguidores</span>
