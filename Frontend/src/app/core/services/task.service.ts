@@ -26,6 +26,11 @@ export class TaskService {
     return this.http.put<TaskItem>(`${this.url}/${id}`, data);
   }
 
+  /** Marca o desmarca una tarea recurrente en un dia suelto, sin tocar la tarea. */
+  setCompletion(id: number, date: string, completed: boolean): Observable<void> {
+    return this.http.put<void>(`${this.url}/${id}/completion`, { date, completed });
+  }
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.url}/${id}`);
   }

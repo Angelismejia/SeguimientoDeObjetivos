@@ -15,6 +15,7 @@ namespace Application.Services
         private readonly IFollowRepository _followRepository;
         private readonly IUserRepository _userRepository;
         private readonly ITaskRepository _taskRepository;
+        private readonly ITaskCompletionRepository _completionRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IAppClock _appClock;
 
@@ -24,6 +25,7 @@ namespace Application.Services
             IFollowRepository followRepository,
             IUserRepository userRepository,
             ITaskRepository taskRepository,
+            ITaskCompletionRepository completionRepository,
             IUnitOfWork unitOfWork,
             IAppClock appClock)
         {
@@ -32,6 +34,7 @@ namespace Application.Services
             _followRepository = followRepository;
             _userRepository = userRepository;
             _taskRepository = taskRepository;
+            _completionRepository = completionRepository;
             _unitOfWork = unitOfWork;
             _appClock = appClock;
         }
@@ -155,8 +158,8 @@ namespace Application.Services
             var tasksA = await _taskRepository.GetByUserIdAsync(userAId);
             var tasksB = await _taskRepository.GetByUserIdAsync(userBId);
 
-            var daysA = CompletedDays(tasksA);
-            var daysB = CompletedDays(tasksB);
+            var daysA = CompletedDays(tasksA, await _completionRepository.GetByUserIdAsync(userAId));
+            var daysB = CompletedDays(tasksB, await _completionRepository.GetByUserIdAsync(userBId));
 
             // DateTime.Today aca era la hora del servidor (UTC en Azure), no la de
             // ninguno de los dos usuarios; usamos IAppClock para que coincida con el
@@ -177,11 +180,22 @@ namespace Application.Services
             return streak;
         }
 
-        private static HashSet<DateTime> CompletedDays(IEnumerable<TaskItem> tasks) =>
-            tasks
-                .Where(t => t.Status == TaskItemStatus.Completed)
-                .Select(t => t.ScheduledDate.Date)
-                .ToHashSet();
+        // Tiene que coincidir con el criterio de la racha individual del dashboard:
+        // las recurrentes aportan cada dia registrado en TaskCompletions, y las de un
+        // solo dia su propia ScheduledDate cuando estan completadas. Leer solo el
+        // Status dejaba a las recurrentes aportando un unico dia, y la racha
+        // compartida se cortaba sola aunque ambos hubieran cumplido.
+        private static HashSet<DateTime> CompletedDays(
+            IEnumerable<TaskItem> tasks,
+            IEnumerable<TaskCompletion> completions)
+        {
+            var dias = completions.Select(c => c.Date.Date).ToHashSet();
+
+            foreach (var t in tasks.Where(t => !t.IsRecurring && t.Status == TaskItemStatus.Completed))
+                dias.Add(t.ScheduledDate.Date);
+
+            return dias;
+        }
 
         private static FriendStreakInvitationDto ToDto(FriendStreakInvitation i) => new()
         {

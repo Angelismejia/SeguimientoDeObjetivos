@@ -9,6 +9,7 @@ namespace Application.Interfaces.Services
         Task<TaskDto> GetByIdAsync(int id);
         Task<TaskDto> CreateAsync(int userId, CreateTaskDto dto);
         Task<TaskDto> UpdateAsync(int id, UpdateTaskDto dto);
+        Task SetCompletionAsync(int taskId, SetCompletionDto dto);
         Task DeleteAsync(int id);
     }
 }

@@ -8,9 +8,14 @@ import { TaskItem } from '../models/task.model';
  * simplemente respetan su status.
  */
 export function isTaskDoneOn(task: TaskItem, dateKey: string): boolean {
-  if (task.status !== 'Completed') return false;
-  if (!task.isRecurring) return true;
-  return task.scheduledDate?.substring(0, 10) === dateKey;
+  // Una tarea recurrente es una sola fila con una unica scheduledDate, asi que su
+  // status no puede describir mas de un dia. Su historial vive en completedDates:
+  // una entrada por cada dia que se marco.
+  if (task.isRecurring) {
+    return (task.completedDates ?? []).some(d => d.substring(0, 10) === dateKey);
+  }
+  // Las de un solo dia se resuelven con su propio status, que les alcanza.
+  return task.status === 'Completed';
 }
 
 /**

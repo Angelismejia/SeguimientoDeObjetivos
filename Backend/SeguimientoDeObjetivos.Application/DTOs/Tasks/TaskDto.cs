@@ -25,5 +25,9 @@ namespace Application.DTOs.Tasks
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
+
+        // Dias en que se completo, solo para tareas recurrentes. Las de un solo dia
+        // se siguen resolviendo con Status y llegan con la lista vacia.
+        public List<DateTime> CompletedDates { get; set; } = new();
     }
 }

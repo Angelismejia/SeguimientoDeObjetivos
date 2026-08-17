@@ -11,12 +11,18 @@ namespace Application.Services
     public class TaskService : ITaskService
     {
         private readonly ITaskRepository _taskRepository;
+        private readonly ITaskCompletionRepository _completionRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IBadgeAwardService _badgeAwardService;
 
-        public TaskService(ITaskRepository taskRepository, IUnitOfWork unitOfWork, IBadgeAwardService badgeAwardService)
+        public TaskService(
+            ITaskRepository taskRepository,
+            ITaskCompletionRepository completionRepository,
+            IUnitOfWork unitOfWork,
+            IBadgeAwardService badgeAwardService)
         {
             _taskRepository = taskRepository;
+            _completionRepository = completionRepository;
             _unitOfWork = unitOfWork;
             _badgeAwardService = badgeAwardService;
         }
@@ -24,13 +30,56 @@ namespace Application.Services
         public async Task<IEnumerable<TaskDto>> GetByUserIdAsync(int userId)
         {
             var tasks = await _taskRepository.GetByUserIdAsync(userId);
-            return tasks.Select(ToDto);
+
+            // Una sola consulta para todos los dias completados del usuario, en vez
+            // de una por tarea: es lo que alimenta la racha y el calendario.
+            var completions = await _completionRepository.GetByUserIdAsync(userId);
+            var porTarea = completions
+                .GroupBy(c => c.TaskId)
+                .ToDictionary(g => g.Key, g => g.Select(c => c.Date).OrderBy(d => d).ToList());
+
+            return tasks.Select(t => ToDto(
+                t,
+                porTarea.TryGetValue(t.Id, out var dias) ? dias : null));
+        }
+
+        // Marca o desmarca una tarea recurrente en un dia concreto.
+        //
+        // Las recurrentes son una sola fila con una unica ScheduledDate, asi que su
+        // estado no puede describir mas de un dia: antes, completar hoy pisaba lo de
+        // ayer. Cada dia completado pasa a ser una fila propia en TaskCompletions.
+        public async Task SetCompletionAsync(int taskId, SetCompletionDto dto)
+        {
+            var task = await _taskRepository.GetByIdAsync(taskId)
+                ?? throw new NotFoundException("Task", taskId);
+
+            if (!task.IsRecurring)
+                throw new InvalidOperationException("Solo las tareas recurrentes llevan historial por dia.");
+
+            var dia = dto.Date.Date;
+            var existente = await _completionRepository.GetAsync(taskId, dia);
+
+            if (dto.Completed && existente is null)
+            {
+                await _completionRepository.CreateAsync(new TaskCompletion
+                {
+                    TaskId = taskId,
+                    Date = dia,
+                    CompletedAt = DateTime.UtcNow
+                });
+            }
+            else if (!dto.Completed && existente is not null)
+            {
+                await _completionRepository.DeleteAsync(taskId, dia);
+            }
+
+            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<TaskDto>> GetByObjectiveIdAsync(int objectiveId)
         {
             var tasks = await _taskRepository.GetByObjectiveIdAsync(objectiveId);
-            return tasks.Select(ToDto);
+            return tasks.Select(t => ToDto(t));
         }
 
         public async Task<TaskDto> GetByIdAsync(int id)
@@ -110,8 +159,9 @@ namespace Application.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        private static TaskDto ToDto(TaskItem t) => new()
+        private static TaskDto ToDto(TaskItem t, List<DateTime>? completedDates = null) => new()
         {
+            CompletedDates = completedDates ?? new List<DateTime>(),
             Id = t.Id,
             Title = t.Title,
             Description = t.Description,

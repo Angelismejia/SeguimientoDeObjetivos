@@ -72,6 +72,18 @@ namespace Api.Controllers
             return Ok(await _taskService.UpdateAsync(id, dto));
         }
 
+        // Historial por dia de una tarea recurrente: marca o desmarca un dia suelto
+        // sin tocar la fila de la tarea.
+        [HttpPut("{id}/completion")]
+        public async Task<IActionResult> SetCompletion(int id, SetCompletionDto dto)
+        {
+            var existing = await _taskService.GetByIdAsync(id);
+            if (existing.UserId != RequesterId) return Forbid();
+
+            await _taskService.SetCompletionAsync(id, dto);
+            return NoContent();
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

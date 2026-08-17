@@ -107,11 +107,18 @@ export class DashboardComponent implements OnInit {
   });
 
   streak = computed(() => {
-    const completedDays = new Set(
-      this.allTasks()
-        .filter(t => t.status === 'Completed' && !!t.scheduledDate)
-        .map(t => t.scheduledDate.substring(0, 10))
-    );
+    // Cada tarea aporta todos sus dias hechos, no uno solo: una recurrente marcada
+    // el lunes, martes y miercoles suma los tres. Antes se leia su unica
+    // scheduledDate, asi que jamas podia aportar mas de un dia y la racha se
+    // reiniciaba sola.
+    const completedDays = new Set<string>();
+    for (const t of this.allTasks()) {
+      if (t.isRecurring) {
+        for (const d of t.completedDates ?? []) completedDays.add(d.substring(0, 10));
+      } else if (t.status === 'Completed' && t.scheduledDate) {
+        completedDays.add(t.scheduledDate.substring(0, 10));
+      }
+    }
 
     let cursor = this.dateKey(new Date());
     if (!completedDays.has(cursor)) {
@@ -407,14 +414,31 @@ export class DashboardComponent implements OnInit {
     const currentlyDone = this.isDone(task, dateKey);
     if (!currentlyDone && this.isFuture(task)) return;
     const newStatus = currentlyDone ? 'Pending' : 'Completed';
-    // Las recurrentes son una sola fila con una unica scheduledDate: al completarla hay
-    // que moverla al dia que se esta marcando (el que llega en dateKey, p.ej. un dia
-    // pasado elegido en el calendario) para que la racha lo vea como hecho ESE dia.
-    // Si no llega dateKey (lista "Tareas de Hoy"), usamos el hoy LOCAL del navegador
-    // (no el del backend, que corre en UTC y puede ser otro dia distinto).
-    const scheduledDate = (task.isRecurring && newStatus === 'Completed')
-      ? (dateKey ?? this.dateKey(new Date()))
-      : task.scheduledDate;
+
+    // Las recurrentes guardan un registro por dia en TaskCompletions, asi que no se
+    // toca la fila de la tarea: solo se agrega o quita el dia que se esta marcando.
+    // Antes se le movia la scheduledDate a ese dia, lo que ademas la hacia
+    // desaparecer del calendario en todas las fechas anteriores.
+    //
+    // El dia sale de dateKey (p.ej. una fecha pasada elegida en el calendario) o,
+    // si no llega, del hoy LOCAL del navegador: el backend corre en UTC y puede
+    // estar en otro dia.
+    if (task.isRecurring) {
+      const dia = dateKey ?? this.dateKey(new Date());
+      this.taskService.setCompletion(task.id, dia, !currentlyDone).subscribe({
+        next: () => {
+          const dias = new Set(task.completedDates ?? []);
+          if (currentlyDone) dias.delete(dia); else dias.add(dia);
+          const actualizada = { ...task, completedDates: [...dias].sort() };
+          const tareas = this.allTasks().map(t => t.id === task.id ? actualizada : t);
+          this.allTasks.set(tareas);
+          if (task.objectiveId) this.recomputeObjectiveProgress(task.objectiveId, tareas);
+        }
+      });
+      return;
+    }
+
+    const scheduledDate = task.scheduledDate;
     this.taskService.update(task.id, {
       title: task.title,
       description: task.description,

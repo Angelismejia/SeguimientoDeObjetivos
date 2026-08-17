@@ -34,6 +34,7 @@ namespace Infrastructure
             services.AddScoped<IFriendStreakRepository, FriendStreakRepository>();
             services.AddScoped<IMessageRepository, MessageRepository>();
             services.AddScoped<IUserSettingRepository, UserSettingRepository>();
+            services.AddScoped<ITaskCompletionRepository, TaskCompletionRepository>();
 
             services.AddHostedService<TaskReminderBackgroundService>();
 
