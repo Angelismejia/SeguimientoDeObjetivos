@@ -9,6 +9,7 @@ namespace Application.Interfaces.Repositories
         Task<IEnumerable<Notification>> GetUnreadByUserIdAsync(int userId);
         Task<Notification> CreateAsync(Notification notification);
         Task<bool> MarkAsReadAsync(int id);
+        Task<int> MarkAllAsReadAsync(int userId);
         Task<bool> DeleteAsync(int id);
     }
 }

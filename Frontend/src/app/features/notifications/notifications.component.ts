@@ -25,6 +25,15 @@ export class NotificationsComponent implements OnInit {
     this.loadAll();
   }
 
+  // Abrir la pantalla cuenta como haberlas visto, asi que se marcan todas y el
+  // contador del header deja de insistir. Se mantiene el estilo "sin leer" en la
+  // lista que se acaba de cargar, para que se distinga cual era nueva al entrar.
+  private marcarTodasComoVistas(notificaciones: Notification[]): void {
+    if (!notificaciones.some(n => !n.isRead)) return;
+
+    this.notificationService.markAllAsRead().subscribe();
+  }
+
   loadAll(): void {
     this.loading.set(true);
     this.loadError.set(false);
@@ -32,6 +41,7 @@ export class NotificationsComponent implements OnInit {
       next: notifications => {
         this.notifications.set(notifications);
         this.loading.set(false);
+        this.marcarTodasComoVistas(notifications);
       },
       error: () => {
         this.loading.set(false);

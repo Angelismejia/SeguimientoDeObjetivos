@@ -61,6 +61,15 @@ namespace Application.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
+        // Devuelve cuantas se marcaron. Cero es un resultado valido: significa que
+        // no habia ninguna sin leer, no que algo fallara.
+        public async Task<int> MarkAllAsReadAsync(int userId)
+        {
+            var marcadas = await _notificationRepository.MarkAllAsReadAsync(userId);
+            if (marcadas > 0) await _unitOfWork.SaveChangesAsync();
+            return marcadas;
+        }
+
         public async Task DeleteAsync(int id)
         {
             var deleted = await _notificationRepository.DeleteAsync(id);

@@ -54,6 +54,10 @@ export class App {
       this.refreshUnreadCount();
       this.ensureChatConnected();
     });
+
+    // Al marcarlas todas como leidas el contador tiene que bajar en el momento,
+    // sin esperar al proximo ciclo de 30s.
+    this.notificationService.unreadChanged.subscribe(() => this.refreshUnreadCount());
   }
 
   // Si la conexion de chat se cae (red inestable, celular viejo, etc.) y el
