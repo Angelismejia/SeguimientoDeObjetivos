@@ -150,9 +150,13 @@ export class ProfileComponent implements OnInit, AfterViewInit {
     this.loadAll();
     // El sidebar/drawer enlazan a /profile?settings=1 para "Configuración" en
     // vez de duplicar ese modal como una pantalla propia.
-    if (this.route.snapshot.queryParamMap.get('settings')) {
-      this.openSettings();
-    }
+    //
+    // Va suscrito y no por snapshot: estando ya en /profile, Angular reutiliza el
+    // componente cuando solo cambia el query param, asi que ngOnInit no vuelve a
+    // correr y con snapshot el modal no abria.
+    this.route.queryParamMap.subscribe(params => {
+      if (params.get('settings')) this.openSettings();
+    });
   }
 
   loadAll(): void {
@@ -309,6 +313,15 @@ export class ProfileComponent implements OnInit, AfterViewInit {
 
   closeSettings(): void {
     this.showSettings.set(false);
+    // Sin esto el ?settings=1 queda pegado en la URL y el siguiente clic en
+    // "Configuración" navega al mismo sitio: Angular no emite nada y el modal
+    // no vuelve a abrir hasta salir de la pantalla y entrar de nuevo.
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { settings: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
   }
 
   // ── Tema ──────────────────────────────────────────────
