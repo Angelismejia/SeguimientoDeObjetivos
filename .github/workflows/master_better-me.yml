@@ -48,6 +48,13 @@ jobs:
       - name: Build with dotnet
         run: dotnet build Backend/SeguimientoDeObjetivos.sln --configuration Release
 
+      - name: Correr tests del backend
+        run: dotnet test Backend/SeguimientoDeObjetivos.sln --configuration Release --no-build
+
+      - name: Correr tests del frontend
+        run: npx vitest run
+        working-directory: Frontend
+
       - name: dotnet publish
         run: dotnet publish Backend/SeguimientoDeObjetivos.Api/SeguimientoDeObjetivos.Api.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp"
 
