@@ -666,14 +666,15 @@ export class DashboardComponent implements OnInit {
 
     // Un objetivo con una tarea recurrente vinculada (un habito diario/semanal, etc.)
     // nunca "termina" solo porque hoy este al 100%: mañana la tarea vuelve a estar
-    // pendiente. Por eso no lo marcamos Completed automaticamente en ese caso.
+    // pendiente.
     const hasRecurring = linked.some(t => t.isRecurring);
 
+    // El estado ya no salta solo a "Completed" al llegar al 100%. Haber terminado
+    // las tareas que se te ocurrieron hasta ahora no es lo mismo que haber logrado
+    // el objetivo: podes querer sumar mas. Se le pregunta al usuario y decide el.
     let status = objective.status;
-    if (status !== 'Cancelled') {
-      status = progressPercentage === 100 && !hasRecurring
-        ? 'Completed'
-        : progressPercentage > 0 ? 'InProgress' : 'Pending';
+    if (status !== 'Cancelled' && status !== 'Completed') {
+      status = progressPercentage > 0 ? 'InProgress' : 'Pending';
     }
 
     this.objectiveService.update(objectiveId, {
@@ -683,7 +684,60 @@ export class DashboardComponent implements OnInit {
       startDate: objective.startDate,
       endDate: objective.endDate,
       status,
-      progressPercentage
+      progressPercentage,
+      completionAskedAtTaskCount: objective.completionAskedAtTaskCount
+    }).subscribe(updated => {
+      this.objectives.set(this.objectives().map(o => o.id === updated.id ? updated : o));
+      this.maybePreguntarSiTermino(updated, linked.length, progressPercentage, hasRecurring);
+    });
+  }
+
+  // ── ¿Terminaste el objetivo? ─────────────────────────
+  objetivoPorConfirmar = signal<{ objective: Objective; taskCount: number } | null>(null);
+
+  private maybePreguntarSiTermino(
+    objective: Objective,
+    taskCount: number,
+    progressPercentage: number,
+    hasRecurring: boolean
+  ): void {
+    if (progressPercentage !== 100) return;
+    if (hasRecurring) return;
+    if (objective.status === 'Completed' || objective.status === 'Cancelled') return;
+
+    // Si ya dijo "todavia no" con esta misma cantidad de tareas, no se vuelve a
+    // preguntar: solo cuando agregue tareas nuevas y tambien las complete.
+    const yaPreguntado = objective.completionAskedAtTaskCount;
+    if (yaPreguntado != null && taskCount <= yaPreguntado) return;
+
+    this.objetivoPorConfirmar.set({ objective, taskCount });
+  }
+
+  confirmarObjetivoTerminado(): void {
+    const pendiente = this.objetivoPorConfirmar();
+    if (!pendiente) return;
+    this.objetivoPorConfirmar.set(null);
+    this.guardarObjetivo(pendiente.objective, { status: 'Completed' });
+  }
+
+  posponerObjetivoTerminado(): void {
+    const pendiente = this.objetivoPorConfirmar();
+    if (!pendiente) return;
+    this.objetivoPorConfirmar.set(null);
+    this.guardarObjetivo(pendiente.objective, { completionAskedAtTaskCount: pendiente.taskCount });
+  }
+
+  private guardarObjetivo(objective: Objective, cambios: Partial<Objective>): void {
+    this.objectiveService.update(objective.id, {
+      title: objective.title,
+      description: objective.description,
+      categoryId: objective.categoryId,
+      startDate: objective.startDate,
+      endDate: objective.endDate,
+      status: cambios.status ?? objective.status,
+      progressPercentage: objective.progressPercentage,
+      completionAskedAtTaskCount:
+        cambios.completionAskedAtTaskCount ?? objective.completionAskedAtTaskCount
     }).subscribe(updated => {
       this.objectives.set(this.objectives().map(o => o.id === updated.id ? updated : o));
     });

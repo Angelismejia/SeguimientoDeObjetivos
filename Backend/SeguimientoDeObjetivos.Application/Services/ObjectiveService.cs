@@ -72,6 +72,7 @@ namespace Application.Services
             objective.Status = dto.Status;
             objective.ProgressPercentage = dto.ProgressPercentage;
             objective.CategoryId = dto.CategoryId;
+            objective.CompletionAskedAtTaskCount = dto.CompletionAskedAtTaskCount;
             objective.UpdatedAt = DateTime.UtcNow;
 
             await _objectiveRepository.UpdateAsync(objective);
@@ -149,6 +150,7 @@ namespace Application.Services
             IsPrivate = o.IsPrivate,
             UserId = o.UserId,
             CategoryId = o.CategoryId,
+            CompletionAskedAtTaskCount = o.CompletionAskedAtTaskCount,
             CreatedAt = o.CreatedAt,
             UpdatedAt = o.UpdatedAt
         };
