@@ -25,6 +25,7 @@ namespace Api.Controllers
             if (requesterId != userAId && requesterId != userBId)
                 return Forbid();
 
+
             return Ok(await _messageService.GetConversationAsync(userAId, userBId));
         }
     }
