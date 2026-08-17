@@ -568,14 +568,20 @@ export class ProfileComponent implements OnInit, AfterViewInit {
       this.searchResults.set([]);
       return;
     }
+    // Los que ya seguis tambien aparecen: buscar a alguien y no encontrarlo se lee
+    // como que no existe, no como que ya es tu amigo. En la lista se distinguen
+    // porque en vez del boton "Seguir" muestran que ya lo seguis.
     const myId = this.auth.getUserId();
-    const followingIds = new Set(this.following().map(f => f.id));
     this.searchResults.set(
       this.allUsers()
-        .filter(u => u.id !== myId && !followingIds.has(u.id))
+        .filter(u => u.id !== myId)
         .filter(u => u.username.toLowerCase().includes(query) || u.name.toLowerCase().includes(query))
         .slice(0, 20)
     );
+  }
+
+  yaLoSigo(userId: number): boolean {
+    return this.following().some(f => f.id === userId);
   }
 
   follow(found: User): void {
@@ -587,7 +593,8 @@ export class ProfileComponent implements OnInit, AfterViewInit {
           name: found.name,
           profilePhotoUrl: found.profilePhotoUrl
         }]);
-        this.searchResults.set(this.searchResults().filter(u => u.id !== found.id));
+        // Ya no se saca de la lista: se queda visible y el boton pasa a "Ya lo
+        // sigues", que confirma que la accion funciono. Sacarlo parecia un error.
       },
       error: () => {
         this.searchError.set('No se pudo seguir a este usuario. Intenta de nuevo.');

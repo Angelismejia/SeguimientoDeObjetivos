@@ -510,6 +510,12 @@
 .found-user-username { font-size: 0.78rem; color: #7c3aed; }
 .found-user-blocked { font-size: 0.76rem; color: #9ca3af; font-weight: 600; white-space: nowrap; }
 
+.found-user-following {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 0.76rem; color: #15803d; font-weight: 700; white-space: nowrap;
+}
+.found-user-following .material-icons-round { font-size: 16px; }
+
 .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
 .dialog-actions.split { justify-content: space-between; }
 .dialog-actions button,
