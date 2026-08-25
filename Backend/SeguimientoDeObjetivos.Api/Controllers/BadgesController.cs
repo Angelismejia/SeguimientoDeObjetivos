@@ -35,12 +35,10 @@ namespace Api.Controllers
             return Ok(await _badgeService.GetByUserIdAsync(userId));
         }
 
-        [HttpPost("assign")]
-        public async Task<IActionResult> Assign([FromQuery] int userId, [FromQuery] int badgeId)
-        {
-            var assigned = await _badgeService.AssignToUserAsync(userId, badgeId);
-            if (!assigned) return Conflict("El usuario ya tiene este badge.");
-            return NoContent();
-        }
+        // Se quito POST assign: recibia userId y badgeId por query sin comprobar
+        // nada, asi que cualquier usuario logueado podia regalarse todas las
+        // insignias o ponerselas a otro. El frontend nunca lo llamaba, y las
+        // insignias se otorgan solas desde BadgeAwardService al completar tareas
+        // y objetivos, que es la unica via legitima.
     }
 }

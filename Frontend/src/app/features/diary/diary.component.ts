@@ -110,7 +110,7 @@ export class DiaryComponent implements OnInit {
         title: v.title || undefined,
         content: v.content,
         entryDate: v.entryDate
-      }, this.auth.getUserId()).subscribe({
+      }).subscribe({
         next: created => {
           this.entries.set(this.sortEntries([...this.entries(), created]));
           this.saving.set(false);

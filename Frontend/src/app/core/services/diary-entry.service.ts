@@ -18,8 +18,9 @@ export class DiaryEntryService {
     return this.http.get<DiaryEntry>(`${this.url}/${id}`);
   }
 
-  create(data: CreateDiaryEntryDto, userId: number): Observable<DiaryEntry> {
-    return this.http.post<DiaryEntry>(`${this.url}?userId=${userId}`, data);
+  /** El autor sale del token en el backend, no se manda por la URL. */
+  create(data: CreateDiaryEntryDto): Observable<DiaryEntry> {
+    return this.http.post<DiaryEntry>(this.url, data);
   }
 
   update(id: number, data: UpdateDiaryEntryDto): Observable<DiaryEntry> {

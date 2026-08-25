@@ -110,7 +110,7 @@ export class CategoriesComponent implements OnInit {
         name: v.name,
         color: v.color,
         icon: v.icon
-      }, this.auth.getUserId()).subscribe({
+      }).subscribe({
         next: created => {
           this.categories.set([...this.categories(), created]);
           this.saving.set(false);

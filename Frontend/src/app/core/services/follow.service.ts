@@ -18,11 +18,16 @@ export class FollowService {
     return this.http.get<UserSummary[]>(`${this.url}/following?userId=${userId}`);
   }
 
-  follow(followerId: number, followingId: number): Observable<Follow> {
-    return this.http.post<Follow>(`${this.url}?followerId=${followerId}`, { followingId });
+  /**
+   * Quien sigue sale del token en el backend. Se mantiene el parametro para no
+   * tocar los llamadores, pero ya no viaja: mandarlo permitia hacer que otra
+   * persona siguiera o dejara de seguir a quien fuera.
+   */
+  follow(_followerId: number, followingId: number): Observable<Follow> {
+    return this.http.post<Follow>(this.url, { followingId });
   }
 
-  unfollow(followerId: number, followingId: number): Observable<void> {
-    return this.http.delete<void>(`${this.url}?followerId=${followerId}&followingId=${followingId}`);
+  unfollow(_followerId: number, followingId: number): Observable<void> {
+    return this.http.delete<void>(`${this.url}?followingId=${followingId}`);
   }
 }
