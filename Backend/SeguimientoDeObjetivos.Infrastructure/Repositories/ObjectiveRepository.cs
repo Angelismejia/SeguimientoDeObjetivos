@@ -38,6 +38,17 @@ namespace Infrastructure.Repositories
         {
             var objective = await _context.Objectives.FindAsync(id);
             if (objective is null) return false;
+
+            // Tasks.ObjectiveId no cascadea, asi que sin esto el DELETE choca
+            // contra la FK en cuanto el objetivo tenga tareas. Se sueltan en vez
+            // de borrarlas: ObjectiveId es opcional (la app admite tareas sin
+            // objetivo) y el dialogo de borrado no avisa de perder tareas.
+            var tasks = await _context.Tasks
+                .Where(t => t.ObjectiveId == id)
+                .ToListAsync();
+            foreach (var task in tasks)
+                task.ObjectiveId = null;
+
             _context.Objectives.Remove(objective);
             return true;
         }
