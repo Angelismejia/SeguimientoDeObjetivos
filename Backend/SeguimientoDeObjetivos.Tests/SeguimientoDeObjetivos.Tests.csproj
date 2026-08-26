@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SeguimientoDeObjetivos.Application\SeguimientoDeObjetivos.Application.csproj" />
+    <ProjectReference Include="..\SeguimientoDeObjetivos.Api\SeguimientoDeObjetivos.Api.csproj" />
   </ItemGroup>
 
 </Project>

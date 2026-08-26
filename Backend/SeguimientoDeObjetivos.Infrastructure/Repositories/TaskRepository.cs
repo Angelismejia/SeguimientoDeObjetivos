@@ -43,6 +43,17 @@ namespace Infrastructure.Repositories
         {
             var task = await _context.Tasks.FindAsync(id);
             if (task is null) return false;
+
+            // Notifications.TaskId no cascadea (Users ya cascadea a Tasks y a
+            // Notifications; una cascada mas daria multiples rutas y SQL Server
+            // la rechaza), asi que hay que limpiarlas a mano o el DELETE choca
+            // contra la FK. Una notificacion de una tarea que ya no existe no
+            // tiene nada que mostrar, asi que se va con ella.
+            var notifications = await _context.Notifications
+                .Where(n => n.TaskId == id)
+                .ToListAsync();
+            _context.Notifications.RemoveRange(notifications);
+
             _context.Tasks.Remove(task);
             return true;
         }

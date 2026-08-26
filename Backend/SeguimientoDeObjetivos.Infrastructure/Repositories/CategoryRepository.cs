@@ -38,6 +38,23 @@ namespace Infrastructure.Repositories
         {
             var category = await _context.Categories.FindAsync(id);
             if (category is null) return false;
+
+            // Ni Objectives.CategoryId ni Tasks.CategoryId cascadean, asi que
+            // borrar una categoria en uso chocaba contra la FK. Ambas son
+            // opcionales: lo que la usaba queda sin categoria en vez de
+            // bloquear el borrado o arrastrar objetivos y tareas.
+            var objectives = await _context.Objectives
+                .Where(o => o.CategoryId == id)
+                .ToListAsync();
+            foreach (var objective in objectives)
+                objective.CategoryId = null;
+
+            var tasks = await _context.Tasks
+                .Where(t => t.CategoryId == id)
+                .ToListAsync();
+            foreach (var task in tasks)
+                task.CategoryId = null;
+
             _context.Categories.Remove(category);
             return true;
         }

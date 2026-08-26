@@ -15,8 +15,9 @@ export class CategoryService {
     return this.http.get<Category[]>(`${this.url}?userId=${userId}`);
   }
 
-  create(data: CreateCategoryDto, userId: number): Observable<Category> {
-    return this.http.post<Category>(`${this.url}?userId=${userId}`, data);
+  /** El dueño sale del token en el backend, no se manda por la URL. */
+  create(data: CreateCategoryDto): Observable<Category> {
+    return this.http.post<Category>(this.url, data);
   }
 
   update(id: number, data: UpdateCategoryDto): Observable<Category> {

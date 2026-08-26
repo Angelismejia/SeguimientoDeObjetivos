@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Application.DTOs.Follows;
 using Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -17,6 +18,8 @@ namespace Api.Controllers
             _followService = followService;
         }
 
+        private int RequesterId => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
         [HttpGet("followers")]
         public async Task<ActionResult<IEnumerable<UserSummaryDto>>> GetFollowers([FromQuery] int userId)
         {
@@ -29,17 +32,23 @@ namespace Api.Controllers
             return Ok(await _followService.GetFollowingAsync(userId));
         }
 
+        // Quien sigue sale del token y ya no del query. Recibiendolo por la URL,
+        // cualquiera podia hacer que otra persona siguiera a quien quisiera, o
+        // deshacer amistades ajenas.
+        //
+        // Las listas de seguidores de arriba si son consultables: el perfil de un
+        // amigo las muestra, y son informacion social, no privada.
         [HttpPost]
-        public async Task<ActionResult<FollowDto>> Create([FromQuery] int followerId, CreateFollowDto dto)
+        public async Task<ActionResult<FollowDto>> Create(CreateFollowDto dto)
         {
-            var created = await _followService.CreateAsync(followerId, dto);
+            var created = await _followService.CreateAsync(RequesterId, dto);
             return Ok(created);
         }
 
         [HttpDelete]
-        public async Task<IActionResult> Delete([FromQuery] int followerId, [FromQuery] int followingId)
+        public async Task<IActionResult> Delete([FromQuery] int followingId)
         {
-            await _followService.DeleteAsync(followerId, followingId);
+            await _followService.DeleteAsync(RequesterId, followingId);
             return NoContent();
         }
     }

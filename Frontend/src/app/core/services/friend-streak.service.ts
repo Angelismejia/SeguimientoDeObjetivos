@@ -10,27 +10,31 @@ export class FriendStreakService {
 
   constructor(private http: HttpClient) {}
 
-  getForUser(userId: number): Observable<FriendStreak[]> {
-    return this.http.get<FriendStreak[]>(`${this.url}?userId=${userId}`);
+  // El backend saca la identidad del token. Se conservan los parametros para no
+  // tocar los llamadores, pero ya no viajan en la URL: mandarlos permitia leer
+  // las invitaciones de cualquiera y aceptar o rechazar en su nombre.
+
+  getForUser(_userId: number): Observable<FriendStreak[]> {
+    return this.http.get<FriendStreak[]>(this.url);
   }
 
-  getReceivedInvitations(userId: number): Observable<FriendStreakInvitation[]> {
-    return this.http.get<FriendStreakInvitation[]>(`${this.url}/invitations/received?userId=${userId}`);
+  getReceivedInvitations(_userId: number): Observable<FriendStreakInvitation[]> {
+    return this.http.get<FriendStreakInvitation[]>(`${this.url}/invitations/received`);
   }
 
-  getSentInvitations(userId: number): Observable<FriendStreakInvitation[]> {
-    return this.http.get<FriendStreakInvitation[]>(`${this.url}/invitations/sent?userId=${userId}`);
+  getSentInvitations(_userId: number): Observable<FriendStreakInvitation[]> {
+    return this.http.get<FriendStreakInvitation[]>(`${this.url}/invitations/sent`);
   }
 
-  invite(fromUserId: number, toUserId: number): Observable<FriendStreakInvitation> {
-    return this.http.post<FriendStreakInvitation>(`${this.url}/invitations?fromUserId=${fromUserId}`, { toUserId });
+  invite(_fromUserId: number, toUserId: number): Observable<FriendStreakInvitation> {
+    return this.http.post<FriendStreakInvitation>(`${this.url}/invitations`, { toUserId });
   }
 
-  accept(invitationId: number, userId: number): Observable<FriendStreak> {
-    return this.http.post<FriendStreak>(`${this.url}/invitations/${invitationId}/accept?userId=${userId}`, {});
+  accept(invitationId: number, _userId: number): Observable<FriendStreak> {
+    return this.http.post<FriendStreak>(`${this.url}/invitations/${invitationId}/accept`, {});
   }
 
-  reject(invitationId: number, userId: number): Observable<void> {
-    return this.http.post<void>(`${this.url}/invitations/${invitationId}/reject?userId=${userId}`, {});
+  reject(invitationId: number, _userId: number): Observable<void> {
+    return this.http.post<void>(`${this.url}/invitations/${invitationId}/reject`, {});
   }
 }
