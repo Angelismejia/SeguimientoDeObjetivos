@@ -66,12 +66,14 @@
 
         <label class="field">
           <span>Título</span>
-          <input type="text" formControlName="title" placeholder="Opcional" />
+          <input type="text" formControlName="title" placeholder="Opcional" maxlength="150" />
+          <span class="field-count" [class.is-full]="charCount('title') >= 150">{{ charCount('title') }} / 150</span>
         </label>
 
         <label class="field">
           <span>¿Cómo te fue hoy? *</span>
-          <textarea formControlName="content" rows="8" placeholder="Escribí lo que quieras..."></textarea>
+          <textarea formControlName="content" rows="8" placeholder="Escribí lo que quieras..." maxlength="5000"></textarea>
+          <span class="field-count" [class.is-full]="charCount('content') >= 5000">{{ charCount('content') }} / 5000</span>
         </label>
 
         @if (formError()) {

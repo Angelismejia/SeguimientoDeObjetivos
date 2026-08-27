@@ -105,12 +105,14 @@
       <form [formGroup]="form" (ngSubmit)="submit()" class="objective-form">
         <label class="field">
           <span>Título *</span>
-          <input type="text" formControlName="title" placeholder="Ej. Aprender Angular" />
+          <input type="text" formControlName="title" placeholder="Ej. Aprender Angular" maxlength="150" />
+          <span class="field-count" [class.is-full]="charCount('title') >= 150">{{ charCount('title') }} / 150</span>
         </label>
 
         <label class="field">
           <span>Descripción</span>
-          <textarea formControlName="description" rows="3" placeholder="Detalles del objetivo (opcional)"></textarea>
+          <textarea formControlName="description" rows="3" placeholder="Detalles del objetivo (opcional)" maxlength="500"></textarea>
+          <span class="field-count" [class.is-full]="charCount('description') >= 500">{{ charCount('description') }} / 500</span>
         </label>
 
         <label class="field">
