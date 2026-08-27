@@ -344,6 +344,11 @@ export class ObjectivesComponent implements OnInit {
     this.showForm.set(false);
   }
 
+  // Largo actual de un campo de texto, para el contador del formulario.
+  charCount(field: string): number {
+    return (this.form.get(field)?.value ?? '').length;
+  }
+
   togglePrimary(objective: Objective): void {
     const makePrimary = !objective.isPrimary;
     this.objectiveService.setPrimary(objective.id, this.auth.getUserId(), makePrimary).subscribe({

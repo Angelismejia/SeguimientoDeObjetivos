@@ -97,6 +97,11 @@ export class DiaryComponent implements OnInit {
     this.showForm.set(false);
   }
 
+  // Largo actual de un campo de texto, para el contador del formulario.
+  charCount(field: string): number {
+    return (this.form.get(field)?.value ?? '').length;
+  }
+
   submit(): void {
     if (this.form.invalid) return;
     this.saving.set(true);

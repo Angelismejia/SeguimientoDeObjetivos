@@ -97,6 +97,9 @@
 .field textarea:focus { outline: none; border-color: #818cf8; }
 .field textarea { resize: vertical; }
 
+.field-count { align-self: flex-end; font-size: 0.7rem; font-weight: 500; color: #9ca3af; }
+.field-count.is-full { color: #dc2626; }
+
 .form-error { color: #dc2626; font-size: 0.85rem; margin: 0; }
 
 .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
