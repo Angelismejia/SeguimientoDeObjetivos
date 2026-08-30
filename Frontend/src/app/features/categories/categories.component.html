@@ -56,7 +56,7 @@
       <form [formGroup]="form" (ngSubmit)="submit()" class="category-form">
         <label class="field">
           <span>Nombre *</span>
-          <input type="text" formControlName="name" placeholder="Ej. Salud, Estudio, Finanzas" />
+          <input type="text" formControlName="name" placeholder="Ej. Salud, Estudio, Finanzas" maxlength="50" />
         </label>
 
         <div class="field">

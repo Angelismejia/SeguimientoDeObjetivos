@@ -284,11 +284,11 @@
       <form [formGroup]="editProfileForm" (ngSubmit)="submitEditProfile()" class="edit-profile-form">
         <label class="field">
           <span>Nombre</span>
-          <input type="text" formControlName="name" placeholder="Tu nombre" />
+          <input type="text" formControlName="name" placeholder="Tu nombre" maxlength="100" />
         </label>
         <label class="field">
           <span>Correo electrónico</span>
-          <input type="email" formControlName="email" placeholder="tu@correo.com" />
+          <input type="email" formControlName="email" placeholder="tu@correo.com" maxlength="150" />
         </label>
 
         @if (editProfileError()) {

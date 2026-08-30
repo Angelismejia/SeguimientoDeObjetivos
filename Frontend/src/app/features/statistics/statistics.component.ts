@@ -9,6 +9,7 @@ import { TaskService } from '../../core/services/task.service';
 import { ObjectiveService } from '../../core/services/objective.service';
 import { TaskItem } from '../../core/models/task.model';
 import { Objective, ObjectiveStatus } from '../../core/models/objective.model';
+import { completedDayKeys } from '../../core/utils/task-status.util';
 
 type Period = 'week' | 'month' | '3months' | 'year';
 
@@ -109,16 +110,21 @@ export class StatisticsComponent implements OnInit {
     this.buildActivityChart();
   }
 
-  // ── Dato base compartido: dia en que una tarea quedo "hecha" ──────────────
-  // Nota (misma limitacion en toda la pantalla): una tarea recurrente es una
-  // sola fila con un unico scheduledDate, asi que solo puede tener UN dia
-  // marcado como completado a la vez — completarla hoy "pisa" el registro de
-  // ayer. Ver [[project_pending_features]] item 7. Todo lo que sigue usa esta
-  // misma fecha (consistente con la racha del dashboard), a sabiendas de eso.
+  // ── Dato base compartido: dias en que una tarea quedo "hecha" ─────────────
+  // Cada tarea aporta TODOS sus dias hechos, no uno solo: una recurrente marcada
+  // el lunes, martes y miercoles suma los tres. Antes se leia su unica
+  // scheduledDate, asi que una recurrente jamas podia aportar mas de un dia y el
+  // heatmap y las rachas de esta pantalla contradecian al dashboard.
   private doneDayKeys(): string[] {
-    return this.allTasks()
-      .filter(t => t.status === 'Completed' && !!t.scheduledDate)
-      .map(t => t.scheduledDate.substring(0, 10));
+    return this.allTasks().flatMap(completedDayKeys);
+  }
+
+  // Cuantas veces se completo algo dentro del rango. Cuenta completados, no
+  // tareas: la misma recurrente hecha tres dias distintos cuenta tres.
+  private doneCountInRange(start: Date, end: Date): number {
+    const startKey = this.dateKey(start);
+    const endKey = this.dateKey(end);
+    return this.doneDayKeys().filter(k => k >= startKey && k <= endKey).length;
   }
 
   private tasksScheduledInRange(start: Date, end: Date): TaskItem[] {
@@ -334,7 +340,7 @@ export class StatisticsComponent implements OnInit {
     for (let i = bucketCount - 1; i >= 0; i--) {
       const bucketEnd = this.addDays(today, -i * bucketDays);
       const bucketStart = this.addDays(bucketEnd, -(bucketDays - 1));
-      const count = this.tasksScheduledInRange(bucketStart, bucketEnd).filter(t => t.status === 'Completed').length;
+      const count = this.doneCountInRange(bucketStart, bucketEnd);
       total += count;
       data.push(count);
       labels.push(bucketDays === 1

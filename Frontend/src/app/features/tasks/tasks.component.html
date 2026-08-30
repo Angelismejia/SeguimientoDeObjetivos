@@ -112,12 +112,12 @@
       <form [formGroup]="taskForm" (ngSubmit)="submitTask()" class="task-form">
         <label class="field">
           <span>Título *</span>
-          <input type="text" formControlName="title" placeholder="Ej. Estudiar 30 minutos" />
+          <input type="text" formControlName="title" placeholder="Ej. Estudiar 30 minutos" maxlength="150" />
         </label>
 
         <label class="field">
           <span>Descripción</span>
-          <textarea formControlName="description" rows="3" placeholder="Detalles de la tarea (opcional)"></textarea>
+          <textarea formControlName="description" rows="3" placeholder="Detalles de la tarea (opcional)" maxlength="500"></textarea>
         </label>
 
         <div class="field">
@@ -261,7 +261,7 @@
       <form [formGroup]="categoryForm" (ngSubmit)="submitCategory()" class="task-form">
         <label class="field">
           <span>Nombre *</span>
-          <input type="text" formControlName="name" placeholder="Ej. Trabajo" />
+          <input type="text" formControlName="name" placeholder="Ej. Trabajo" maxlength="50" />
         </label>
 
         <div class="field">

@@ -17,7 +17,7 @@
         <form [formGroup]="loginForm" (ngSubmit)="submitLogin()">
           <div class="field">
             <label>Usuario</label>
-            <input type="text" formControlName="username" placeholder="tu_usuario" autocomplete="username">
+            <input type="text" formControlName="username" placeholder="tu_usuario" autocomplete="username" maxlength="100">
           </div>
           <div class="field">
             <label>Contraseña</label>
@@ -54,15 +54,15 @@
         <form [formGroup]="registerForm" (ngSubmit)="submitRegister()">
           <div class="field">
             <label>Nombre completo</label>
-            <input type="text" formControlName="name" placeholder="Tu nombre" autocomplete="name">
+            <input type="text" formControlName="name" placeholder="Tu nombre" autocomplete="name" maxlength="100">
           </div>
           <div class="field">
             <label>Usuario</label>
-            <input type="text" formControlName="username" placeholder="Nombre de usuario" autocomplete="username">
+            <input type="text" formControlName="username" placeholder="Nombre de usuario" autocomplete="username" maxlength="100">
           </div>
           <div class="field">
             <label>Correo electrónico</label>
-            <input type="email" formControlName="email" placeholder="tu@correo.com" autocomplete="email">
+            <input type="email" formControlName="email" placeholder="tu@correo.com" autocomplete="email" maxlength="150">
           </div>
           <div class="field">
             <label>Contraseña</label>

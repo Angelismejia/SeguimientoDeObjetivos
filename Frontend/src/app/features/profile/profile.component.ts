@@ -22,6 +22,7 @@ import { Badge } from '../../core/models/badge.model';
 import { DiaryEntry } from '../../core/models/diary-entry.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { environment } from '../../../environments/environment';
+import { mensajeDeError } from '../../core/utils/http-error.util';
 
 interface HeatmapCell {
   key: string;
@@ -368,9 +369,9 @@ export class ProfileComponent implements OnInit, AfterViewInit {
         this.savingProfile.set(false);
         this.showEditProfile.set(false);
       },
-      error: () => {
+      error: (e) => {
         this.savingProfile.set(false);
-        this.editProfileError.set('No se pudo guardar. Intenta de nuevo.');
+        this.editProfileError.set(mensajeDeError(e, 'No se pudo guardar. Intenta de nuevo.'));
       }
     });
   }
@@ -428,9 +429,9 @@ export class ProfileComponent implements OnInit, AfterViewInit {
         URL.revokeObjectURL(url);
         this.exportingData.set(false);
       },
-      error: () => {
+      error: (e) => {
         this.exportingData.set(false);
-        this.exportError.set('No se pudieron exportar los datos. Intenta de nuevo.');
+        this.exportError.set(mensajeDeError(e, 'No se pudieron exportar los datos. Intenta de nuevo.'));
       }
     });
   }
@@ -529,9 +530,9 @@ export class ProfileComponent implements OnInit, AfterViewInit {
         this.uploading.set(false);
         input.value = '';
       },
-      error: () => {
+      error: (e) => {
         this.uploading.set(false);
-        this.uploadError.set('No se pudo subir la foto. Probá con una imagen JPG, PNG o WEBP.');
+        this.uploadError.set(mensajeDeError(e, 'No se pudo subir la foto. Probá con una imagen JPG, PNG o WEBP.'));
         input.value = '';
       }
     });
@@ -551,9 +552,9 @@ export class ProfileComponent implements OnInit, AfterViewInit {
         this.searching.set(false);
         this.applyFilter();
       },
-      error: () => {
+      error: (e) => {
         this.searching.set(false);
-        this.searchError.set('No se pudo cargar la lista de usuarios.');
+        this.searchError.set(mensajeDeError(e, 'No se pudo cargar la lista de usuarios.'));
       }
     });
   }
@@ -596,8 +597,8 @@ export class ProfileComponent implements OnInit, AfterViewInit {
         // Ya no se saca de la lista: se queda visible y el boton pasa a "Ya lo
         // sigues", que confirma que la accion funciono. Sacarlo parecia un error.
       },
-      error: () => {
-        this.searchError.set('No se pudo seguir a este usuario. Intenta de nuevo.');
+      error: (e) => {
+        this.searchError.set(mensajeDeError(e, 'No se pudo seguir a este usuario. Intenta de nuevo.'));
       }
     });
   }
@@ -640,8 +641,8 @@ export class ProfileComponent implements OnInit, AfterViewInit {
         this.sentInvitations.set([...this.sentInvitations(), created]);
         this.friendAction.set(null);
       },
-      error: () => {
-        this.friendActionError.set('No se pudo enviar la invitación. Intenta de nuevo.');
+      error: (e) => {
+        this.friendActionError.set(mensajeDeError(e, 'No se pudo enviar la invitación. Intenta de nuevo.'));
       }
     });
   }

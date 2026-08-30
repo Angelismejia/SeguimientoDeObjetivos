@@ -5,6 +5,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { DiaryEntryService } from '../../core/services/diary-entry.service';
 import { DiaryEntry } from '../../core/models/diary-entry.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { mensajeDeError } from '../../core/utils/http-error.util';
 
 @Component({
   selector: 'app-diary',
@@ -121,9 +122,9 @@ export class DiaryComponent implements OnInit {
           this.saving.set(false);
           this.showForm.set(false);
         },
-        error: () => {
+        error: (e) => {
           this.saving.set(false);
-          this.formError.set('No se pudo guardar la entrada. Intenta de nuevo.');
+          this.formError.set(mensajeDeError(e, 'No se pudo guardar la entrada. Intenta de nuevo.'));
         }
       });
     } else {
@@ -137,9 +138,9 @@ export class DiaryComponent implements OnInit {
           this.saving.set(false);
           this.showForm.set(false);
         },
-        error: () => {
+        error: (e) => {
           this.saving.set(false);
-          this.formError.set('No se pudo guardar la entrada. Intenta de nuevo.');
+          this.formError.set(mensajeDeError(e, 'No se pudo guardar la entrada. Intenta de nuevo.'));
         }
       });
     }
