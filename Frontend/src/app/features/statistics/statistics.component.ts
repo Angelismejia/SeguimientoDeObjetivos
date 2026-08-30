@@ -205,9 +205,7 @@ export class StatisticsComponent implements OnInit {
 
   heatmapWeeks = computed<HeatmapCell[][]>(() => {
     const counts = new Map<string, number>();
-    for (const t of this.allTasks()) {
-      if (t.status !== 'Completed' || !t.scheduledDate) continue;
-      const key = t.scheduledDate.substring(0, 10);
+    for (const key of this.doneDayKeys()) {
       counts.set(key, (counts.get(key) ?? 0) + 1);
     }
 
