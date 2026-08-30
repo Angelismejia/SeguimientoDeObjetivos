@@ -23,6 +23,7 @@ import { DiaryEntry } from '../../core/models/diary-entry.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { environment } from '../../../environments/environment';
 import { mensajeDeError } from '../../core/utils/http-error.util';
+import { completedDayKeys, isTaskDoneOn } from '../../core/utils/task-status.util';
 
 interface HeatmapCell {
   key: string;
@@ -208,11 +209,10 @@ export class ProfileComponent implements OnInit, AfterViewInit {
   }
 
   private computeStreak(tasks: TaskItem[]): number {
-    const completedDays = new Set(
-      tasks
-        .filter(t => t.status === 'Completed' && !!t.scheduledDate)
-        .map(t => t.scheduledDate.substring(0, 10))
-    );
+    // Cada tarea aporta todos sus dias hechos: una recurrente lleva su propio
+    // registro por dia. Leer su unica scheduledDate hacia que jamas pudiera
+    // aportar mas de uno, y la racha se reiniciaba sola.
+    const completedDays = new Set(tasks.flatMap(completedDayKeys));
 
     let cursor = this.dateKey(new Date());
     if (!completedDays.has(cursor)) {
@@ -246,11 +246,7 @@ export class ProfileComponent implements OnInit, AfterViewInit {
 
   // ── Mapa de calor de actividad ────────────────────────
   private completedDays(): Set<string> {
-    return new Set(
-      this.allTasks()
-        .filter(t => t.status === 'Completed' && !!t.scheduledDate)
-        .map(t => t.scheduledDate.substring(0, 10))
-    );
+    return new Set(this.allTasks().flatMap(completedDayKeys));
   }
 
   activityHeatmap(): HeatmapCell[] {
@@ -265,9 +261,7 @@ export class ProfileComponent implements OnInit, AfterViewInit {
   }
 
   tasksCompletedOn(key: string): TaskItem[] {
-    return this.allTasks().filter(
-      t => t.status === 'Completed' && t.scheduledDate?.substring(0, 10) === key
-    );
+    return this.allTasks().filter(t => isTaskDoneOn(t, key));
   }
 
   heatmapCellTitle(cell: HeatmapCell): string {

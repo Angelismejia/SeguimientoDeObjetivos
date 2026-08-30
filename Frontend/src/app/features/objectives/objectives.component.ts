@@ -10,9 +10,10 @@ import { Objective, ObjectiveStatus } from '../../core/models/objective.model';
 import { TaskItem } from '../../core/models/task.model';
 import { Category } from '../../core/models/category.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import { isTaskDoneOn, isTaskOverdue } from '../../core/utils/task-status.util';
+import { completedDayKeys, isTaskDoneOn, isTaskOverdue } from '../../core/utils/task-status.util';
 import { computeObjectiveProgress } from '../../core/utils/objective-progress.util';
 import { mensajeDeError } from '../../core/utils/http-error.util';
+import { rangoOrdenado } from '../../core/utils/rango-ordenado.validator';
 
 interface HeatmapCell {
   key: string;
@@ -74,7 +75,7 @@ export class ObjectivesComponent implements OnInit {
       endDate: [''],
       status: ['Pending' as ObjectiveStatus],
       progressPercentage: [0]
-    });
+    }, { validators: rangoOrdenado('startDate', 'endDate', 'finAntesDeInicio') });
 
     this.form.get('status')?.valueChanges.subscribe(status => {
       if (status === 'Completed') {
@@ -148,8 +149,8 @@ export class ObjectivesComponent implements OnInit {
   private completedDaysFor(objectiveId: number): Set<string> {
     return new Set(
       this.allTasks()
-        .filter(t => t.objectiveId === objectiveId && t.status === 'Completed' && !!t.scheduledDate)
-        .map(t => t.scheduledDate.substring(0, 10))
+        .filter(t => t.objectiveId === objectiveId)
+        .flatMap(completedDayKeys)
     );
   }
 

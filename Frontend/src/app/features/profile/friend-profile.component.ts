@@ -15,6 +15,7 @@ import { Badge } from '../../core/models/badge.model';
 import { Objective } from '../../core/models/objective.model';
 import { TaskItem } from '../../core/models/task.model';
 import { environment } from '../../../environments/environment';
+import { completedDayKeys } from '../../core/utils/task-status.util';
 
 @Component({
   selector: 'app-friend-profile',
@@ -120,11 +121,9 @@ export class FriendProfileComponent implements OnInit {
   }
 
   private computeStreak(tasks: TaskItem[]): number {
-    const completedDays = new Set(
-      tasks
-        .filter(t => t.status === 'Completed' && !!t.scheduledDate)
-        .map(t => t.scheduledDate.substring(0, 10))
-    );
+    // Mismo criterio que el dashboard y el perfil propio: una recurrente aporta
+    // todos los dias que registro, no solo su unica scheduledDate.
+    const completedDays = new Set(tasks.flatMap(completedDayKeys));
 
     let cursor = this.dateKey(new Date());
     if (!completedDays.has(cursor)) {
