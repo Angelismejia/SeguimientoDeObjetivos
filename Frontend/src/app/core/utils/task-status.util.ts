@@ -1,11 +1,12 @@
 import { TaskItem } from '../models/task.model';
 
 /**
- * Las tareas recurrentes son una sola fila con una unica scheduledDate (no hay
- * un registro por dia). Al completarlas, el backend mueve esa fecha a "hoy",
- * asi que solo cuentan como completadas en el dia exacto en que se marcaron;
- * cualquier otro dia deben verse pendientes de nuevo. Las tareas no recurrentes
- * simplemente respetan su status.
+ * Dice si una tarea quedo hecha en un dia concreto.
+ *
+ * Hay dos caminos porque hay dos formas de guardar la respuesta: una tarea
+ * recurrente lleva un registro por dia (completedDates), y una de un solo dia
+ * se describe entera con su status. Este es el unico lugar donde esa diferencia
+ * se resuelve; todo lo demas pregunta aca.
  */
 export function isTaskDoneOn(task: TaskItem, dateKey: string): boolean {
   // Una tarea recurrente es una sola fila con una unica scheduledDate, asi que su
@@ -16,6 +17,26 @@ export function isTaskDoneOn(task: TaskItem, dateKey: string): boolean {
   }
   // Las de un solo dia se resuelven con su propio status, que les alcanza.
   return task.status === 'Completed';
+}
+
+/**
+ * Todos los dias en que la tarea quedo hecha, en formato "YYYY-MM-DD".
+ *
+ * Es la version "a lo largo del tiempo" de isTaskDoneOn: en vez de preguntar por
+ * un dia, devuelve la lista entera. Una recurrente marcada lunes, martes y
+ * miercoles aporta tres dias; una de un solo dia aporta uno o ninguno.
+ *
+ * Devuelve una lista y no un Set a proposito: quien cuenta cuantas tareas se
+ * completaron necesita los repetidos (tres tareas distintas el lunes son tres),
+ * y quien mira que dias hubo actividad arma su propio Set.
+ */
+export function completedDayKeys(task: TaskItem): string[] {
+  if (task.isRecurring) {
+    return (task.completedDates ?? []).map(d => d.substring(0, 10));
+  }
+  return task.status === 'Completed' && task.scheduledDate
+    ? [task.scheduledDate.substring(0, 10)]
+    : [];
 }
 
 /**
