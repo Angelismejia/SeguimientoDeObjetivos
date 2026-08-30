@@ -14,6 +14,7 @@ import { isTaskDoneOn, isTaskOverdue } from '../../core/utils/task-status.util';
 import { computeObjectiveProgress } from '../../core/utils/objective-progress.util';
 import { TASK_EMOJIS } from '../../core/constants/task-emojis';
 import { mensajeDeError } from '../../core/utils/http-error.util';
+import { rangoOrdenado } from '../../core/utils/rango-ordenado.validator';
 
 type TaskFilter = 'all' | 'today' | 'upcoming' | 'recurring' | 'completed' | 'important';
 
@@ -134,7 +135,7 @@ export class TasksComponent implements OnInit {
       isRecurring: [false],
       recurrenceType: ['None' as RecurrenceType],
       status: ['Pending' as TaskStatus]
-    });
+    }, { validators: rangoOrdenado('scheduledTime', 'endTime', 'finAntesDeInicio') });
 
     this.categoryForm = this.fb.group({
       name: ['', Validators.required],

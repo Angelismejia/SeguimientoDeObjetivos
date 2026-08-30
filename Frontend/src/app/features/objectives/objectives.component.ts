@@ -13,6 +13,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
 import { isTaskDoneOn, isTaskOverdue } from '../../core/utils/task-status.util';
 import { computeObjectiveProgress } from '../../core/utils/objective-progress.util';
 import { mensajeDeError } from '../../core/utils/http-error.util';
+import { rangoOrdenado } from '../../core/utils/rango-ordenado.validator';
 
 interface HeatmapCell {
   key: string;
@@ -74,7 +75,7 @@ export class ObjectivesComponent implements OnInit {
       endDate: [''],
       status: ['Pending' as ObjectiveStatus],
       progressPercentage: [0]
-    });
+    }, { validators: rangoOrdenado('startDate', 'endDate', 'finAntesDeInicio') });
 
     this.form.get('status')?.valueChanges.subscribe(status => {
       if (status === 'Completed') {

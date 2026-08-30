@@ -41,8 +41,23 @@ namespace Application.Services
             return ToDto(objective);
         }
 
+        // Un objetivo que termina antes de empezar no es un dato posible, pero
+        // nada lo impedia: ni el DTO (DataAnnotations mira un campo a la vez) ni
+        // la BD. Se comparan solo las fechas porque el usuario elige dias, no
+        // horas; sin .Date, un mismo dia con distinta hora daria invalido.
+        //
+        // Un rango a medias SI es valido: se puede fijar solo el inicio o solo el
+        // fin, y de hecho ambos campos son opcionales.
+        private static void ValidarRangoDeFechas(DateTime? startDate, DateTime? endDate)
+        {
+            if (startDate.HasValue && endDate.HasValue && endDate.Value.Date < startDate.Value.Date)
+                throw new InvalidOperationException("La fecha de fin no puede ser anterior a la de inicio.");
+        }
+
         public async Task<ObjectiveDto> CreateAsync(int userId, CreateObjectiveDto dto)
         {
+            ValidarRangoDeFechas(dto.StartDate, dto.EndDate);
+
             var objective = new Objective
             {
                 Title = dto.Title,
@@ -62,6 +77,8 @@ namespace Application.Services
         {
             var objective = await _objectiveRepository.GetByIdAsync(id);
             if (objective is null) throw new NotFoundException("Objective", id);
+
+            ValidarRangoDeFechas(dto.StartDate, dto.EndDate);
 
             var justCompleted = dto.Status == ObjectiveStatus.Completed && objective.Status != ObjectiveStatus.Completed;
 

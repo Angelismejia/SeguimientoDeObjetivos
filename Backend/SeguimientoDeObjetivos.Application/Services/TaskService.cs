@@ -89,8 +89,30 @@ namespace Application.Services
             return ToDto(task);
         }
 
+        // Dos rangos que hasta ahora no se comprobaban en ningun lado, asi que se
+        // podia guardar una tarea que termina antes de empezar, o una repeticion
+        // que caduca antes de la primera vez que toca hacerla.
+        //
+        // Que falte una de las dos puntas no es un error: la hora es opcional (una
+        // tarea puede no tener horario) y una recurrente sin EndRepeatDate es una
+        // que se repite indefinidamente.
+        private static void ValidarHorarios(
+            DateTime scheduledDate,
+            TimeSpan? scheduledTime,
+            TimeSpan? endTime,
+            DateTime? endRepeatDate)
+        {
+            if (scheduledTime.HasValue && endTime.HasValue && endTime.Value < scheduledTime.Value)
+                throw new InvalidOperationException("La hora de fin no puede ser anterior a la de inicio.");
+
+            if (endRepeatDate.HasValue && endRepeatDate.Value.Date < scheduledDate.Date)
+                throw new InvalidOperationException("La repetición no puede terminar antes de la fecha de la tarea.");
+        }
+
         public async Task<TaskDto> CreateAsync(int userId, CreateTaskDto dto)
         {
+            ValidarHorarios(dto.ScheduledDate, dto.ScheduledTime, dto.EndTime, dto.EndRepeatDate);
+
             var task = new TaskItem
             {
                 Title = dto.Title,
@@ -120,6 +142,8 @@ namespace Application.Services
         {
             var task = await _taskRepository.GetByIdAsync(id);
             if (task is null) throw new NotFoundException("Task", id);
+
+            ValidarHorarios(dto.ScheduledDate, dto.ScheduledTime, dto.EndTime, dto.EndRepeatDate);
 
             task.Title = dto.Title;
             task.Description = dto.Description;
