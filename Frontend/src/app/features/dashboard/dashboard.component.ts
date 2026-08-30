@@ -11,9 +11,10 @@ import { Objective, ObjectiveStatus } from '../../core/models/objective.model';
 import { TaskItem, TaskStatus, TaskPriority, RecurrenceType } from '../../core/models/task.model';
 import { Category } from '../../core/models/category.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import { isTaskDoneOn, isTaskOverdue } from '../../core/utils/task-status.util';
+import { completedDayKeys, isTaskDoneOn, isTaskOverdue } from '../../core/utils/task-status.util';
 import { computeObjectiveProgress } from '../../core/utils/objective-progress.util';
 import { TASK_EMOJIS } from '../../core/constants/task-emojis';
+import { mensajeDeError } from '../../core/utils/http-error.util';
 
 @Component({
   selector: 'app-dashboard',
@@ -112,14 +113,7 @@ export class DashboardComponent implements OnInit {
     // el lunes, martes y miercoles suma los tres. Antes se leia su unica
     // scheduledDate, asi que jamas podia aportar mas de un dia y la racha se
     // reiniciaba sola.
-    const completedDays = new Set<string>();
-    for (const t of this.allTasks()) {
-      if (t.isRecurring) {
-        for (const d of t.completedDates ?? []) completedDays.add(d.substring(0, 10));
-      } else if (t.status === 'Completed' && t.scheduledDate) {
-        completedDays.add(t.scheduledDate.substring(0, 10));
-      }
-    }
+    const completedDays = new Set(this.allTasks().flatMap(completedDayKeys));
 
     let cursor = this.dateKey(new Date());
     if (!completedDays.has(cursor)) {
@@ -361,9 +355,9 @@ export class DashboardComponent implements OnInit {
         this.savingCategory.set(false);
         this.showCategoryForm.set(false);
       },
-      error: () => {
+      error: (e) => {
         this.savingCategory.set(false);
-        this.categoryFormError.set('No se pudo crear la categoría. Intenta de nuevo.');
+        this.categoryFormError.set(mensajeDeError(e, 'No se pudo crear la categoría. Intenta de nuevo.'));
       }
     });
   }
@@ -585,9 +579,9 @@ export class DashboardComponent implements OnInit {
             this.recomputeObjectiveProgress(created.objectiveId, updatedTasks);
           }
         },
-        error: () => {
+        error: (e) => {
           this.savingTask.set(false);
-          this.taskFormError.set('No se pudo crear la tarea. Intenta de nuevo.');
+          this.taskFormError.set(mensajeDeError(e, 'No se pudo crear la tarea. Intenta de nuevo.'));
         }
       });
     } else {
@@ -619,9 +613,9 @@ export class DashboardComponent implements OnInit {
             this.recomputeObjectiveProgress(previousObjectiveId, updatedTasks);
           }
         },
-        error: () => {
+        error: (e) => {
           this.savingTask.set(false);
-          this.taskFormError.set('No se pudo guardar la tarea. Intenta de nuevo.');
+          this.taskFormError.set(mensajeDeError(e, 'No se pudo guardar la tarea. Intenta de nuevo.'));
         }
       });
     }

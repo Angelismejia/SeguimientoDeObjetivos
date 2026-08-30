@@ -12,6 +12,7 @@ import { Category } from '../../core/models/category.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { isTaskDoneOn, isTaskOverdue } from '../../core/utils/task-status.util';
 import { computeObjectiveProgress } from '../../core/utils/objective-progress.util';
+import { mensajeDeError } from '../../core/utils/http-error.util';
 
 interface HeatmapCell {
   key: string;
@@ -396,9 +397,9 @@ export class ObjectivesComponent implements OnInit {
           this.saving.set(false);
           this.showForm.set(false);
         },
-        error: () => {
+        error: (e) => {
           this.saving.set(false);
-          this.formError.set('No se pudo crear el objetivo. Intenta de nuevo.');
+          this.formError.set(mensajeDeError(e, 'No se pudo crear el objetivo. Intenta de nuevo.'));
         }
       });
     } else {
@@ -416,9 +417,9 @@ export class ObjectivesComponent implements OnInit {
           this.saving.set(false);
           this.showForm.set(false);
         },
-        error: () => {
+        error: (e) => {
           this.saving.set(false);
-          this.formError.set('No se pudo guardar el objetivo. Intenta de nuevo.');
+          this.formError.set(mensajeDeError(e, 'No se pudo guardar el objetivo. Intenta de nuevo.'));
         }
       });
     }

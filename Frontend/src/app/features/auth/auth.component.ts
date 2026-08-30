@@ -3,6 +3,7 @@ import { CommonModule, Location } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { mensajeDeError } from '../../core/utils/http-error.util';
 
 @Component({
   selector: 'app-auth',
@@ -43,13 +44,6 @@ export class AuthComponent implements OnInit, OnDestroy {
   // Un error de red o del servidor no significa que las credenciales esten mal:
   // distinguirlos evita mandar al usuario a dudar de su contraseña cuando en
   // realidad no se pudo llegar al backend.
-  private mensajeDeError(status: number, porDefecto: string): string {
-    if (status === 400 || status === 401) return porDefecto;
-    if (status === 0 || status === 504) return 'No se pudo conectar con el servidor. Puede estar iniciandose: espera unos segundos y vuelve a intentar.';
-    if (status === 429) return 'Demasiados intentos. Espera un momento antes de volver a probar.';
-    return 'Hubo un problema en el servidor. Intenta de nuevo en unos segundos.';
-  }
-
   constructor(
     private fb: FormBuilder,
     private auth: AuthService,
@@ -90,7 +84,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     this.auth.login(this.loginForm.value).subscribe({
       next: () => { this.stopLoading(); this.router.navigate(['/dashboard']); },
       error: (e) => {
-        this.loginError.set(this.mensajeDeError(e?.status, 'Usuario o contraseña incorrectos'));
+        this.loginError.set(mensajeDeError(e, 'Usuario o contraseña incorrectos'));
         this.stopLoading();
       }
     });
@@ -103,7 +97,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     this.auth.register(this.registerForm.value).subscribe({
       next: () => { this.stopLoading(); this.switchTo('login'); },
       error: (e) => {
-        this.registerError.set(e?.error?.detail ?? this.mensajeDeError(e?.status, 'Error al registrarse. Intenta de nuevo.'));
+        this.registerError.set(mensajeDeError(e, 'Error al registrarse. Intenta de nuevo.'));
         this.stopLoading();
       }
     });

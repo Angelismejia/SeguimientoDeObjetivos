@@ -13,6 +13,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
 import { isTaskDoneOn, isTaskOverdue } from '../../core/utils/task-status.util';
 import { computeObjectiveProgress } from '../../core/utils/objective-progress.util';
 import { TASK_EMOJIS } from '../../core/constants/task-emojis';
+import { mensajeDeError } from '../../core/utils/http-error.util';
 
 type TaskFilter = 'all' | 'today' | 'upcoming' | 'recurring' | 'completed' | 'important';
 
@@ -303,9 +304,9 @@ export class TasksComponent implements OnInit {
         this.savingCategory.set(false);
         this.showCategoryForm.set(false);
       },
-      error: () => {
+      error: (e) => {
         this.savingCategory.set(false);
-        this.categoryFormError.set('No se pudo crear la categoría. Intenta de nuevo.');
+        this.categoryFormError.set(mensajeDeError(e, 'No se pudo crear la categoría. Intenta de nuevo.'));
       }
     });
   }
@@ -403,9 +404,9 @@ export class TasksComponent implements OnInit {
             this.recomputeObjectiveProgress(created.objectiveId, updatedTasks);
           }
         },
-        error: () => {
+        error: (e) => {
           this.savingTask.set(false);
-          this.taskFormError.set('No se pudo crear la tarea. Intenta de nuevo.');
+          this.taskFormError.set(mensajeDeError(e, 'No se pudo crear la tarea. Intenta de nuevo.'));
         }
       });
     } else {
@@ -437,9 +438,9 @@ export class TasksComponent implements OnInit {
             this.recomputeObjectiveProgress(previousObjectiveId, updatedTasks);
           }
         },
-        error: () => {
+        error: (e) => {
           this.savingTask.set(false);
-          this.taskFormError.set('No se pudo guardar la tarea. Intenta de nuevo.');
+          this.taskFormError.set(mensajeDeError(e, 'No se pudo guardar la tarea. Intenta de nuevo.'));
         }
       });
     }
