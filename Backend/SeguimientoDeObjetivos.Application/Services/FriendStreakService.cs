@@ -54,22 +54,22 @@ namespace Application.Services
         public async Task<FriendStreakInvitationDto> InviteAsync(int fromUserId, CreateFriendStreakInvitationDto dto)
         {
             if (fromUserId == dto.ToUserId)
-                throw new InvalidOperationException("No puedes invitarte a ti mismo.");
+                throw new BusinessRuleException("No puedes invitarte a ti mismo.");
 
             var targetUser = await _userRepository.GetByIdAsync(dto.ToUserId);
             if (targetUser is null) throw new NotFoundException("User", dto.ToUserId);
 
             var alreadyFollowing = await _followRepository.GetAsync(fromUserId, dto.ToUserId);
             if (alreadyFollowing is null)
-                throw new InvalidOperationException("Solo puedes invitar a racha compartida a alguien que ya sigues.");
+                throw new BusinessRuleException("Solo puedes invitar a racha compartida a alguien que ya sigues.");
 
             var existingPair = await _friendStreakRepository.GetAsync(fromUserId, dto.ToUserId);
             if (existingPair is not null)
-                throw new InvalidOperationException("Ya tienes una racha compartida con este usuario.");
+                throw new BusinessRuleException("Ya tienes una racha compartida con este usuario.");
 
             var existingInvitation = await _invitationRepository.GetPendingBetweenAsync(fromUserId, dto.ToUserId);
             if (existingInvitation is not null)
-                throw new InvalidOperationException("Ya existe una invitación pendiente con este usuario.");
+                throw new BusinessRuleException("Ya existe una invitación pendiente con este usuario.");
 
             var invitation = new FriendStreakInvitation
             {
@@ -90,9 +90,9 @@ namespace Application.Services
             var invitation = await _invitationRepository.GetByIdAsync(invitationId);
             if (invitation is null) throw new NotFoundException("FriendStreakInvitation", invitationId);
             if (invitation.ToUserId != currentUserId)
-                throw new InvalidOperationException("Esta invitación no es tuya.");
+                throw new BusinessRuleException("Esta invitación no es tuya.");
             if (invitation.Status != "Pending")
-                throw new InvalidOperationException("Esta invitación ya fue respondida.");
+                throw new BusinessRuleException("Esta invitación ya fue respondida.");
 
             invitation.Status = "Accepted";
             await _invitationRepository.UpdateAsync(invitation);
@@ -113,9 +113,9 @@ namespace Application.Services
             var invitation = await _invitationRepository.GetByIdAsync(invitationId);
             if (invitation is null) throw new NotFoundException("FriendStreakInvitation", invitationId);
             if (invitation.ToUserId != currentUserId)
-                throw new InvalidOperationException("Esta invitación no es tuya.");
+                throw new BusinessRuleException("Esta invitación no es tuya.");
             if (invitation.Status != "Pending")
-                throw new InvalidOperationException("Esta invitación ya fue respondida.");
+                throw new BusinessRuleException("Esta invitación ya fue respondida.");
 
             invitation.Status = "Rejected";
             await _invitationRepository.UpdateAsync(invitation);

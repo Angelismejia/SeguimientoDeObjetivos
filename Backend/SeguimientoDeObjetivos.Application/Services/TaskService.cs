@@ -54,7 +54,7 @@ namespace Application.Services
                 ?? throw new NotFoundException("Task", taskId);
 
             if (!task.IsRecurring)
-                throw new InvalidOperationException("Solo las tareas recurrentes llevan historial por dia.");
+                throw new BusinessRuleException("Solo las tareas recurrentes llevan historial por dia.");
 
             var dia = dto.Date.Date;
             var existente = await _completionRepository.GetAsync(taskId, dia);
@@ -103,10 +103,10 @@ namespace Application.Services
             DateTime? endRepeatDate)
         {
             if (scheduledTime.HasValue && endTime.HasValue && endTime.Value < scheduledTime.Value)
-                throw new InvalidOperationException("La hora de fin no puede ser anterior a la de inicio.");
+                throw new BusinessRuleException("La hora de fin no puede ser anterior a la de inicio.");
 
             if (endRepeatDate.HasValue && endRepeatDate.Value.Date < scheduledDate.Date)
-                throw new InvalidOperationException("La repetición no puede terminar antes de la fecha de la tarea.");
+                throw new BusinessRuleException("La repetición no puede terminar antes de la fecha de la tarea.");
         }
 
         public async Task<TaskDto> CreateAsync(int userId, CreateTaskDto dto)

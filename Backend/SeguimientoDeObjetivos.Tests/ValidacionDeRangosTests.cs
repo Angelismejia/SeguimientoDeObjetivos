@@ -7,6 +7,7 @@ using Application.Interfaces.Services;
 using Application.Services;
 using Domain.Entities;
 using Domain.Enums;
+using Domain.Exceptions;
 
 namespace SeguimientoDeObjetivos.Tests;
 
@@ -33,7 +34,7 @@ public class ValidacionDeRangosTests
     [Fact]
     public async Task Un_objetivo_no_puede_terminar_antes_de_empezar()
     {
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(
             () => ServicioDeObjetivos().CreateAsync(1, CrearObjetivo(Dia, Dia.AddDays(-1))));
 
         Assert.Contains("anterior", ex.Message);
@@ -44,7 +45,7 @@ public class ValidacionDeRangosTests
     {
         var existente = new Objective { Id = 7, UserId = 1, Title = "Aprender Angular" };
 
-        await Assert.ThrowsAsync<InvalidOperationException>(
+        await Assert.ThrowsAsync<BusinessRuleException>(
             () => ServicioDeObjetivos(existente).UpdateAsync(7, EditarObjetivo(Dia, Dia.AddDays(-1))));
     }
 
@@ -91,7 +92,7 @@ public class ValidacionDeRangosTests
     [Fact]
     public async Task Una_tarea_no_puede_terminar_antes_de_su_hora_de_inicio()
     {
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(
             () => ServicioDeTareas().CreateAsync(1, CrearTarea(new TimeSpan(18, 0, 0), new TimeSpan(9, 0, 0))));
 
         Assert.Contains("hora", ex.Message, StringComparison.OrdinalIgnoreCase);
@@ -100,7 +101,7 @@ public class ValidacionDeRangosTests
     [Fact]
     public async Task La_repeticion_no_puede_caducar_antes_de_la_primera_vez()
     {
-        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(
             () => ServicioDeTareas().CreateAsync(1, CrearTarea(null, null, Dia.AddDays(-1))));
 
         Assert.Contains("repetición", ex.Message, StringComparison.OrdinalIgnoreCase);
@@ -120,7 +121,7 @@ public class ValidacionDeRangosTests
             Status = TaskItemStatus.Pending
         };
 
-        await Assert.ThrowsAsync<InvalidOperationException>(
+        await Assert.ThrowsAsync<BusinessRuleException>(
             () => ServicioDeTareas(existente).UpdateAsync(3, dto));
     }
 

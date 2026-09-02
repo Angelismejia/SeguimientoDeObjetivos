@@ -30,7 +30,12 @@ namespace Api.Middleware
                 return true;
             }
 
-            if (exception is InvalidOperationException businessError)
+            // Solo el mensaje de una regla de negocio se le devuelve al cliente:
+            // esta escrito para que lo lea una persona. Antes esta rama atrapaba
+            // cualquier InvalidOperationException, y como EF Core lanza una
+            // cuando SQL Server no responde, un arranque en frio de la BD
+            // contestaba 400 con el texto interno de EF metido en el Detail.
+            if (exception is BusinessRuleException businessError)
             {
                 httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
                 await httpContext.Response.WriteAsJsonAsync(new ProblemDetails

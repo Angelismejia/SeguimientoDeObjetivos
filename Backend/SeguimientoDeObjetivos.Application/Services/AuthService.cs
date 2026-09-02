@@ -1,4 +1,5 @@
 using Application.DTOs.Users;
+using Domain.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
@@ -45,11 +46,11 @@ namespace Application.Services
         {
             var existingUser = await _userRepository.GetByUsernameAsync(createUserDto.Username);
             if (existingUser != null)
-                throw new InvalidOperationException("Username already exists");
+                throw new BusinessRuleException("Username already exists");
 
             var existingEmail = await _userRepository.GetByEmailAsync(createUserDto.Email);
             if (existingEmail != null)
-                throw new InvalidOperationException("Email already exists");
+                throw new BusinessRuleException("Email already exists");
 
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password);
 
@@ -101,14 +102,14 @@ namespace Application.Services
         {
             var user = await _userRepository.GetByUsernameAsync(loginRequestDto.Username);
             if (user == null)
-                throw new InvalidOperationException("Invalid username or password");
+                throw new BusinessRuleException("Invalid username or password");
 
             if (!user.IsActive)
-                throw new InvalidOperationException("User account is inactive");
+                throw new BusinessRuleException("User account is inactive");
 
             var passwordValid = BCrypt.Net.BCrypt.Verify(loginRequestDto.Password, user.PasswordHash);
             if (!passwordValid)
-                throw new InvalidOperationException("Invalid username or password");
+                throw new BusinessRuleException("Invalid username or password");
 
             var token = GenerateJwtToken(user);
 

@@ -42,16 +42,16 @@ namespace Application.Services
         public async Task<FollowDto> CreateAsync(int followerId, CreateFollowDto dto)
         {
             if (followerId == dto.FollowingId)
-                throw new InvalidOperationException("No puedes seguirte a ti mismo.");
+                throw new BusinessRuleException("No puedes seguirte a ti mismo.");
 
             var targetUser = await _userRepository.GetByIdAsync(dto.FollowingId);
             if (targetUser is null) throw new NotFoundException("User", dto.FollowingId);
             if (!targetUser.AllowFollows)
-                throw new InvalidOperationException("Este usuario no permite ser seguido.");
+                throw new BusinessRuleException("Este usuario no permite ser seguido.");
 
             var existing = await _followRepository.GetAsync(followerId, dto.FollowingId);
             if (existing is not null)
-                throw new InvalidOperationException("Ya sigues a este usuario.");
+                throw new BusinessRuleException("Ya sigues a este usuario.");
 
             var follow = new Follow
             {

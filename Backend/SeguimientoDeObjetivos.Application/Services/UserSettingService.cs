@@ -1,4 +1,5 @@
 using Application.DTOs.Users;
+using Domain.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
@@ -28,7 +29,7 @@ namespace Application.Services
         public async Task<ThemeDto> UpdateThemeAsync(int userId, ThemeDto dto)
         {
             if (!ValidThemes.Contains(dto.Theme))
-                throw new InvalidOperationException("Tema inválido. Usa 'Light' o 'Dark'.");
+                throw new BusinessRuleException("Tema inválido. Usa 'Light' o 'Dark'.");
 
             var setting = await GetOrCreateAsync(userId);
             setting.Theme = dto.Theme;

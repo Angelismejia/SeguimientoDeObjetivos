@@ -51,7 +51,7 @@ namespace Application.Services
         private static void ValidarRangoDeFechas(DateTime? startDate, DateTime? endDate)
         {
             if (startDate.HasValue && endDate.HasValue && endDate.Value.Date < startDate.Value.Date)
-                throw new InvalidOperationException("La fecha de fin no puede ser anterior a la de inicio.");
+                throw new BusinessRuleException("La fecha de fin no puede ser anterior a la de inicio.");
         }
 
         public async Task<ObjectiveDto> CreateAsync(int userId, CreateObjectiveDto dto)

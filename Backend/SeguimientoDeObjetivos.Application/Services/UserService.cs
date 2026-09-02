@@ -105,7 +105,7 @@ namespace Application.Services
 
             var passwordValid = BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash);
             if (!passwordValid)
-                throw new InvalidOperationException("Current password is incorrect");
+                throw new BusinessRuleException("Current password is incorrect");
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
             user.UpdatedAt = DateTime.UtcNow;
@@ -141,7 +141,7 @@ namespace Application.Services
 
             var passwordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
             if (!passwordValid)
-                throw new InvalidOperationException("La contraseña es incorrecta.");
+                throw new BusinessRuleException("La contraseña es incorrecta.");
 
             await _followRepository.DeleteAllForUserAsync(id);
             await _messageRepository.DeleteAllForUserAsync(id);
