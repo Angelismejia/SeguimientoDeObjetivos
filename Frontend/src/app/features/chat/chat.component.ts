@@ -27,6 +27,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   messages = signal<Message[]>([]);
   loadingConversation = signal(false);
   sendError = signal<string | null>(null);
+  enviando = signal(false);
 
   messageForm: FormGroup;
 
@@ -154,6 +155,11 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   send(): void {
+    // El input se limpia recien cuando responde el servidor, asi que dos Enter
+    // seguidos alcanzaban para mandar el mismo mensaje dos veces: el segundo
+    // send() encontraba el texto todavia puesto. El cerrojo cierra esa ventana.
+    if (this.enviando()) return;
+
     if (this.messageForm.invalid) return;
     const friend = this.activeFriend();
     if (!friend) return;
@@ -162,6 +168,7 @@ export class ChatComponent implements OnInit, OnDestroy {
     if (!content) return;
 
     this.sendError.set(null);
+    this.enviando.set(true);
     this.chatService.sendMessage({ receiverId: friend.id, content })
       .then(() => {
         this.messageForm.reset({ content: '' });
@@ -169,6 +176,9 @@ export class ChatComponent implements OnInit, OnDestroy {
       .catch(err => {
         console.error('Error al enviar mensaje:', err);
         this.sendError.set('No se pudo enviar el mensaje. Revisá tu conexión.');
+      })
+      .finally(() => {
+        this.enviando.set(false);
       });
   }
 }

@@ -76,7 +76,7 @@
         }
         <form [formGroup]="messageForm" (ngSubmit)="send()" class="message-form">
           <input type="text" formControlName="content" placeholder="Escribí un mensaje..." autocomplete="off" />
-          <button type="submit" class="btn-send" [disabled]="messageForm.invalid">
+          <button type="submit" class="btn-send" [disabled]="messageForm.invalid || enviando()">
             <span class="material-icons-round">send</span>
           </button>
         </form>
