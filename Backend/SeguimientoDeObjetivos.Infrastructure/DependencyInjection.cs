@@ -27,12 +27,12 @@ namespace Infrastructure
             // en el codigo: con EnableRetryOnFailure, una transaccion abierta a
             // mano habria que reintentarla entera dentro de la estrategia.
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(
+                options.UseNpgsql(
                     configuration.GetConnectionString("DefaultConnection"),
-                    sqlServer => sqlServer.EnableRetryOnFailure(
+                    npgsql => npgsql.EnableRetryOnFailure(
                         maxRetryCount: 6,
                         maxRetryDelay: TimeSpan.FromSeconds(30),
-                        errorNumbersToAdd: null)));
+                        errorCodesToAdd: null)));
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddSingleton<IAppClock, AppClock>();

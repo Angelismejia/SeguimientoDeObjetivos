@@ -28,6 +28,46 @@ namespace Infrastructure.Persistence
         public DbSet<FriendStreakInvitation> FriendStreakInvitations { get; set; }
         public DbSet<FriendStreak> FriendStreaks { get; set; }
 
+        /// <summary>
+        /// Fuerza a que TODA fecha se guarde como "timestamp without time zone" y
+        /// toda hora como "time without time zone".
+        ///
+        /// Sin esto la migracion a PostgreSQL no funciona. Npgsql mapea DateTime a
+        /// "timestamptz" por defecto y **lanza excepcion si el Kind no es Utc**, y
+        /// esta app mezcla los dos: DateTime.UtcNow da Kind=Utc, pero AppClock.Now
+        /// (que convierte a la hora de Guatemala) da Kind=Unspecified, igual que
+        /// cualquier fecha que llegue deserializada desde el JSON del front.
+        ///
+        /// "timestamp without time zone" se comporta como el datetime2 que usaba
+        /// SQL Server: guarda el valor tal cual, sin interpretarlo ni convertirlo.
+        /// Asi la semantica de fechas no cambia en absoluto al cambiar de motor,
+        /// que es justo lo que se quiere en una migracion: mover los datos, no
+        /// reinterpretarlos.
+        ///
+        /// El manejo de husos horarios sigue viviendo donde ya vivia, en AppClock.
+        /// </summary>
+        private static void AplicarTiposDeFechaDePostgres(ModelBuilder modelBuilder)
+        {
+            foreach (var entity in modelBuilder.Model.GetEntityTypes())
+            {
+                foreach (var property in entity.GetProperties())
+                {
+                    // Respeta lo que ya se haya declarado a mano (TaskCompletion.Date
+                    // es "date" a proposito: es un dia, no un instante).
+                    if (property.GetColumnType() is not null) continue;
+
+                    var tipo = Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType;
+
+                    if (tipo == typeof(DateTime))
+                        property.SetColumnType("timestamp without time zone");
+                    else if (tipo == typeof(TimeSpan))
+                        // Son horas del dia (ScheduledTime, EndTime), no duraciones:
+                        // Npgsql las mapearia a "interval" y eso no es lo que son.
+                        property.SetColumnType("time without time zone");
+                }
+            }
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Objective>()
@@ -72,6 +112,7 @@ namespace Infrastructure.Persistence
 
             modelBuilder.Entity<TaskCompletion>(entity =>
             {
+                // "date" existe igual en PostgreSQL, no hace falta cambiarlo.
                 entity.Property(c => c.Date).HasColumnType("date");
 
                 // Evita duplicados: una tarea no puede estar completada dos veces el mismo dia.
@@ -156,6 +197,46 @@ namespace Infrastructure.Persistence
                     .HasForeignKey(f => f.UserBId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
+
+            SembrarCatalogoDeInsignias(modelBuilder);
+
+            // Va al final a proposito: asi ve todo lo que se configuro arriba y no
+            // pisa los tipos elegidos a mano (TaskCompletion.Date es "date").
+            AplicarTiposDeFechaDePostgres(modelBuilder);
+        }
+
+        /// <summary>
+        /// El catalogo de insignias no son datos de usuario: son parte del esquema,
+        /// y sin ellos BadgeAwardService no tiene nada que otorgar.
+        ///
+        /// Vivia dentro de la migracion SeedBadgeCatalog, no en el modelo. Eso
+        /// funcionaba mientras nadie regenerara las migraciones — al hacerlo para
+        /// PostgreSQL, el seed desaparecio y la tabla quedaba vacia sin que nada
+        /// fallara. Con HasData el catalogo es parte del modelo y sobrevive a
+        /// cualquier regeneracion futura.
+        /// </summary>
+        private static void SembrarCatalogoDeInsignias(ModelBuilder modelBuilder)
+        {
+            // Fecha fija: si fuera DateTime.UtcNow, EF detectaria un cambio en el
+            // modelo cada vez que se genera una migracion.
+            //
+            // El Kind va Unspecified a proposito. CreatedAt es "timestamp without
+            // time zone" (ver AplicarTiposDeFechaDePostgres) y Npgsql se niega a
+            // escribir un DateTime marcado como Utc en una columna sin zona horaria:
+            // "literal cannot be generated for a UTC DateTime". En SQL Server el Kind
+            // daba igual y por eso la migracion vieja podia usar Utc sin problema.
+            var sembradoEl = new DateTime(2026, 7, 24, 0, 0, 0, DateTimeKind.Unspecified);
+
+            modelBuilder.Entity<Badge>().HasData(
+                new Badge { Id = 1, Name = "Primer paso", Description = "Completaste tu primera tarea.", BadgeType = "first_task", Icon = "check_circle", CreatedAt = sembradoEl },
+                new Badge { Id = 2, Name = "En marcha", Description = "Completaste 10 tareas.", BadgeType = "tasks_10", Icon = "task_alt", CreatedAt = sembradoEl },
+                new Badge { Id = 3, Name = "Imparable", Description = "Completaste 50 tareas.", BadgeType = "tasks_50", Icon = "bolt", CreatedAt = sembradoEl },
+                new Badge { Id = 4, Name = "Meta cumplida", Description = "Completaste tu primer objetivo.", BadgeType = "first_objective", Icon = "flag", CreatedAt = sembradoEl },
+                new Badge { Id = 5, Name = "Coleccionista de metas", Description = "Completaste 5 objetivos.", BadgeType = "objectives_5", Icon = "military_tech", CreatedAt = sembradoEl },
+                new Badge { Id = 6, Name = "Constancia", Description = "3 días seguidos completando tareas.", BadgeType = "streak_3", Icon = "local_fire_department", CreatedAt = sembradoEl },
+                new Badge { Id = 7, Name = "Una semana fuerte", Description = "7 días seguidos completando tareas.", BadgeType = "streak_7", Icon = "whatshot", CreatedAt = sembradoEl },
+                new Badge { Id = 8, Name = "Hábito de acero", Description = "30 días seguidos completando tareas.", BadgeType = "streak_30", Icon = "emoji_events", CreatedAt = sembradoEl }
+            );
         }
 
     }
