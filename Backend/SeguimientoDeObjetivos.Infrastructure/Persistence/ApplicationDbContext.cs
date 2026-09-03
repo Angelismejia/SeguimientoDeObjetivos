@@ -1,5 +1,6 @@
 ﻿using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Infrastructure.Persistence
 {
@@ -46,6 +47,26 @@ namespace Infrastructure.Persistence
         ///
         /// El manejo de husos horarios sigue viviendo donde ya vivia, en AppClock.
         /// </summary>
+        ///
+        /// <remarks>
+        /// Los conversores borran el Kind al escribir. Es lo que hacia SQL Server:
+        /// datetime2 guarda los componentes de la fecha y descarta el Kind, asi que
+        /// un DateTime.UtcNow terminaba guardado como "las 3 de la manana" sin decir
+        /// de que huso. Reproducir esa conducta es lo correcto en una migracion: los
+        /// valores que ya estan en la base fueron escritos con esa semantica.
+        /// </remarks>
+        private static readonly ValueConverter<DateTime, DateTime> SinZonaHoraria =
+            new(alGuardar => DateTime.SpecifyKind(alGuardar, DateTimeKind.Unspecified),
+                alLeer => DateTime.SpecifyKind(alLeer, DateTimeKind.Unspecified));
+
+        private static readonly ValueConverter<DateTime?, DateTime?> SinZonaHorariaNullable =
+            new(alGuardar => alGuardar.HasValue
+                    ? DateTime.SpecifyKind(alGuardar.Value, DateTimeKind.Unspecified)
+                    : alGuardar,
+                alLeer => alLeer.HasValue
+                    ? DateTime.SpecifyKind(alLeer.Value, DateTimeKind.Unspecified)
+                    : alLeer);
+
         private static void AplicarTiposDeFechaDePostgres(ModelBuilder modelBuilder)
         {
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
@@ -59,7 +80,17 @@ namespace Infrastructure.Persistence
                     var tipo = Nullable.GetUnderlyingType(property.ClrType) ?? property.ClrType;
 
                     if (tipo == typeof(DateTime))
+                    {
                         property.SetColumnType("timestamp without time zone");
+
+                        // Elegir el tipo de columna no alcanza: Npgsql igual se niega a
+                        // escribir un DateTime con Kind=Utc en una columna sin zona
+                        // horaria, y las entidades nacen con DateTime.UtcNow. Sin este
+                        // conversor, leer funciona pero CUALQUIER insercion falla.
+                        property.SetValueConverter(property.ClrType == typeof(DateTime)
+                            ? SinZonaHoraria
+                            : SinZonaHorariaNullable);
+                    }
                     else if (tipo == typeof(TimeSpan))
                         // Son horas del dia (ScheduledTime, EndTime), no duraciones:
                         // Npgsql las mapearia a "interval" y eso no es lo que son.
