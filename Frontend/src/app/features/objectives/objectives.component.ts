@@ -11,6 +11,7 @@ import { TaskItem } from '../../core/models/task.model';
 import { Category } from '../../core/models/category.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { completedDayKeys, isTaskDoneOn, isTaskOverdue } from '../../core/utils/task-status.util';
+import { cuerpoDeActualizacion } from '../../core/utils/task-update.util';
 import { computeObjectiveProgress } from '../../core/utils/objective-progress.util';
 import { mensajeDeError } from '../../core/utils/http-error.util';
 import { rangoOrdenado } from '../../core/utils/rango-ordenado.validator';
@@ -232,19 +233,8 @@ export class ObjectivesComponent implements OnInit {
     const currentlyDone = this.isDone(task);
     if (!currentlyDone && this.isFuture(task)) return;
     const newStatus = currentlyDone ? 'Pending' : 'Completed';
-    this.taskService.update(task.id, {
-      title: task.title,
-      description: task.description,
-      emoji: task.emoji,
-      color: task.color,
-      scheduledDate: task.scheduledDate,
-      priority: task.priority,
-      status: newStatus,
-      isRecurring: task.isRecurring,
-      recurrenceType: task.recurrenceType,
-      categoryId: task.categoryId,
-      objectiveId: task.objectiveId
-    }).subscribe({
+    this.taskService.update(task.id,
+      cuerpoDeActualizacion(task, { status: newStatus })).subscribe({
       next: updated => {
         const updatedTasks = this.allTasks().map(t => t.id === updated.id ? updated : t);
         this.allTasks.set(updatedTasks);

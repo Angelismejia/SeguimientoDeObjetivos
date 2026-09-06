@@ -6,6 +6,7 @@ import { TaskService } from '../../core/services/task.service';
 import { TaskItem } from '../../core/models/task.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { isTaskDoneOn, isTaskOverdue } from '../../core/utils/task-status.util';
+import { cuerpoDeActualizacion } from '../../core/utils/task-update.util';
 
 // Antes esto era un modal ("calendario grande") que solo se podia abrir desde
 // el Dashboard. Se convirtio en pagina propia (/calendar) para que el menu
@@ -140,21 +141,8 @@ export class CalendarComponent implements OnInit {
     const scheduledDate = (task.isRecurring && newStatus === 'Completed')
       ? (dateKey ?? this.dateKey(new Date()))
       : task.scheduledDate;
-    this.taskService.update(task.id, {
-      title: task.title,
-      description: task.description,
-      emoji: task.emoji,
-      color: task.color,
-      scheduledDate,
-      scheduledTime: task.scheduledTime,
-      endTime: task.endTime,
-      priority: task.priority,
-      status: newStatus,
-      isRecurring: task.isRecurring,
-      recurrenceType: task.recurrenceType,
-      categoryId: task.categoryId,
-      objectiveId: task.objectiveId
-    }).subscribe(updated => {
+    this.taskService.update(task.id,
+      cuerpoDeActualizacion(task, { scheduledDate, status: newStatus })).subscribe(updated => {
       this.allTasks.set(this.allTasks().map(t => t.id === updated.id ? updated : t));
     });
   }

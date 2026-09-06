@@ -12,6 +12,7 @@ import { TaskItem, TaskStatus, TaskPriority, RecurrenceType } from '../../core/m
 import { Category } from '../../core/models/category.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { completedDayKeys, isTaskDoneOn, isTaskOverdue } from '../../core/utils/task-status.util';
+import { cuerpoDeActualizacion } from '../../core/utils/task-update.util';
 import { computeObjectiveProgress } from '../../core/utils/objective-progress.util';
 import { TASK_EMOJIS } from '../../core/constants/task-emojis';
 import { mensajeDeError } from '../../core/utils/http-error.util';
@@ -434,22 +435,8 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
-    const scheduledDate = task.scheduledDate;
-    this.taskService.update(task.id, {
-      title: task.title,
-      description: task.description,
-      emoji: task.emoji,
-      color: task.color,
-      scheduledDate,
-      scheduledTime: task.scheduledTime,
-      endTime: task.endTime,
-      priority: task.priority,
-      status: newStatus,
-      isRecurring: task.isRecurring,
-      recurrenceType: task.recurrenceType,
-      categoryId: task.categoryId,
-      objectiveId: task.objectiveId
-    }).subscribe({
+    this.taskService.update(task.id,
+      cuerpoDeActualizacion(task, { status: newStatus })).subscribe({
       next: updated => {
         const updatedTasks = this.allTasks().map(t => t.id === updated.id ? updated : t);
         this.allTasks.set(updatedTasks);
