@@ -1,4 +1,4 @@
-using Application.DTOs.Notifications;
+﻿using Application.DTOs.Notifications;
 using Application.DTOs.Objectives;
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
@@ -54,6 +54,13 @@ namespace Application.Services
                 throw new BusinessRuleException("La fecha de fin no puede ser anterior a la de inicio.");
         }
 
+        // Se compara por dia, con la misma granularidad que usa la validacion: si
+        // ValidarRangoDeFechas ignora la hora, dos valores que solo difieren en la
+        // hora no son un cambio de rango y no deben disparar la regla.
+        private static bool RangoDeFechasCambio(Objective objective, UpdateObjectiveDto dto)
+            => objective.StartDate?.Date != dto.StartDate?.Date
+            || objective.EndDate?.Date != dto.EndDate?.Date;
+
         public async Task<ObjectiveDto> CreateAsync(int userId, CreateObjectiveDto dto)
         {
             ValidarRangoDeFechas(dto.StartDate, dto.EndDate);
@@ -78,7 +85,19 @@ namespace Application.Services
             var objective = await _objectiveRepository.GetByIdAsync(id);
             if (objective is null) throw new NotFoundException("Objective", id);
 
-            ValidarRangoDeFechas(dto.StartDate, dto.EndDate);
+            // Solo se valida el rango cuando este PUT lo esta cambiando.
+            //
+            // La regla nacio despues que los datos: los objetivos guardados antes
+            // pueden tener las fechas dadas vuelta, y validar siempre dejaba a esos
+            // objetivos imposibles de actualizar por cualquier motivo. En concreto,
+            // marcar una tarea reenvia el objetivo entero -fechas incluidas- para
+            // recalcular el progreso, y ese guardado de fondo moria con un 400 que
+            // hablaba de unas fechas que el usuario ni siquiera habia tocado.
+            //
+            // Corregir el rango sigue siendo obligatorio para quien lo edite: si las
+            // fechas cambian, se validan.
+            if (RangoDeFechasCambio(objective, dto))
+                ValidarRangoDeFechas(dto.StartDate, dto.EndDate);
 
             var justCompleted = dto.Status == ObjectiveStatus.Completed && objective.Status != ObjectiveStatus.Completed;
 

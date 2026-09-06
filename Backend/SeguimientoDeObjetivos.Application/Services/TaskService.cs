@@ -1,4 +1,4 @@
-using Application.DTOs.Tasks;
+﻿using Application.DTOs.Tasks;
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
@@ -102,11 +102,37 @@ namespace Application.Services
             TimeSpan? endTime,
             DateTime? endRepeatDate)
         {
+            ValidarRangoDeHoras(scheduledTime, endTime);
+            ValidarFinDeRepeticion(scheduledDate, endRepeatDate);
+        }
+
+        private static void ValidarRangoDeHoras(TimeSpan? scheduledTime, TimeSpan? endTime)
+        {
             if (scheduledTime.HasValue && endTime.HasValue && endTime.Value < scheduledTime.Value)
                 throw new BusinessRuleException("La hora de fin no puede ser anterior a la de inicio.");
+        }
 
+        private static void ValidarFinDeRepeticion(DateTime scheduledDate, DateTime? endRepeatDate)
+        {
             if (endRepeatDate.HasValue && endRepeatDate.Value.Date < scheduledDate.Date)
                 throw new BusinessRuleException("La repetición no puede terminar antes de la fecha de la tarea.");
+        }
+
+        // Mismo criterio que en ObjectiveService: una regla que nacio despues que
+        // los datos no puede dejar bloqueada una fila que ya estaba mal guardada.
+        // Marcar una tarea como hecha es un PUT completo que reenvia sus horarios
+        // sin tocarlos, asi que validar siempre volvia imposible de completar a
+        // cualquier tarea con el rango dado vuelta de antes. Cada regla se mira por
+        // separado para que un cambio de horario no obligue a arreglar tambien la
+        // fecha de fin de repeticion, ni al reves.
+        private static void ValidarHorariosQueCambiaron(TaskItem task, UpdateTaskDto dto)
+        {
+            if (task.ScheduledTime != dto.ScheduledTime || task.EndTime != dto.EndTime)
+                ValidarRangoDeHoras(dto.ScheduledTime, dto.EndTime);
+
+            if (task.ScheduledDate.Date != dto.ScheduledDate.Date
+                || task.EndRepeatDate?.Date != dto.EndRepeatDate?.Date)
+                ValidarFinDeRepeticion(dto.ScheduledDate, dto.EndRepeatDate);
         }
 
         public async Task<TaskDto> CreateAsync(int userId, CreateTaskDto dto)
@@ -143,7 +169,7 @@ namespace Application.Services
             var task = await _taskRepository.GetByIdAsync(id);
             if (task is null) throw new NotFoundException("Task", id);
 
-            ValidarHorarios(dto.ScheduledDate, dto.ScheduledTime, dto.EndTime, dto.EndRepeatDate);
+            ValidarHorariosQueCambiaron(task, dto);
 
             task.Title = dto.Title;
             task.Description = dto.Description;

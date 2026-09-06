@@ -306,8 +306,16 @@ export class ObjectivesComponent implements OnInit {
       progressPercentage: cambios.progressPercentage ?? objective.progressPercentage,
       completionAskedAtTaskCount:
         cambios.completionAskedAtTaskCount ?? objective.completionAskedAtTaskCount
-    }).subscribe(updated => {
-      this.objectives.set(this.objectives().map(o => o.id === updated.id ? updated : o));
+    }).subscribe({
+      next: updated => {
+        this.objectives.set(this.objectives().map(o => o.id === updated.id ? updated : o));
+      },
+      // Esto es un guardado de fondo: el usuario marco una tarea, no pidio editar
+      // un objetivo. Sin este handler el error subia al GlobalErrorHandler y
+      // pintaba el banner rojo de diagnostico encima de la pantalla, con un texto
+      // sobre campos que la persona ni habia tocado. El progreso se recalcula solo
+      // la proxima vez, asi que alcanza con dejar rastro en la consola.
+      error: err => console.error('No se pudo sincronizar el progreso del objetivo', err)
     });
   }
 

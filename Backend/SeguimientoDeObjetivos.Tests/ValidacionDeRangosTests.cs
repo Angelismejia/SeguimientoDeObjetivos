@@ -1,4 +1,4 @@
-using Application.DTOs.Notifications;
+﻿using Application.DTOs.Notifications;
 using Application.DTOs.Objectives;
 using Application.DTOs.Tasks;
 using Application.Interfaces;
@@ -149,6 +149,134 @@ public class ValidacionDeRangosTests
     {
         Assert.NotNull(await ServicioDeTareas()
             .CreateAsync(1, CrearTarea(new TimeSpan(9, 0, 0), new TimeSpan(9, 0, 0))));
+    }
+
+    // ── Filas que ya estaban mal antes de que existiera la regla ──
+    // La validacion se agrego despues que los datos, asi que hay objetivos y
+    // tareas guardados con el rango dado vuelta. Validar en cada PUT los dejaba
+    // imposibles de actualizar por cualquier motivo, incluso por uno que no toca
+    // las fechas: marcar una tarea reenvia el objetivo entero para recalcular su
+    // progreso, y ese guardado de fondo moria con un 400.
+
+    [Fact]
+    public async Task Un_objetivo_ya_invertido_se_puede_seguir_actualizando_sin_tocar_las_fechas()
+    {
+        var yaInvertido = new Objective
+        {
+            Id = 7,
+            UserId = 1,
+            Title = "Aprender Angular",
+            StartDate = Dia,
+            EndDate = Dia.AddDays(-1)
+        };
+
+        var actualizado = await ServicioDeObjetivos(yaInvertido).UpdateAsync(7, new UpdateObjectiveDto
+        {
+            Title = "Aprender Angular",
+            StartDate = Dia,
+            EndDate = Dia.AddDays(-1),
+            Status = ObjectiveStatus.InProgress,
+            ProgressPercentage = 60
+        });
+
+        Assert.Equal(60, actualizado.ProgressPercentage);
+    }
+
+    [Fact]
+    public async Task Pero_si_edita_las_fechas_y_siguen_invertidas_se_rechaza()
+    {
+        var yaInvertido = new Objective
+        {
+            Id = 7,
+            UserId = 1,
+            Title = "Aprender Angular",
+            StartDate = Dia,
+            EndDate = Dia.AddDays(-1)
+        };
+
+        await Assert.ThrowsAsync<BusinessRuleException>(
+            () => ServicioDeObjetivos(yaInvertido).UpdateAsync(7, EditarObjetivo(Dia, Dia.AddDays(-3))));
+    }
+
+    // El rango se compara por dia porque la validacion tambien ignora la hora: si
+    // no, el mismo dia con otra hora contaria como cambio y volveria a bloquear.
+    [Fact]
+    public async Task Cambiar_solo_la_hora_del_mismo_dia_no_cuenta_como_editar_el_rango()
+    {
+        var yaInvertido = new Objective
+        {
+            Id = 7,
+            UserId = 1,
+            Title = "Aprender Angular",
+            StartDate = Dia,
+            EndDate = Dia.AddDays(-1)
+        };
+
+        var actualizado = await ServicioDeObjetivos(yaInvertido).UpdateAsync(7, new UpdateObjectiveDto
+        {
+            Title = "Aprender Angular",
+            StartDate = Dia.AddHours(9),
+            EndDate = Dia.AddDays(-1).AddHours(15),
+            Status = ObjectiveStatus.InProgress
+        });
+
+        Assert.NotNull(actualizado);
+    }
+
+    [Fact]
+    public async Task Una_tarea_ya_invertida_se_puede_marcar_como_hecha()
+    {
+        var yaInvertida = new TaskItem
+        {
+            Id = 3,
+            UserId = 1,
+            Title = "Estudiar",
+            ScheduledDate = Dia,
+            ScheduledTime = new TimeSpan(18, 0, 0),
+            EndTime = new TimeSpan(9, 0, 0)
+        };
+
+        var actualizada = await ServicioDeTareas(yaInvertida).UpdateAsync(3, new UpdateTaskDto
+        {
+            Title = "Estudiar",
+            ScheduledDate = Dia,
+            ScheduledTime = new TimeSpan(18, 0, 0),
+            EndTime = new TimeSpan(9, 0, 0),
+            Priority = TaskPriority.Medium,
+            Status = TaskItemStatus.Completed
+        });
+
+        Assert.Equal(TaskItemStatus.Completed, actualizada.Status);
+    }
+
+    // Cada regla se mira por separado: arreglar el horario no obliga a arreglar
+    // tambien un fin de repeticion que ya estaba mal, ni al reves.
+    [Fact]
+    public async Task Corregir_el_horario_no_exige_arreglar_tambien_la_repeticion()
+    {
+        var yaInvertida = new TaskItem
+        {
+            Id = 3,
+            UserId = 1,
+            Title = "Estudiar",
+            ScheduledDate = Dia,
+            ScheduledTime = new TimeSpan(18, 0, 0),
+            EndTime = new TimeSpan(9, 0, 0),
+            EndRepeatDate = Dia.AddDays(-5)
+        };
+
+        var actualizada = await ServicioDeTareas(yaInvertida).UpdateAsync(3, new UpdateTaskDto
+        {
+            Title = "Estudiar",
+            ScheduledDate = Dia,
+            ScheduledTime = new TimeSpan(9, 0, 0),
+            EndTime = new TimeSpan(18, 0, 0),
+            EndRepeatDate = Dia.AddDays(-5),
+            Priority = TaskPriority.Medium,
+            Status = TaskItemStatus.Pending
+        });
+
+        Assert.Equal(new TimeSpan(18, 0, 0), actualizada.EndTime);
     }
 }
 
