@@ -118,6 +118,23 @@ namespace Application.Services
                 throw new BusinessRuleException("La repetición no puede terminar antes de la fecha de la tarea.");
         }
 
+        // Una tarea marcada como recurrente pero con RecurrenceType.None es una
+        // contradiccion que no daba ningun error: se guardaba como recurrente, el
+        // calendario la dibujaba un solo dia (isTaskDoneOn cae en el caso "no
+        // repite") y a la vez SetCompletionAsync le abria historial por dia. El
+        // formulario del front ofrecia "None" en el desplegable, asi que llegar a
+        // ese estado era un clic.
+        private static void ValidarRecurrencia(bool isRecurring, RecurrenceType? tipo)
+        {
+            if (isRecurring && (tipo is null || tipo == RecurrenceType.None))
+                throw new BusinessRuleException("Una tarea recurrente necesita una frecuencia de repetición.");
+        }
+
+        // Al reves tambien: si la tarea deja de ser recurrente, el tipo que tuviera
+        // antes no puede quedar colgado en la fila.
+        private static RecurrenceType NormalizarRecurrencia(bool isRecurring, RecurrenceType? tipo)
+            => isRecurring ? tipo ?? RecurrenceType.None : RecurrenceType.None;
+
         // Mismo criterio que en ObjectiveService: una regla que nacio despues que
         // los datos no puede dejar bloqueada una fila que ya estaba mal guardada.
         // Marcar una tarea como hecha es un PUT completo que reenvia sus horarios
@@ -135,9 +152,25 @@ namespace Application.Services
                 ValidarFinDeRepeticion(dto.ScheduledDate, dto.EndRepeatDate);
         }
 
+        // Y la misma cautela para la recurrencia: ya hay filas guardadas con
+        // IsRecurring en true y RecurrenceType.None, de cuando el desplegable
+        // dejaba elegir "None". Si validaramos en cada PUT, esas tareas no se
+        // podrian ni marcar como hechas ni editar para arreglarlas (marcar manda un
+        // PUT completo que reenvia la recurrencia sin tocarla). Se valida solo
+        // cuando el PUT viene a cambiar justamente esa parte, que es cuando el
+        // usuario tiene el formulario delante y puede elegir una frecuencia.
+        private static void ValidarRecurrenciaQueCambio(TaskItem task, UpdateTaskDto dto)
+        {
+            var nuevoTipo = dto.RecurrenceType ?? RecurrenceType.None;
+
+            if (task.IsRecurring != dto.IsRecurring || task.RecurrenceType != nuevoTipo)
+                ValidarRecurrencia(dto.IsRecurring, dto.RecurrenceType);
+        }
+
         public async Task<TaskDto> CreateAsync(int userId, CreateTaskDto dto)
         {
             ValidarHorarios(dto.ScheduledDate, dto.ScheduledTime, dto.EndTime, dto.EndRepeatDate);
+            ValidarRecurrencia(dto.IsRecurring, dto.RecurrenceType);
 
             var task = new TaskItem
             {
@@ -151,7 +184,7 @@ namespace Application.Services
                 ReminderMinutesBefore = dto.ReminderMinutesBefore,
                 Priority = dto.Priority,
                 IsRecurring = dto.IsRecurring,
-                RecurrenceType = dto.RecurrenceType ?? RecurrenceType.None,
+                RecurrenceType = NormalizarRecurrencia(dto.IsRecurring, dto.RecurrenceType),
                 RepeatEveryWeeks = dto.RepeatEveryWeeks,
                 EndRepeatDate = dto.EndRepeatDate,
                 ObjectiveId = dto.ObjectiveId,
@@ -170,6 +203,7 @@ namespace Application.Services
             if (task is null) throw new NotFoundException("Task", id);
 
             ValidarHorariosQueCambiaron(task, dto);
+            ValidarRecurrenciaQueCambio(task, dto);
 
             task.Title = dto.Title;
             task.Description = dto.Description;
@@ -182,7 +216,7 @@ namespace Application.Services
             task.Priority = dto.Priority;
             task.Status = dto.Status;
             task.IsRecurring = dto.IsRecurring;
-            task.RecurrenceType = dto.RecurrenceType ?? RecurrenceType.None;
+            task.RecurrenceType = NormalizarRecurrencia(dto.IsRecurring, dto.RecurrenceType);
             task.RepeatEveryWeeks = dto.RepeatEveryWeeks;
             task.EndRepeatDate = dto.EndRepeatDate;
             task.ObjectiveId = dto.ObjectiveId;

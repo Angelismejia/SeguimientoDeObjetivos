@@ -92,7 +92,19 @@ export class TasksComponent implements OnInit {
 
   taskStatuses: TaskStatus[] = ['Pending', 'InProgress', 'Completed', 'Skipped'];
   taskPriorities: TaskPriority[] = ['Low', 'Medium', 'High'];
-  recurrenceTypes: RecurrenceType[] = ['None', 'Daily', 'Weekly', 'Monthly', 'Yearly'];
+  // Sin 'None': el desplegable solo se muestra con la casilla de recurrente marcada,
+  // y una tarea recurrente sin frecuencia no se repite nunca (el backend la rechaza).
+  recurrenceTypes: RecurrenceType[] = ['Daily', 'Weekly', 'Monthly', 'Yearly'];
+
+  onRecurringToggle(): void {
+    const esRecurrente = this.taskForm.value.isRecurring;
+
+    if (esRecurrente && this.taskForm.value.recurrenceType === 'None') {
+      this.taskForm.patchValue({ recurrenceType: 'Daily' });
+    } else if (!esRecurrente) {
+      this.taskForm.patchValue({ recurrenceType: 'None' });
+    }
+  }
 
   pastelColors = ['#c7d2fe', '#bbf7d0', '#fecaca', '#fed7aa', '#fef08a', '#bae6fd', '#f5d0fe', '#e5e7eb'];
   emojis = TASK_EMOJIS;

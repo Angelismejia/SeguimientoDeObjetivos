@@ -420,7 +420,7 @@
 
         <div class="field-row">
           <label class="field checkbox-field">
-            <input type="checkbox" formControlName="isRecurring" />
+            <input type="checkbox" formControlName="isRecurring" (change)="onRecurringToggle()" />
             <span>Tarea recurrente</span>
           </label>
           @if (taskForm.value.isRecurring) {
