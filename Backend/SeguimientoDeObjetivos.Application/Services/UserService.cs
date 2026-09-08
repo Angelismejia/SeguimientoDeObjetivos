@@ -77,7 +77,6 @@ namespace Application.Services
 
             user.Name = dto.Name;
             user.Email = dto.Email;
-            user.IsActive = dto.IsActive;
             user.UpdatedAt = DateTime.UtcNow;
 
             await _userRepository.UpdateAsync(user);

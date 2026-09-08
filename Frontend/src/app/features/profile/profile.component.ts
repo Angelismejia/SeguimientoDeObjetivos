@@ -357,7 +357,7 @@ export class ProfileComponent implements OnInit, AfterViewInit {
     this.editProfileError.set('');
 
     const v = this.editProfileForm.value;
-    this.userService.update(u.id, { name: v.name, email: v.email, isActive: u.isActive }).subscribe({
+    this.userService.update(u.id, { name: v.name, email: v.email }).subscribe({
       next: updated => {
         this.user.set(updated);
         this.savingProfile.set(false);

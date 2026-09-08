@@ -37,7 +37,6 @@ export interface User {
 export interface UpdateUserDto {
   name: string;
   email: string;
-  isActive: boolean;
 }
 
 export interface ChangePasswordDto {
