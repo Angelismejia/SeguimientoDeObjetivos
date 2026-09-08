@@ -75,7 +75,7 @@
           <p class="send-error">{{ sendError() }}</p>
         }
         <form [formGroup]="messageForm" (ngSubmit)="send()" class="message-form">
-          <input type="text" formControlName="content" placeholder="Escribí un mensaje..." autocomplete="off" />
+          <input type="text" formControlName="content" placeholder="Escribí un mensaje..." autocomplete="off" maxlength="2000" />
           <button type="submit" class="btn-send" [disabled]="messageForm.invalid || enviando()">
             <span class="material-icons-round">send</span>
           </button>
