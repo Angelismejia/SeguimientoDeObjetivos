@@ -41,7 +41,7 @@ export class ProfileComponent implements OnInit, AfterViewInit {
   @ViewChild('heatmapWrap') heatmapWrap?: ElementRef<HTMLElement>;
 
   loading = signal(true);
-  loadError = signal(false);
+  loadError = signal('');
   uploading = signal(false);
   uploadError = signal('');
 
@@ -163,7 +163,7 @@ export class ProfileComponent implements OnInit, AfterViewInit {
 
   loadAll(): void {
     this.loading.set(true);
-    this.loadError.set(false);
+    this.loadError.set('');
     const userId = this.auth.getUserId();
     forkJoin({
       user: this.userService.getById(userId),
@@ -192,9 +192,9 @@ export class ProfileComponent implements OnInit, AfterViewInit {
         this.loading.set(false);
         setTimeout(() => this.scrollHeatmapToToday());
       },
-      error: () => {
+      error: (e) => {
         this.loading.set(false);
-        this.loadError.set(true);
+        this.loadError.set(mensajeDeError(e, 'No se pudo cargar el perfil.'));
       }
     });
   }

@@ -16,6 +16,7 @@ import { Objective } from '../../core/models/objective.model';
 import { TaskItem } from '../../core/models/task.model';
 import { environment } from '../../../environments/environment';
 import { completedDayKeys } from '../../core/utils/task-status.util';
+import { mensajeDeError } from '../../core/utils/http-error.util';
 
 @Component({
   selector: 'app-friend-profile',
@@ -26,7 +27,7 @@ import { completedDayKeys } from '../../core/utils/task-status.util';
 })
 export class FriendProfileComponent implements OnInit {
   loading = signal(true);
-  loadError = signal(false);
+  loadError = signal('');
 
   user = signal<User | null>(null);
   followers = signal<UserSummary[]>([]);
@@ -80,7 +81,7 @@ export class FriendProfileComponent implements OnInit {
 
   private loadAll(userId: number): void {
     this.loading.set(true);
-    this.loadError.set(false);
+    this.loadError.set('');
     forkJoin({
       user: this.userService.getById(userId),
       followers: this.followService.getFollowers(userId),
@@ -97,9 +98,9 @@ export class FriendProfileComponent implements OnInit {
         this.loading.set(false);
         this.loadPrivateData(userId);
       },
-      error: () => {
+      error: (e) => {
         this.loading.set(false);
-        this.loadError.set(true);
+        this.loadError.set(mensajeDeError(e, 'No se pudo cargar este perfil.'));
       }
     });
   }

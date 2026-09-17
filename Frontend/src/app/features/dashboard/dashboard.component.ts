@@ -29,7 +29,7 @@ export class DashboardComponent implements OnInit {
   name: string;
   firstName: string;
   loading = signal(true);
-  loadError = signal(false);
+  loadError = signal('');
 
   objectives = signal<Objective[]>([]);
   categories = signal<Category[]>([]);
@@ -378,7 +378,7 @@ export class DashboardComponent implements OnInit {
 
   loadAll(): void {
     this.loading.set(true);
-    this.loadError.set(false);
+    this.loadError.set('');
     const userId = this.auth.getUserId();
     forkJoin({
       objectives: this.objectiveService.getAll(userId),
@@ -391,9 +391,9 @@ export class DashboardComponent implements OnInit {
         this.categories.set(categories);
         this.loading.set(false);
       },
-      error: () => {
+      error: (e) => {
         this.loading.set(false);
-        this.loadError.set(true);
+        this.loadError.set(mensajeDeError(e, 'No se pudo cargar tu progreso.'));
       }
     });
   }
@@ -641,9 +641,9 @@ export class DashboardComponent implements OnInit {
           this.recomputeObjectiveProgress(target.objectiveId, remaining);
         }
       },
-      error: () => {
+      error: (e) => {
         this.deleteTaskTarget.set(null);
-        this.loadError.set(true);
+        this.loadError.set(mensajeDeError(e, 'No se pudo borrar la tarea.'));
       }
     });
   }

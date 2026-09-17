@@ -28,7 +28,7 @@ type TaskFilter = 'all' | 'today' | 'upcoming' | 'recurring' | 'completed' | 'im
 })
 export class TasksComponent implements OnInit {
   loading = signal(true);
-  loadError = signal(false);
+  loadError = signal('');
 
   allTasks = signal<TaskItem[]>([]);
   objectives = signal<Objective[]>([]);
@@ -163,7 +163,7 @@ export class TasksComponent implements OnInit {
 
   loadAll(): void {
     this.loading.set(true);
-    this.loadError.set(false);
+    this.loadError.set('');
     const userId = this.auth.getUserId();
     forkJoin({
       tasks: this.taskService.getAll(userId),
@@ -176,9 +176,9 @@ export class TasksComponent implements OnInit {
         this.categories.set(categories);
         this.loading.set(false);
       },
-      error: () => {
+      error: (e) => {
         this.loading.set(false);
-        this.loadError.set(true);
+        this.loadError.set(mensajeDeError(e, 'No se pudieron cargar las tareas.'));
       }
     });
   }
@@ -467,9 +467,9 @@ export class TasksComponent implements OnInit {
           this.recomputeObjectiveProgress(target.objectiveId, remaining);
         }
       },
-      error: () => {
+      error: (e) => {
         this.deleteTarget.set(null);
-        this.loadError.set(true);
+        this.loadError.set(mensajeDeError(e, 'No se pudo borrar la tarea.'));
       }
     });
   }

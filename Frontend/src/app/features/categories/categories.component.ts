@@ -16,7 +16,7 @@ import { mensajeDeError } from '../../core/utils/http-error.util';
 })
 export class CategoriesComponent implements OnInit {
   loading = signal(true);
-  loadError = signal(false);
+  loadError = signal('');
 
   categories = signal<Category[]>([]);
 
@@ -55,15 +55,15 @@ export class CategoriesComponent implements OnInit {
 
   loadAll(): void {
     this.loading.set(true);
-    this.loadError.set(false);
+    this.loadError.set('');
     this.categoryService.getAll(this.auth.getUserId()).subscribe({
       next: categories => {
         this.categories.set(categories);
         this.loading.set(false);
       },
-      error: () => {
+      error: (e) => {
         this.loading.set(false);
-        this.loadError.set(true);
+        this.loadError.set(mensajeDeError(e, 'No se pudieron cargar las categorías.'));
       }
     });
   }
@@ -157,9 +157,9 @@ export class CategoriesComponent implements OnInit {
         this.categories.set(this.categories().filter(c => c.id !== target.id));
         this.deleteTarget.set(null);
       },
-      error: () => {
+      error: (e) => {
         this.deleteTarget.set(null);
-        this.loadError.set(true);
+        this.loadError.set(mensajeDeError(e, 'No se pudo borrar la categoría.'));
       }
     });
   }

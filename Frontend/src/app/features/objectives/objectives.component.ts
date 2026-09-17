@@ -30,7 +30,7 @@ interface HeatmapCell {
 })
 export class ObjectivesComponent implements OnInit {
   loading = signal(true);
-  loadError = signal(false);
+  loadError = signal('');
 
   objectives = signal<Objective[]>([]);
   categories = signal<Category[]>([]);
@@ -98,7 +98,7 @@ export class ObjectivesComponent implements OnInit {
 
   loadAll(): void {
     this.loading.set(true);
-    this.loadError.set(false);
+    this.loadError.set('');
     const userId = this.auth.getUserId();
     forkJoin({
       objectives: this.objectiveService.getAll(userId),
@@ -111,9 +111,9 @@ export class ObjectivesComponent implements OnInit {
         this.categories.set(categories);
         this.loading.set(false);
       },
-      error: () => {
+      error: (e) => {
         this.loading.set(false);
-        this.loadError.set(true);
+        this.loadError.set(mensajeDeError(e, 'No se pudieron cargar los objetivos.'));
       }
     });
   }
@@ -440,9 +440,9 @@ export class ObjectivesComponent implements OnInit {
         this.objectives.set(this.objectives().filter(o => o.id !== target.id));
         this.deleteTarget.set(null);
       },
-      error: () => {
+      error: (e) => {
         this.deleteTarget.set(null);
-        this.loadError.set(true);
+        this.loadError.set(mensajeDeError(e, 'No se pudo borrar el objetivo.'));
       }
     });
   }

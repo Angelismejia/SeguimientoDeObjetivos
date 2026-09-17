@@ -14,7 +14,7 @@
     <div class="state-msg">Cargando objetivos...</div>
   } @else if (loadError()) {
     <div class="state-msg error">
-      No se pudo cargar la información. Intenta de nuevo más tarde.
+      {{ loadError() }}
       <br /><button type="button" class="btn-retry" (click)="loadAll()">Reintentar</button>
     </div>
   } @else if (objectives().length === 0) {

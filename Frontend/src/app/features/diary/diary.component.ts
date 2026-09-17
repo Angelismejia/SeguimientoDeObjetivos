@@ -16,7 +16,7 @@ import { mensajeDeError } from '../../core/utils/http-error.util';
 })
 export class DiaryComponent implements OnInit {
   loading = signal(true);
-  loadError = signal(false);
+  loadError = signal('');
   entries = signal<DiaryEntry[]>([]);
 
   showForm = signal(false);
@@ -45,15 +45,15 @@ export class DiaryComponent implements OnInit {
 
   loadAll(): void {
     this.loading.set(true);
-    this.loadError.set(false);
+    this.loadError.set('');
     this.diaryEntryService.getAll(this.auth.getUserId()).subscribe({
       next: entries => {
         this.entries.set(this.sortEntries(entries));
         this.loading.set(false);
       },
-      error: () => {
+      error: (e) => {
         this.loading.set(false);
-        this.loadError.set(true);
+        this.loadError.set(mensajeDeError(e, 'No se pudo cargar tu diario.'));
       }
     });
   }
@@ -162,9 +162,9 @@ export class DiaryComponent implements OnInit {
         this.entries.set(this.entries().filter(e => e.id !== target.id));
         this.deleteTarget.set(null);
       },
-      error: () => {
+      error: (e) => {
         this.deleteTarget.set(null);
-        this.loadError.set(true);
+        this.loadError.set(mensajeDeError(e, 'No se pudo borrar la entrada.'));
       }
     });
   }

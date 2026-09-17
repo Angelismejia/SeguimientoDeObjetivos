@@ -10,6 +10,7 @@ import { ObjectiveService } from '../../core/services/objective.service';
 import { TaskItem } from '../../core/models/task.model';
 import { Objective, ObjectiveStatus } from '../../core/models/objective.model';
 import { completedDayKeys } from '../../core/utils/task-status.util';
+import { mensajeDeError } from '../../core/utils/http-error.util';
 
 type Period = 'week' | 'month' | '3months' | 'year';
 
@@ -41,7 +42,7 @@ interface Insight {
 })
 export class StatisticsComponent implements OnInit {
   loading = signal(true);
-  loadError = signal(false);
+  loadError = signal('');
 
   allTasks = signal<TaskItem[]>([]);
   objectives = signal<Objective[]>([]);
@@ -83,7 +84,7 @@ export class StatisticsComponent implements OnInit {
 
   loadAll(): void {
     this.loading.set(true);
-    this.loadError.set(false);
+    this.loadError.set('');
     const userId = this.auth.getUserId();
     forkJoin({
       tasks: this.taskService.getAll(userId),
@@ -96,9 +97,9 @@ export class StatisticsComponent implements OnInit {
         this.buildActivityChart();
         this.loading.set(false);
       },
-      error: () => {
+      error: (e) => {
         this.loading.set(false);
-        this.loadError.set(true);
+        this.loadError.set(mensajeDeError(e, 'No se pudieron cargar las estadísticas.'));
       }
     });
   }

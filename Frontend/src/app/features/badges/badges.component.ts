@@ -4,6 +4,7 @@ import { forkJoin } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { BadgeService } from '../../core/services/badge.service';
 import { Badge } from '../../core/models/badge.model';
+import { mensajeDeError } from '../../core/utils/http-error.util';
 
 @Component({
   selector: 'app-badges',
@@ -14,7 +15,7 @@ import { Badge } from '../../core/models/badge.model';
 })
 export class BadgesComponent implements OnInit {
   loading = signal(true);
-  loadError = signal(false);
+  loadError = signal('');
 
   allBadges = signal<Badge[]>([]);
   earnedIds = signal<Set<number>>(new Set());
@@ -30,7 +31,7 @@ export class BadgesComponent implements OnInit {
 
   loadAll(): void {
     this.loading.set(true);
-    this.loadError.set(false);
+    this.loadError.set('');
     forkJoin({
       all: this.badgeService.getAll(),
       earned: this.badgeService.getByUser(this.auth.getUserId())
@@ -40,9 +41,9 @@ export class BadgesComponent implements OnInit {
         this.earnedIds.set(new Set(earned.map(b => b.id)));
         this.loading.set(false);
       },
-      error: () => {
+      error: (e) => {
         this.loading.set(false);
-        this.loadError.set(true);
+        this.loadError.set(mensajeDeError(e, 'No se pudieron cargar las insignias.'));
       }
     });
   }
