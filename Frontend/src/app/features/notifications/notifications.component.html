@@ -4,11 +4,15 @@
     <p>Avisos de tus tareas y actividad reciente.</p>
   </div>
 
+  @if (actionError()) {
+    <p class="state-msg error">{{ actionError() }}</p>
+  }
+
   @if (loading()) {
     <div class="state-msg">Cargando alertas...</div>
   } @else if (loadError()) {
     <div class="state-msg error">
-      No se pudo cargar la información. Intenta de nuevo más tarde.
+      {{ loadError() }}
       <br /><button type="button" class="btn-retry" (click)="loadAll()">Reintentar</button>
     </div>
   } @else if (notifications().length === 0) {

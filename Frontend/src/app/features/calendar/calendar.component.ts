@@ -7,6 +7,7 @@ import { TaskItem } from '../../core/models/task.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { isTaskDoneOn, isTaskOverdue } from '../../core/utils/task-status.util';
 import { cuerpoDeActualizacion } from '../../core/utils/task-update.util';
+import { mensajeDeError } from '../../core/utils/http-error.util';
 
 // Antes esto era un modal ("calendario grande") que solo se podia abrir desde
 // el Dashboard. Se convirtio en pagina propia (/calendar) para que el menu
@@ -22,7 +23,7 @@ import { cuerpoDeActualizacion } from '../../core/utils/task-update.util';
 })
 export class CalendarComponent implements OnInit {
   loading = signal(true);
-  loadError = signal(false);
+  loadError = signal('');
   allTasks = signal<TaskItem[]>([]);
 
   monthCursor = signal(this.startOfMonth(new Date()));
@@ -79,15 +80,15 @@ export class CalendarComponent implements OnInit {
 
   loadAll(): void {
     this.loading.set(true);
-    this.loadError.set(false);
+    this.loadError.set('');
     this.taskService.getAll(this.auth.getUserId()).subscribe({
       next: tasks => {
         this.allTasks.set(tasks);
         this.loading.set(false);
       },
-      error: () => {
+      error: (e) => {
         this.loading.set(false);
-        this.loadError.set(true);
+        this.loadError.set(mensajeDeError(e, 'No se pudo cargar el calendario.'));
       }
     });
   }
@@ -163,8 +164,9 @@ export class CalendarComponent implements OnInit {
         this.allTasks.set(this.allTasks().filter(t => t.id !== target.id));
         this.deleteTaskTarget.set(null);
       },
-      error: () => {
+      error: (e) => {
         this.deleteTaskTarget.set(null);
+        this.loadError.set(mensajeDeError(e, 'No se pudo borrar la tarea.'));
       }
     });
   }
