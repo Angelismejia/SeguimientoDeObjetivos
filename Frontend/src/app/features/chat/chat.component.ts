@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, effect, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, computed, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -10,6 +10,8 @@ import { UserService } from '../../core/services/user.service';
 import { UserSummary } from '../../core/models/follow.model';
 import { Message } from '../../core/models/message.model';
 import { environment } from '../../../environments/environment';
+import { mensajeDeError } from '../../core/utils/http-error.util';
+import { fechaDelBackend } from '../../core/utils/fecha.util';
 
 @Component({
   selector: 'app-chat',
@@ -20,7 +22,8 @@ import { environment } from '../../../environments/environment';
 })
 export class ChatComponent implements OnInit, OnDestroy {
   loading = signal(true);
-  loadError = signal(false);
+  loadError = signal('');
+  conversationError = signal('');
 
   friends = signal<UserSummary[]>([]);
   activeFriend = signal<UserSummary | null>(null);
@@ -77,7 +80,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   private loadFriends(): void {
     this.loading.set(true);
-    this.loadError.set(false);
+    this.loadError.set('');
     forkJoin({
       following: this.followService.getFollowing(this.myId),
       followers: this.followService.getFollowers(this.myId)
@@ -91,9 +94,9 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.loading.set(false);
         this.openFromQueryParam();
       },
-      error: () => {
+      error: (e) => {
         this.loading.set(false);
-        this.loadError.set(true);
+        this.loadError.set(mensajeDeError(e, 'No se pudo cargar tu lista de amigos.'));
       }
     });
   }
@@ -117,8 +120,60 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.friends.update(current => [...current, summary]);
         this.openConversation(summary);
       },
-      error: () => {}
+      error: (e) => this.loadError.set(
+        mensajeDeError(e, 'No se pudo abrir esa conversación.'))
     });
+  }
+
+  /**
+   * Los mensajes agrupados por dia, para poder separarlos con su fecha. Sin esto
+   * una conversacion larga es un bloque continuo donde no se sabe si algo se
+   * dijo hoy o hace tres semanas.
+   */
+  readonly messageDays = computed(() => {
+    const dias: { clave: string; etiqueta: string; mensajes: Message[] }[] = [];
+
+    for (const mensaje of this.messages()) {
+      const clave = this.claveDeDia(fechaDelBackend(mensaje.sentAt));
+      const ultimo = dias[dias.length - 1];
+
+      if (ultimo && ultimo.clave === clave) {
+        ultimo.mensajes.push(mensaje);
+      } else {
+        dias.push({
+          clave,
+          etiqueta: this.etiquetaDeDia(fechaDelBackend(mensaje.sentAt)),
+          mensajes: [mensaje]
+        });
+      }
+    }
+
+    return dias;
+  });
+
+  hora(mensaje: Message): string {
+    return fechaDelBackend(mensaje.sentAt)
+      .toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  private claveDeDia(fecha: Date): string {
+    return `${fecha.getFullYear()}-${fecha.getMonth()}-${fecha.getDate()}`;
+  }
+
+  // "Hoy" y "Ayer" se leen mejor que la fecha completa, que es lo que uno busca
+  // al desplazarse hacia arriba en una conversacion. El anio solo aparece cuando
+  // no es el actual, para no repetirlo en cada separador.
+  private etiquetaDeDia(fecha: Date): string {
+    const hoy = new Date();
+    if (this.claveDeDia(fecha) === this.claveDeDia(hoy)) return 'Hoy';
+
+    const ayer = new Date(hoy);
+    ayer.setDate(hoy.getDate() - 1);
+    if (this.claveDeDia(fecha) === this.claveDeDia(ayer)) return 'Ayer';
+
+    return fecha.toLocaleDateString('es', fecha.getFullYear() === hoy.getFullYear()
+      ? { day: 'numeric', month: 'long' }
+      : { day: 'numeric', month: 'long', year: 'numeric' });
   }
 
   friendPhotoUrl(friend: UserSummary): string | null {
@@ -129,14 +184,17 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.activeFriend.set(friend);
     this.chatService.setActiveFriend(friend.id);
     this.messages.set([]);
+    this.conversationError.set('');
     this.loadingConversation.set(true);
     this.chatService.getConversation(this.myId, friend.id).subscribe({
       next: messages => {
         this.messages.set(messages);
         this.loadingConversation.set(false);
       },
-      error: () => {
+      error: (e) => {
         this.loadingConversation.set(false);
+        this.conversationError.set(
+          mensajeDeError(e, 'No se pudo cargar la conversación.'));
       }
     });
   }

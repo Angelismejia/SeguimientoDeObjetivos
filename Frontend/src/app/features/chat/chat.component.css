@@ -117,8 +117,35 @@
 .message-row { display: flex; }
 .message-row.mine { justify-content: flex-end; }
 
+/* Separador con la fecha del dia. Las lineas se estiran solas, asi que la
+   etiqueta puede ser "Hoy" o "24 de diciembre de 2025" sin descuadrar nada. */
+.day-separator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 4px;
+  color: #6b7280;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.day-separator::before,
+.day-separator::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.day-separator span { white-space: nowrap; }
+
 .message-bubble {
   max-width: 70%;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
   padding: 10px 14px;
   border-radius: 14px;
   background: #fff;
@@ -131,6 +158,17 @@
   background: linear-gradient(135deg, #4f46e5, #7c3aed);
   color: #fff;
 }
+
+/* La hora va alineada al final de la burbuja, apagada para que no compita con
+   el texto: se busca de reojo, no se lee. */
+.message-time {
+  align-self: flex-end;
+  font-size: 0.68rem;
+  line-height: 1;
+  opacity: 0.6;
+}
+
+.message-row.mine .message-time { opacity: 0.8; }
 
 .send-error {
   margin: 0;

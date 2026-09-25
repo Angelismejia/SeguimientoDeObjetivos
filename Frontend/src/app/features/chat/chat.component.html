@@ -12,7 +12,7 @@
       @if (loading()) {
         <p class="panel-empty">Cargando...</p>
       } @else if (loadError()) {
-        <p class="panel-empty error">No se pudo cargar tu lista de amigos.</p>
+        <p class="panel-empty error">{{ loadError() }}</p>
       } @else if (friends().length === 0) {
         <p class="panel-empty">Todavía no sigues a nadie. Agrega amigos desde tu perfil para poder chatear.</p>
       } @else {
@@ -60,13 +60,22 @@
         <div class="messages-list">
           @if (loadingConversation()) {
             <p class="panel-empty">Cargando mensajes...</p>
+          } @else if (conversationError()) {
+            <p class="panel-empty error">{{ conversationError() }}</p>
           } @else if (messages().length === 0) {
             <p class="panel-empty">Todavía no hay mensajes. ¡Escribí el primero!</p>
           } @else {
-            @for (message of messages(); track message.id) {
-              <div class="message-row" [class.mine]="isMine(message)">
-                <span class="message-bubble">{{ message.content }}</span>
-              </div>
+            @for (dia of messageDays(); track dia.clave) {
+              <div class="day-separator"><span>{{ dia.etiqueta }}</span></div>
+
+              @for (message of dia.mensajes; track message.id) {
+                <div class="message-row" [class.mine]="isMine(message)">
+                  <span class="message-bubble">
+                    <span class="message-text">{{ message.content }}</span>
+                    <span class="message-time">{{ hora(message) }}</span>
+                  </span>
+                </div>
+              }
             }
           }
         </div>
