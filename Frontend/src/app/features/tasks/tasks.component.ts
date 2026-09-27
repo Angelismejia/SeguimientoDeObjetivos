@@ -411,7 +411,12 @@ export class TasksComponent implements OnInit {
         }
       });
     } else {
-      const previousObjectiveId = this.allTasks().find(t => t.id === editingTaskId)?.objectiveId;
+      // La tarea previa hace falta entera, no solo su objectiveId: este PUT reemplaza
+      // la fila y el formulario no tiene campos para el recordatorio ni para la
+      // repeticion, asi que sin reenviarlos editar una tarea los borraba (la misma
+      // trampa que cuerpoDeActualizacion resuelve en las pantallas que solo marcan).
+      const previa = this.allTasks().find(t => t.id === editingTaskId);
+      const previousObjectiveId = previa?.objectiveId;
       this.taskService.update(editingTaskId, {
         title: v.title,
         description: v.description || undefined,
@@ -424,6 +429,9 @@ export class TasksComponent implements OnInit {
         status: v.status,
         isRecurring: v.isRecurring,
         recurrenceType: v.recurrenceType,
+        reminderMinutesBefore: previa?.reminderMinutesBefore,
+        repeatEveryWeeks: previa?.repeatEveryWeeks,
+        endRepeatDate: previa?.endRepeatDate,
         categoryId,
         objectiveId
       }).subscribe({
