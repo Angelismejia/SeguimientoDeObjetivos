@@ -314,11 +314,11 @@
       <form [formGroup]="changePasswordForm" (ngSubmit)="submitChangePassword()" class="edit-profile-form">
         <label class="field">
           <span>Contraseña actual</span>
-          <input type="password" formControlName="currentPassword" placeholder="Tu contraseña actual" />
+          <input type="password" formControlName="currentPassword" placeholder="Tu contraseña actual" maxlength="100" />
         </label>
         <label class="field">
           <span>Nueva contraseña</span>
-          <input type="password" formControlName="newPassword" placeholder="Mínimo 6 caracteres" />
+          <input type="password" formControlName="newPassword" placeholder="Mínimo 6 caracteres" maxlength="100" />
         </label>
 
         @if (changePasswordError()) {
