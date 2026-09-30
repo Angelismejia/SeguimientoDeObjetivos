@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   height: calc(100vh - 64px);
+  height: calc(100dvh - 64px);
   overflow: hidden;
   font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
 }
@@ -206,12 +207,48 @@
 .empty-icon { font-size: 56px; color: #c7d2fe; }
 
 /* ── RESPONSIVE ───────────────────────────────────────── */
+/* El chat es la unica pantalla que NO scrollea con la pagina: la lista de
+   mensajes scrollea por dentro y el formulario queda pegado abajo. Por eso el
+   alto se calcula a mano, y por eso cuando el calculo se pasa lo que se sale de
+   la pantalla es justo el formulario para escribir.
+
+   dvh en vez de vh: en el movil la barra de direcciones aparece y desaparece, y
+   vh mide siempre el viewport MAS GRANDE, asi que con vh el formulario quedaba
+   debajo del pliegue. La declaracion en vh queda arriba como reserva para los
+   navegadores que no entienden dvh. */
+@media (max-width: 1023px) {
+  /* Aca el shell pone header de 56px Y bottom-nav de 60px (que en pantallas con
+     notch crece con el safe-area). Antes se restaba solo 64px --y 60px por
+     debajo de 680px--, asi que el formulario terminaba tapado por la barra de
+     navegacion: se veian los mensajes pero no habia con que responder. */
+  .chat-page {
+    height: calc(100vh - 116px);
+    height: calc(100dvh - 116px - env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Menos margen interno para que el globo de texto gane ancho real. */
+  .messages-list { padding: 14px 12px; }
+  .conversation-header { padding: 12px 14px; }
+  .message-form { padding: 12px; gap: 8px; }
+  .message-bubble { max-width: 85%; }
+
+  /* 16px exactos: por debajo de eso Safari en iOS hace zoom al enfocar el campo
+     y descoloca toda la pantalla apenas empezas a escribir. */
+  .message-form input { font-size: 16px; padding: 11px 14px; }
+}
+
+/* Una sola columna: la lista de amigos y la conversacion se turnan la pantalla
+   en vez de encogerse hasta ser inusables. El boton de volver aparece solo aca,
+   que es donde hace falta para salir de la conversacion. */
 @media (max-width: 680px) {
-  .chat-page { height: calc(100vh - 60px); }
   .chat-body { position: relative; }
   .friends-panel { width: 100%; position: absolute; inset: 0; z-index: 1; }
   .conversation-panel { position: absolute; inset: 0; z-index: 2; }
   .friends-panel.hidden-mobile,
   .conversation-panel.hidden-mobile { display: none; }
   .btn-back { display: flex; }
+
+  /* El nombre del otro no puede empujar al boton de volver fuera de la pantalla. */
+  .conversation-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .conversation-header-link { min-width: 0; flex: 1; }
 }
