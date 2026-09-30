@@ -64,9 +64,9 @@ Frontend/
 
 ## 🛠️ Tecnologías
 
-**Backend**: ASP.NET Core 8, Entity Framework Core, SQL Server, SignalR, JWT Bearer Auth
+**Backend**: ASP.NET Core 8, Entity Framework Core, PostgreSQL (Supabase), SignalR, JWT Bearer Auth
 
-**Frontend**: Angular 21, Angular Material, Chart.js / ng2-charts, SignalR client, RxJS
+**Frontend**: Angular 21 (standalone), Chart.js / ng2-charts, SignalR client, RxJS
 
 ---
 
@@ -81,7 +81,9 @@ dotnet ef database update --project SeguimientoDeObjetivos.Infrastructure --star
 dotnet run --project SeguimientoDeObjetivos.Api
 ```
 
-Configurá la cadena de conexión a SQL Server en `SeguimientoDeObjetivos.Api/appsettings.json` antes de correr las migraciones.
+Configurá la cadena de conexión a PostgreSQL antes de correr las migraciones. El secreto del JWT **no se commitea**: en local se carga con `dotnet user-secrets set "Jwt:Secret" "<valor>"`, y la app falla al arrancar si falta, en vez de caer a un default inseguro.
+
+> Las migraciones no se aplican solas ni en el deploy ni en el CI. Si la base queda atrás respecto del modelo, todos los endpoints de esa entidad devuelven 500. Ver [OBSTACULOS.md](OBSTACULOS.md).
 
 ### Frontend
 
@@ -92,6 +94,14 @@ npm start
 ```
 
 La app queda disponible en `http://localhost:4200`. El dev server proxea `/api` y `/hubs` hacia `http://localhost:5015` (ver `Frontend/proxy.conf.json`), así que el backend tiene que estar corriendo en paralelo.
+
+---
+
+## 📚 Documentación
+
+- **[OBSTACULOS.md](OBSTACULOS.md)** — los problemas reales que aparecieron construyendo
+  esto y cómo se resolvieron: los IDOR que hubo que cerrar, por qué la racha se perdía
+  sola, el desfase de zona horaria, y qué tener en cuenta al tocar la base en producción.
 
 ---
 
