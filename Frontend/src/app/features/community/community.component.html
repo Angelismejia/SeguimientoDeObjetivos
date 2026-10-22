@@ -1,26 +1,80 @@
-<div class="construction-page">
-  <div class="construction-card">
-    <span class="material-icons-round construction-icon">construction</span>
+<div class="community-page">
+  <header class="community-header">
+    <h1>Comunidad</h1>
+    <p class="lead">Encuentra a otras personas que también están detrás de sus metas.</p>
+  </header>
 
-    <h1>Comunidad está en construcción</h1>
-    <p class="lead">
-      Estamos preparando este espacio para que puedas conectar con otras personas
-      que también están detrás de sus metas.
-    </p>
-
-    <p class="thanks">
-      Gracias por apoyar y usar mi app.<br />
-      Espero que cumplas tus metas y objetivos.
-      <span class="heart">Te quiero <span class="material-icons-round">favorite</span></span>
-    </p>
-
-    <div class="meanwhile">
-      <span class="meanwhile-label">Mientras tanto</span>
-      <p>Tus amigos, seguidores y rachas compartidas siguen en tu perfil.</p>
-      <a class="btn-main" routerLink="/profile" fragment="amigos">
-        <span class="material-icons-round">group</span>
-        Ir a mis amigos
-      </a>
+  <section class="card">
+    <div class="section-title">
+      <span class="material-icons-round">group_add</span>
+      <h2>Personas</h2>
     </div>
-  </div>
+
+    <label class="search">
+      <span class="material-icons-round">search</span>
+      <input
+        type="search"
+        placeholder="Buscar por nombre o usuario"
+        maxlength="50"
+        [value]="query()"
+        (input)="onSearch($event)"
+      />
+    </label>
+
+    @if (actionError()) {
+      <p class="form-error">{{ actionError() }}</p>
+    }
+
+    @if (loading()) {
+      <p class="status">Cargando personas...</p>
+    } @else if (loadError()) {
+      <div class="status">
+        <p class="form-error">{{ loadError() }}</p>
+        <button type="button" class="btn-secondary" (click)="load()">Reintentar</button>
+      </div>
+    } @else if (filtered().length === 0) {
+      <p class="status">
+        @if (query().trim()) { No se encontraron personas. } @else { Todavía no hay otras personas en la app. }
+      </p>
+    } @else {
+      <ul class="people">
+        @for (u of filtered(); track u.id) {
+          <li class="person">
+            <a class="person-link" [routerLink]="['/profile', u.id]">
+              @if (photoUrl(u); as src) {
+                <img [src]="src" alt="" class="avatar" />
+              } @else {
+                <span class="material-icons-round avatar avatar-empty">account_circle</span>
+              }
+              <span class="person-info">
+                <span class="person-name">{{ u.name }}</span>
+                <span class="person-username">&#64;{{ u.username }}</span>
+              </span>
+            </a>
+
+            @if (isFollowing(u.id)) {
+              <button type="button" class="btn-following" [disabled]="isPending(u.id)" (click)="askUnfollow(u)">
+                <span class="material-icons-round">check</span>
+                Siguiendo
+              </button>
+            } @else if (u.allowFollows) {
+              <button type="button" class="btn-follow" [disabled]="isPending(u.id)" (click)="follow(u)">Seguir</button>
+            } @else {
+              <span class="blocked">No permite seguidores</span>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </section>
 </div>
+
+<app-confirm-dialog
+  [open]="!!unfollowTarget()"
+  title="Dejar de seguir"
+  [message]="'¿Seguro que quieres dejar de seguir a &quot;' + (unfollowTarget()?.username ?? '') + '&quot;?'"
+  confirmText="Dejar de seguir"
+  [danger]="true"
+  (confirmed)="confirmUnfollow()"
+  (cancelled)="cancelUnfollow()"
+></app-confirm-dialog>
