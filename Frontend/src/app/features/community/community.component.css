@@ -166,6 +166,76 @@ button:disabled { opacity: 0.6; cursor: default; }
   color: #9ca3af;
 }
 
+.activity {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.activity-item {
+  padding: 14px 0;
+  border-top: 1px solid #f3f4f6;
+}
+.activity-item:first-child { border-top: none; }
+
+.activity-owner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  margin-bottom: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+.avatar-sm { width: 28px; height: 28px; }
+.avatar-sm.avatar-empty { font-size: 28px; }
+
+.activity-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.activity-title {
+  font-weight: 700;
+  color: #111827;
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+.chip {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #4b5563;
+}
+.chip-InProgress { background: #ede9fe; color: #5b21b6; }
+.chip-Completed { background: #dcfce7; color: #166534; }
+.chip-Cancelled { background: #fee2e2; color: #991b1b; }
+
+.progress {
+  height: 8px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+}
+.progress-label {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-align: right;
+}
+
 /* En pantallas chicas se aliviana el padding; el boton se queda al lado del
    nombre, que se corta con puntos suspensivos en vez de empujarlo fuera. */
 @media (max-width: 520px) {

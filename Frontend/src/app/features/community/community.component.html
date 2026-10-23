@@ -67,6 +67,46 @@
       </ul>
     }
   </section>
+
+  @if (!loading() && !loadError()) {
+    <section class="card">
+      <div class="section-title">
+        <span class="material-icons-round">bolt</span>
+        <h2>Actividad de quienes sigues</h2>
+      </div>
+
+      @if (activityLoading()) {
+        <p class="status">Cargando actividad...</p>
+      } @else if (followingIds().size === 0) {
+        <p class="status">Sigue a alguien para ver aquí sus objetivos.</p>
+      } @else if (activity().length === 0) {
+        <p class="status">Las personas que sigues todavía no tienen objetivos públicos.</p>
+      } @else {
+        <ul class="activity">
+          @for (item of activity(); track item.objective.id) {
+            <li class="activity-item">
+              <a class="activity-owner" [routerLink]="['/profile', item.owner.id]">
+                @if (photoUrl(item.owner); as src) {
+                  <img [src]="src" alt="" class="avatar avatar-sm" />
+                } @else {
+                  <span class="material-icons-round avatar avatar-sm avatar-empty">account_circle</span>
+                }
+                <span class="person-name">{{ item.owner.name }}</span>
+              </a>
+              <div class="activity-head">
+                <span class="activity-title">{{ item.objective.title }}</span>
+                <span [class]="'chip chip-' + item.objective.status">{{ statusLabel(item.objective.status) }}</span>
+              </div>
+              <div class="progress" role="progressbar" [attr.aria-valuenow]="item.objective.progressPercentage" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-fill" [style.width.%]="item.objective.progressPercentage"></div>
+              </div>
+              <span class="progress-label">{{ item.objective.progressPercentage }}%</span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
 </div>
 
 <app-confirm-dialog
