@@ -126,15 +126,37 @@ El navegador interpreta una fecha sin zona como **hora local**. Como el valor gu
 es UTC, cada hora que muestra la app queda corrida por el desfase de la zona: un
 mensaje enviado a las 16:40 se ve como enviado a las 20:40.
 
-**El estado actual.** El contrato quedó fijado por tests (`FechasQueViajanAlFrontTests`)
-y el frontend tiene `fechaDelBackend()` en `core/utils/fecha.util.ts`, que agrega la
-`Z` solo si el texto no trae ya una zona —así sigue funcionando el día que el backend
-empiece a mandarla—. **Por ahora lo usa únicamente el chat**; el resto de las pantallas
-todavía formatea la fecha cruda con el `DatePipe` y sigue mostrando las horas corridas.
-Aplicarlo en todas es trabajo pendiente.
+**La solución, en tres capas.** Lo que hace que esto sea delicado es que no todas las
+columnas `DateTime` son instantes: `ScheduledDate`, `EntryDate`, `StartDate`, `EndDate`,
+`EndRepeatDate` y `TaskCompletions.Date` representan **un día**, no un momento. Marcar
+una de esas como UTC la corre de día: un `2026-09-30T00:00:00` se muestra como *29 de
+septiembre a las 20:00* en UTC-4, y las tareas y el diario se irían al día anterior. Por
+eso ninguna de las tres capas usa una regla global; las tres distinguen instante de día.
 
-La alternativa de fondo —pasar las columnas a `timestamptz`— exige una migración sobre
-la base de producción, y por eso no se tomó a la ligera (ver sección 6).
+1. **La base dice que es UTC.** Las 21 columnas de instante pasaron a
+   `timestamp with time zone` (migración `FechasDeInstanteConZonaHoraria`). Npgsql las
+   devuelve con `Kind = Utc` y el JSON sale con la `Z` sin que nadie se acuerde. Las 6
+   columnas de día se quedan sin zona, a propósito, y están listadas en `FechasDeUnDia`
+   dentro de `ApplicationDbContext`.
+2. **La API la manda igual aunque la base no lo diga.** Los instantes de los DTOs llevan
+   `[JsonConverter(typeof(InstanteUtcJsonConverter))]`. Esto importa porque la migración
+   se aplica a mano: si la base va atrás, la API sigue respondiendo bien. Va propiedad
+   por propiedad justamente para no tocar las fechas de día.
+3. **El frontend la agrega si falta.** `fechaDelBackend()` en `core/utils/fecha.util.ts`
+   pone la `Z` solo cuando el texto no trae zona, y deja intactas las fechas sin hora.
+   Lo usan el chat y las alertas, que son los dos únicos lugares de la app que muestran
+   una hora.
+
+Las tres capas son redundantes a propósito: cada una sola arregla el síntoma, pero juntas
+el valor es correcto en cualquier combinación de versiones de base, API y frontend.
+
+El contrato está fijado por tests de los dos lados. El guard que más vale es
+`Una_fecha_suelta_NO_lleva_la_Z_aunque_este_al_lado_de_un_instante`: serializa un `TaskDto`
+y exige que `ScheduledDate` salga sin `Z` mientras `CreatedAt` sí la lleva.
+
+**Ojo al desplegar:** el modelo ahora espera columnas con zona, así que la migración y el
+deploy van juntos. Si el código sube y la migración no se aplicó, la base y el modelo no
+coinciden (ver sección 6).
 
 **Lo aprendido.**
 "Guardar en UTC" solo es media decisión. La otra mitad es **decir que es UTC** en el
@@ -238,7 +260,6 @@ su propia cola de detalles:
 
 ## Qué queda abierto
 
-- Aplicar `fechaDelBackend()` en todas las pantallas, no solo en el chat (sección 3).
 - La preferencia de tema claro/oscuro se guarda en la base y se lee de vuelta, pero
   **ningún CSS reacciona a ella**: el interruptor del perfil no cambia nada en
   pantalla.
