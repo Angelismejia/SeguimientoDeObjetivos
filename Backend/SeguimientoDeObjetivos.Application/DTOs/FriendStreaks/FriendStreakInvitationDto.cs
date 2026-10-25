@@ -1,3 +1,5 @@
+using Application.Common;
+using System.Text.Json.Serialization;
 namespace Application.DTOs.FriendStreaks
 {
     public class FriendStreakInvitationDto
@@ -9,6 +11,7 @@ namespace Application.DTOs.FriendStreaks
         public string? FromProfilePhotoUrl { get; set; }
         public int ToUserId { get; set; }
         public string Status { get; set; } = string.Empty;
+        [JsonConverter(typeof(InstanteUtcJsonConverter))]
         public DateTime CreatedAt { get; set; }
     }
 }

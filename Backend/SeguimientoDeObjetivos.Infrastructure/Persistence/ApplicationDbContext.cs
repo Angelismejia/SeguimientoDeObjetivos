@@ -55,6 +55,25 @@ namespace Infrastructure.Persistence
         /// de que huso. Reproducir esa conducta es lo correcto en una migracion: los
         /// valores que ya estan en la base fueron escritos con esa semantica.
         /// </remarks>
+        /// <summary>
+        /// Las propiedades DateTime que representan un DIA y no un instante. Se
+        /// quedan en "timestamp without time zone" a proposito: pasarlas a una
+        /// columna con zona las reinterpretaria como UTC y las correria de dia
+        /// —un 2026-09-30 se volveria 29 de septiembre 20:00 en UTC-4—, moviendo
+        /// las tareas y las entradas del diario al dia anterior.
+        ///
+        /// TaskCompletion.Date no esta aca porque ya se declara como "date" a mano.
+        /// </summary>
+        private static readonly HashSet<string> FechasDeUnDia = new()
+        {
+            $"{nameof(DiaryEntry)}.{nameof(DiaryEntry.EntryDate)}",
+            $"{nameof(Objective)}.{nameof(Objective.StartDate)}",
+            $"{nameof(Objective)}.{nameof(Objective.EndDate)}",
+            $"{nameof(Streak)}.{nameof(Streak.LastCompletedDate)}",
+            $"{nameof(TaskItem)}.{nameof(TaskItem.ScheduledDate)}",
+            $"{nameof(TaskItem)}.{nameof(TaskItem.EndRepeatDate)}",
+        };
+
         private static readonly ValueConverter<DateTime, DateTime> SinZonaHoraria =
             new(alGuardar => DateTime.SpecifyKind(alGuardar, DateTimeKind.Unspecified),
                 alLeer => DateTime.SpecifyKind(alLeer, DateTimeKind.Unspecified));
@@ -81,15 +100,32 @@ namespace Infrastructure.Persistence
 
                     if (tipo == typeof(DateTime))
                     {
-                        property.SetColumnType("timestamp without time zone");
+                        if (FechasDeUnDia.Contains($"{entity.ClrType.Name}.{property.Name}"))
+                        {
+                            property.SetColumnType("timestamp without time zone");
 
-                        // Elegir el tipo de columna no alcanza: Npgsql igual se niega a
-                        // escribir un DateTime con Kind=Utc en una columna sin zona
-                        // horaria, y las entidades nacen con DateTime.UtcNow. Sin este
-                        // conversor, leer funciona pero CUALQUIER insercion falla.
-                        property.SetValueConverter(property.ClrType == typeof(DateTime)
-                            ? SinZonaHoraria
-                            : SinZonaHorariaNullable);
+                            // Elegir el tipo de columna no alcanza: Npgsql igual se niega
+                            // a escribir un DateTime con Kind=Utc en una columna sin zona
+                            // horaria. Sin este conversor, leer funciona pero CUALQUIER
+                            // insercion falla.
+                            property.SetValueConverter(property.ClrType == typeof(DateTime)
+                                ? SinZonaHoraria
+                                : SinZonaHorariaNullable);
+                        }
+                        else
+                        {
+                            // Los instantes SI llevan zona. Asi la base guarda que el
+                            // valor es UTC, Npgsql lo devuelve con Kind=Utc y el JSON
+                            // sale con la Z sin que nadie tenga que acordarse.
+                            //
+                            // Va sin conversor a proposito: Npgsql exige Kind=Utc para
+                            // esta columna, y es justo lo que llega, porque todos los
+                            // instantes nacen de DateTime.UtcNow. Si alguien guardara
+                            // aqui un valor de AppClock (hora local) fallaria al escribir
+                            // en vez de corromper el dato en silencio, que es lo que se
+                            // quiere.
+                            property.SetColumnType("timestamp with time zone");
+                        }
                     }
                     else if (tipo == typeof(TimeSpan))
                         // Son horas del dia (ScheduledTime, EndTime), no duraciones:

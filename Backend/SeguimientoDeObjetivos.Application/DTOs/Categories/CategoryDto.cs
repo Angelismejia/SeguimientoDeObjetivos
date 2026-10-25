@@ -1,3 +1,5 @@
+using Application.Common;
+using System.Text.Json.Serialization;
 namespace Application.DTOs.Categories
 {
     public class CategoryDto
@@ -8,6 +10,7 @@ namespace Application.DTOs.Categories
         public string? Icon { get; set; }
         public bool IsDefault { get; set; }
         public int UserId { get; set; }
+        [JsonConverter(typeof(InstanteUtcJsonConverter))]
         public DateTime CreatedAt { get; set; }
     }
 }

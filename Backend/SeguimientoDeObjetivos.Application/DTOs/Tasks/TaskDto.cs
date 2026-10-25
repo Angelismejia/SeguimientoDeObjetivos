@@ -1,3 +1,5 @@
+using Application.Common;
+using System.Text.Json.Serialization;
 using Domain.Enums;
 
 namespace Application.DTOs.Tasks
@@ -22,8 +24,11 @@ namespace Application.DTOs.Tasks
         public int UserId { get; set; }
         public int? ObjectiveId { get; set; }
         public int? CategoryId { get; set; }
+        [JsonConverter(typeof(InstanteUtcJsonConverter))]
         public DateTime CreatedAt { get; set; }
+        [JsonConverter(typeof(InstanteUtcNullableJsonConverter))]
         public DateTime? UpdatedAt { get; set; }
+        [JsonConverter(typeof(InstanteUtcNullableJsonConverter))]
         public DateTime? CompletedAt { get; set; }
 
         // Dias en que se completo, solo para tareas recurrentes. Las de un solo dia

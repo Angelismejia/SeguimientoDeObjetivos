@@ -1,3 +1,5 @@
+using Application.Common;
+using System.Text.Json.Serialization;
 using Application.DTOs.Badges;
 using Application.DTOs.Categories;
 using Application.DTOs.DiaryEntries;
@@ -8,6 +10,7 @@ namespace Application.DTOs.Users
 {
     public class UserDataExportDto
     {
+        [JsonConverter(typeof(InstanteUtcJsonConverter))]
         public DateTime ExportedAt { get; set; } = DateTime.UtcNow;
         public UserDto User { get; set; } = null!;
         public IEnumerable<CategoryDto> Categories { get; set; } = Array.Empty<CategoryDto>();

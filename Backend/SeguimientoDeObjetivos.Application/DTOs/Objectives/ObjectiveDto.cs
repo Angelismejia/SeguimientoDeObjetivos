@@ -1,3 +1,5 @@
+using Application.Common;
+using System.Text.Json.Serialization;
 using Domain.Enums;
 
 namespace Application.DTOs.Objectives
@@ -18,7 +20,9 @@ namespace Application.DTOs.Objectives
 
         // Con cuantas tareas el usuario dijo "todavia no" a darlo por terminado.
         public int? CompletionAskedAtTaskCount { get; set; }
+        [JsonConverter(typeof(InstanteUtcJsonConverter))]
         public DateTime CreatedAt { get; set; }
+        [JsonConverter(typeof(InstanteUtcNullableJsonConverter))]
         public DateTime? UpdatedAt { get; set; }
     }
 }
