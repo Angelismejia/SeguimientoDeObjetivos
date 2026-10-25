@@ -30,7 +30,7 @@
           <div class="notification-main">
             <span class="notification-title">{{ n.title }}</span>
             <span class="notification-message">{{ n.message }}</span>
-            <span class="notification-date">{{ n.createdAt | date: 'd MMM, HH:mm' }}</span>
+            <span class="notification-date">{{ cuando(n) | date: 'd MMM, HH:mm' }}</span>
           </div>
           <button type="button" class="btn-icon-only" (click)="delete(n); $event.stopPropagation()" title="Eliminar">
             <span class="material-icons-round">delete</span>

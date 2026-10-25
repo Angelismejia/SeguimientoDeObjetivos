@@ -4,6 +4,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { Notification } from '../../core/models/notification.model';
 import { mensajeDeError } from '../../core/utils/http-error.util';
+import { fechaDelBackend } from '../../core/utils/fecha.util';
 
 @Component({
   selector: 'app-notifications',
@@ -76,6 +77,13 @@ export class NotificationsComponent implements OnInit {
       },
       error: (e) => this.actionError.set(mensajeDeError(e, 'No se pudo borrar la alerta.'))
     });
+  }
+
+  // createdAt es un instante, no un dia: pasa por fechaDelBackend para que la
+  // hora no quede corrida si el JSON llega sin la Z. El backend ya la manda, pero
+  // el helper lo deja igual, asi que esto sigue siendo correcto en ambos casos.
+  cuando(notification: Notification): Date {
+    return fechaDelBackend(notification.createdAt);
   }
 
   iconFor(notification: Notification): string {
