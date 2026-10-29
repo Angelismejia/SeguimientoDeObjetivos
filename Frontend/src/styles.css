@@ -1,9 +1,108 @@
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
 
+/* ── Tema claro/oscuro ──────────────────────────────────
+   Las hojas de los componentes no usan colores fijos para fondos, bordes y
+   textos: usan estas variables. Los valores claros son los mismos colores que
+   habia antes escritos a mano, asi que el modo claro se ve igual que siempre.
+   ThemeService pone data-theme="dark" en <html> y aca cambian todas juntas.
+   Los colores de marca (los fondos violeta/indigo de botones y tarjetas) no
+   tienen variable: se ven bien en los dos temas. La landing y el login quedan
+   fuera a proposito: se ven antes de saber que tema eligio el usuario. */
+:root {
+  --fondo: #fff;
+  --superficie: #fff;
+  --superficie-2: #f9fafb;
+  --superficie-3: #f3f4f6;
+  --pista: #e5e7eb;
+  --pista-fuerte: #d1d5db;
+  --pista-tenue: #9ca3af;
+
+  --borde: #e5e7eb;
+  --borde-suave: #f3f4f6;
+  --borde-fuerte: #d1d5db;
+  --borde-primario: #ddd6fe;
+  --borde-peligro: #fecaca;
+
+  --texto: #111827;
+  --texto-2: #374151;
+  --texto-3: #4b5563;
+  --texto-suave: #6b7280;
+  --texto-tenue: #9ca3af;
+  --texto-deshabilitado: #e5e7eb;
+
+  --primario-texto: #4f46e5;
+  --violeta-texto: #7c3aed;
+  --peligro-texto: #dc2626;
+  --exito-texto: #16a34a;
+  --aviso-texto: #ea580c;
+  --info-texto: #1d4ed8;
+
+  --tinte-primario: #ede9fe;
+  --tinte-primario-fuerte: #ddd6fe;
+  --tinte-peligro: #fee2e2;
+  --tinte-exito: #dcfce7;
+  --tinte-aviso: #fff7ed;
+  --tinte-aviso-fuerte: #fde68a;
+}
+
+/* En oscuro los tintes pasan a ser transparencias del mismo color: un lila
+   pastel macizo encandila sobre fondo oscuro. Los textos de color se aclaran
+   para que no se pierdan contra la superficie. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --fondo: #111827;
+  --superficie: #1f2937;
+  --superficie-2: #1a2332;
+  --superficie-3: #2b3646;
+  --pista: #374151;
+  --pista-fuerte: #4b5563;
+  --pista-tenue: #6b7280;
+
+  --borde: #374151;
+  --borde-suave: #2b3646;
+  --borde-fuerte: #4b5563;
+  --borde-primario: rgba(129, 140, 248, 0.35);
+  --borde-peligro: rgba(248, 113, 113, 0.35);
+
+  --texto: #f3f4f6;
+  --texto-2: #d1d5db;
+  --texto-3: #c3c9d3;
+  --texto-suave: #9ca3af;
+  --texto-tenue: #7d8696;
+  --texto-deshabilitado: #4b5563;
+
+  --primario-texto: #a5b4fc;
+  --violeta-texto: #c4b5fd;
+  --peligro-texto: #f87171;
+  --exito-texto: #4ade80;
+  --aviso-texto: #fb923c;
+  --info-texto: #93c5fd;
+
+  --tinte-primario: rgba(129, 140, 248, 0.16);
+  --tinte-primario-fuerte: rgba(129, 140, 248, 0.28);
+  --tinte-peligro: rgba(248, 113, 113, 0.15);
+  --tinte-exito: rgba(74, 222, 128, 0.14);
+  --tinte-aviso: rgba(251, 146, 60, 0.14);
+  --tinte-aviso-fuerte: rgba(251, 191, 36, 0.28);
+}
+
 html, body {
   height: 100%;
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+body {
+  background: var(--fondo);
+  color: var(--texto);
+}
+
+/* Los inputs que no declaran fondo propio usan el del navegador; color-scheme
+   ya los oscurece, pero asi quedan del mismo tono que las tarjetas. */
+:root[data-theme="dark"] :is(input, textarea, select) {
+  background-color: var(--superficie);
+  color: var(--texto);
 }
 
 /* El drawer de navegación mobile (mobile-drawer.component.ts) agrega esta
