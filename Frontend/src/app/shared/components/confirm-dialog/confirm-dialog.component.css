@@ -10,7 +10,7 @@
 }
 
 .dialog-card {
-  background: #fff;
+  background: var(--superficie);
   border-radius: 14px;
   padding: 24px;
   max-width: 380px;
@@ -23,12 +23,12 @@
   margin: 0 0 8px;
   font-size: 1.1rem;
   font-weight: 800;
-  color: #111827;
+  color: var(--texto);
 }
 
 .dialog-message {
   margin: 0 0 20px;
-  color: #6b7280;
+  color: var(--texto-suave);
   font-size: 0.9rem;
   line-height: 1.4;
 }
@@ -49,10 +49,10 @@
 }
 
 .btn-cancel {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--superficie-3);
+  color: var(--texto-2);
 }
-.btn-cancel:hover { background: #e5e7eb; }
+.btn-cancel:hover { background: var(--pista); }
 
 .btn-confirm {
   background: linear-gradient(135deg, #4f46e5, #7c3aed);

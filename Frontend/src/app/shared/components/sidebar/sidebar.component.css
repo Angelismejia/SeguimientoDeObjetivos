@@ -56,7 +56,7 @@ a { text-decoration: none; }
   content: '';
   position: absolute; left: -12px; top: 50%; transform: translateY(-50%);
   width: 3px; height: 18px; border-radius: 0 3px 3px 0;
-  background: #fff;
+  background: var(--superficie);
 }
 
 .sidebar-account { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; width: 100%; }
