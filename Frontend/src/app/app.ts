@@ -11,6 +11,7 @@ import { NotificationService } from './core/services/notification.service';
 import { UserService } from './core/services/user.service';
 import { environment } from '../environments/environment';
 import { ChatService } from './core/services/chat.service';
+import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -27,12 +28,15 @@ export class App {
   protected readonly drawerOpen = signal(false);
 
   private apiOrigin = environment.apiUrl.replace('/api', '');
+  // El tema se pide al backend una vez por sesion, no en cada navegacion.
+  private temaSincronizado = false;
 
   constructor(
     private router: Router,
     private authService: AuthService,
     private notificationService: NotificationService,
     private userService: UserService,
+    private themeService: ThemeService,
     protected chatService: ChatService
   ) {
     this.updateNavbarVisibility();
@@ -75,6 +79,7 @@ export class App {
     this.userName.set(this.authService.getName());
 
     if (loggedIn) {
+      this.sincronizarTema();
       this.chatService.connect();
       this.userService.getById(this.authService.getUserId()).subscribe({
         next: user => this.userPhotoUrl.set(user.profilePhotoUrl ? this.apiOrigin + user.profilePhotoUrl : null),
@@ -82,7 +87,21 @@ export class App {
       });
     } else {
       this.userPhotoUrl.set(null);
+      this.temaSincronizado = false;
+      this.themeService.quitar();
     }
+  }
+
+  // Primero el tema guardado en el navegador, para no mostrar un destello claro
+  // mientras responde el backend; despues el del backend, que manda (puede
+  // haberse cambiado desde otro dispositivo).
+  private sincronizarTema(): void {
+    if (this.temaSincronizado) return;
+    this.temaSincronizado = true;
+    this.themeService.aplicarGuardado();
+    this.themeService.getTheme(this.authService.getUserId()).subscribe({
+      error: () => { this.temaSincronizado = false; }
+    });
   }
 
   private refreshUnreadCount(): void {
