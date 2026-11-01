@@ -6,15 +6,15 @@
 }
 
 .page-header { margin-bottom: 24px; }
-.page-header h1 { font-size: 1.7rem; font-weight: 800; color: #111827; margin: 0 0 4px; }
-.page-header p { color: #6b7280; margin: 0; }
+.page-header h1 { font-size: 1.7rem; font-weight: 800; color: var(--texto); margin: 0 0 4px; }
+.page-header p { color: var(--texto-suave); margin: 0; }
 
-.state-msg { padding: 40px; text-align: center; color: #6b7280; }
-.state-msg.error { color: #dc2626; }
+.state-msg { padding: 40px; text-align: center; color: var(--texto-suave); }
+.state-msg.error { color: var(--peligro-texto); }
 
 .empty-state {
   display: flex; flex-direction: column; align-items: center; gap: 12px;
-  padding: 60px 20px; text-align: center; color: #6b7280;
+  padding: 60px 20px; text-align: center; color: var(--texto-suave);
 }
 .empty-icon { font-size: 48px; color: #c7d2fe; }
 
@@ -27,7 +27,7 @@
 
 .badge-card {
   display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;
-  background: #fff; border-radius: 14px; padding: 20px 14px;
+  background: var(--superficie); border-radius: 14px; padding: 20px 14px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.06);
   opacity: 0.55;
 }
@@ -36,12 +36,12 @@
 .badge-icon {
   width: 56px; height: 56px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  background: #f3f4f6; color: #9ca3af;
+  background: var(--superficie-3); color: var(--texto-tenue);
 }
 .badge-card.earned .badge-icon {
   background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff;
 }
 .badge-icon .material-icons-round { font-size: 26px; }
 
-.badge-name { font-size: 0.86rem; font-weight: 700; color: #111827; }
-.badge-description { font-size: 0.74rem; color: #6b7280; }
+.badge-name { font-size: 0.86rem; font-weight: 700; color: var(--texto); }
+.badge-description { font-size: 0.74rem; color: var(--texto-suave); }
