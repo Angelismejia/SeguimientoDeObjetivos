@@ -13,8 +13,8 @@
   flex-wrap: wrap;
   margin-bottom: 24px;
 }
-.page-header h1 { font-size: 1.7rem; font-weight: 800; color: #111827; margin: 0 0 4px; }
-.page-header p { color: #6b7280; margin: 0; }
+.page-header h1 { font-size: 1.7rem; font-weight: 800; color: var(--texto); margin: 0 0 4px; }
+.page-header p { color: var(--texto-suave); margin: 0; }
 
 .btn-main {
   padding: 12px 20px;
@@ -33,12 +33,12 @@
 .btn-main:hover { opacity: 0.9; }
 .btn-icon { font-size: 20px; }
 
-.state-msg { padding: 40px; text-align: center; color: #6b7280; }
-.state-msg.error { color: #dc2626; }
+.state-msg { padding: 40px; text-align: center; color: var(--texto-suave); }
+.state-msg.error { color: var(--peligro-texto); }
 
 .empty-state {
   display: flex; flex-direction: column; align-items: center; gap: 12px;
-  padding: 60px 20px; text-align: center; color: #6b7280;
+  padding: 60px 20px; text-align: center; color: var(--texto-suave);
 }
 .empty-icon { font-size: 48px; color: #c7d2fe; }
 
@@ -49,7 +49,7 @@
 }
 
 .category-card {
-  background: #fff;
+  background: var(--superficie);
   border-radius: 14px;
   padding: 16px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.06);
@@ -64,17 +64,17 @@
 }
 .category-icon .material-icons-round { font-size: 20px; }
 
-.category-name { font-size: 0.9rem; font-weight: 700; color: #111827; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.category-name { font-size: 0.9rem; font-weight: 700; color: var(--texto); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .category-actions { display: inline-flex; gap: 6px; flex-shrink: 0; }
 .btn-icon-only {
-  border: none; background: #f3f4f6; color: #4b5563;
+  border: none; background: var(--superficie-3); color: var(--texto-3);
   border-radius: 8px; width: 28px; height: 28px;
   display: inline-flex; align-items: center; justify-content: center;
   cursor: pointer;
 }
-.btn-icon-only:hover { background: #e5e7eb; }
-.btn-icon-only.danger:hover { background: #fee2e2; color: #dc2626; }
+.btn-icon-only:hover { background: var(--pista); }
+.btn-icon-only.danger:hover { background: var(--tinte-peligro); color: var(--peligro-texto); }
 .btn-icon-only .material-icons-round { font-size: 16px; }
 
 /* ── MODAL: formulario de categoría ────────────────────── */
@@ -85,17 +85,17 @@
   z-index: 1000; padding: 16px;
 }
 .dialog-card {
-  background: #fff; border-radius: 14px; padding: 24px;
+  background: var(--superficie); border-radius: 14px; padding: 24px;
   max-width: 440px; width: 100%; max-height: 90vh; overflow-y: auto;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
 }
-.dialog-title { margin: 0 0 16px; font-size: 1.1rem; font-weight: 800; color: #111827; }
+.dialog-title { margin: 0 0 16px; font-size: 1.1rem; font-weight: 800; color: var(--texto); }
 
 .category-form { display: flex; flex-direction: column; gap: 16px; }
-.field { display: flex; flex-direction: column; gap: 8px; font-size: 0.8rem; font-weight: 600; color: #374151; }
+.field { display: flex; flex-direction: column; gap: 8px; font-size: 0.8rem; font-weight: 600; color: var(--texto-2); }
 .field input[type="text"] {
   font-family: inherit; font-size: 0.9rem; font-weight: 400;
-  padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 8px; color: #111827;
+  padding: 10px 12px; border: 1px solid var(--borde); border-radius: 8px; color: var(--texto);
 }
 .field input:focus { outline: none; border-color: #818cf8; }
 
@@ -108,7 +108,7 @@
   width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent;
   cursor: pointer; padding: 0;
 }
-.color-swatch.selected { border-color: #111827; }
+.color-swatch.selected { border-color: var(--texto); }
 
 .icon-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
@@ -116,27 +116,27 @@
 }
 .icon-option {
   width: 38px; height: 38px; border-radius: 8px;
-  border: 1px solid #e5e7eb; background: #fff; color: #4b5563;
+  border: 1px solid var(--borde); background: var(--superficie); color: var(--texto-3);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
 }
-.icon-option:hover { background: #f3f4f6; }
-.icon-option.selected { background: #ede9fe; border-color: #7c3aed; color: #7c3aed; }
+.icon-option:hover { background: var(--superficie-3); }
+.icon-option.selected { background: var(--tinte-primario); border-color: #7c3aed; color: var(--violeta-texto); }
 .icon-option .material-icons-round { font-size: 18px; }
 
 .preview-row {
   display: flex; align-items: center; gap: 10px;
-  font-size: 0.8rem; font-weight: 600; color: #6b7280;
-  padding-top: 4px; border-top: 1px solid #f3f4f6;
+  font-size: 0.8rem; font-weight: 600; color: var(--texto-suave);
+  padding-top: 4px; border-top: 1px solid var(--borde-suave);
 }
-.preview-name { color: #111827; font-weight: 700; }
+.preview-name { color: var(--texto); font-weight: 700; }
 
-.form-error { color: #dc2626; font-size: 0.85rem; margin: 0; }
+.form-error { color: var(--peligro-texto); font-size: 0.85rem; margin: 0; }
 
 .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
 .dialog-actions button { border: none; border-radius: 8px; padding: 10px 18px; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
-.btn-cancel { background: #f3f4f6; color: #374151; }
-.btn-cancel:hover { background: #e5e7eb; }
+.btn-cancel { background: var(--superficie-3); color: var(--texto-2); }
+.btn-cancel:hover { background: var(--pista); }
 .btn-confirm { background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff; }
 .btn-confirm:hover { opacity: 0.9; }
 .btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; }

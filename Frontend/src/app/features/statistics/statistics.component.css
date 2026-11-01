@@ -16,11 +16,11 @@
 .page-header h1 {
   font-size: 1.6rem;
   font-weight: 800;
-  color: #111827;
+  color: var(--texto);
   margin: 0 0 4px;
 }
 .page-header p {
-  color: #6b7280;
+  color: var(--texto-suave);
   margin: 0;
   font-size: 0.9rem;
 }
@@ -28,7 +28,7 @@
 .period-switch {
   display: flex;
   gap: 2px;
-  background: #f3f4f6;
+  background: var(--superficie-3);
   border-radius: 10px;
   padding: 3px;
 }
@@ -39,28 +39,28 @@
   border-radius: 8px;
   font-size: 0.82rem;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--texto-suave);
   cursor: pointer;
   white-space: nowrap;
 }
 .period-switch button.active {
-  background: #fff;
-  color: #4f46e5;
+  background: var(--superficie);
+  color: var(--primario-texto);
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 
 .state-msg {
   text-align: center;
   padding: 60px 20px;
-  color: #6b7280;
+  color: var(--texto-suave);
   font-size: 0.95rem;
 }
 .state-msg.error {
-  color: #dc2626;
+  color: var(--peligro-texto);
 }
 
 .panel {
-  background: #fff;
+  background: var(--superficie);
   border-radius: 14px;
   padding: 20px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.06);
@@ -78,28 +78,28 @@
 .panel h2 {
   font-size: 1rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--texto);
   margin: 0;
 }
 .panel-link {
   font-size: 0.82rem;
   font-weight: 600;
-  color: #4f46e5;
+  color: var(--primario-texto);
   text-decoration: none;
 }
 .panel-caption {
-  color: #6b7280;
+  color: var(--texto-suave);
   font-size: 0.8rem;
 }
 .panel-empty {
-  color: #9ca3af;
+  color: var(--texto-tenue);
   font-size: 0.88rem;
   padding: 20px 0;
   text-align: center;
 }
 .panel-note {
   margin: 14px 0 0;
-  color: #9ca3af;
+  color: var(--texto-tenue);
   font-size: 0.76rem;
   line-height: 1.4;
 }
@@ -115,10 +115,10 @@
 .progress-pct {
   font-size: 2rem;
   font-weight: 800;
-  color: #111827;
+  color: var(--texto);
 }
 .progress-label {
-  color: #6b7280;
+  color: var(--texto-suave);
   font-size: 0.85rem;
 }
 .progress-delta {
@@ -132,9 +132,9 @@
 .progress-delta .material-icons-round {
   font-size: 1rem;
 }
-.progress-delta.up { color: #0ca30c; }
-.progress-delta.down { color: #d03b3b; }
-.progress-delta.flat { color: #9ca3af; }
+.progress-delta.up { color: var(--exito-texto); }
+.progress-delta.down { color: var(--peligro-texto); }
+.progress-delta.flat { color: var(--texto-tenue); }
 
 .chart-wrap {
   position: relative;
@@ -160,7 +160,7 @@
 .heatmap-month {
   width: 13px;
   font-size: 0.68rem;
-  color: #9ca3af;
+  color: var(--texto-tenue);
   text-transform: capitalize;
   white-space: nowrap;
 }
@@ -177,10 +177,10 @@
   width: 13px;
   height: 13px;
   border-radius: 3px;
-  background: #eef0f4;
+  background: var(--superficie-3);
 }
 .heatmap-cell.empty {
-  box-shadow: inset 0 0 0 1px #e0e2e8;
+  box-shadow: inset 0 0 0 1px var(--borde);
 }
 .heatmap-cell.future {
   visibility: hidden;
@@ -197,14 +197,14 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  background: #f9fafb;
+  background: var(--superficie-2);
   border-radius: 10px;
   padding: 12px 8px;
   text-align: center;
 }
 .streak-icon { font-size: 1.1rem; }
-.streak-value { font-weight: 800; color: #111827; font-size: 0.95rem; }
-.streak-label { color: #6b7280; font-size: 0.72rem; }
+.streak-value { font-weight: 800; color: var(--texto); font-size: 0.95rem; }
+.streak-label { color: var(--texto-suave); font-size: 0.72rem; }
 
 /* ── Rendimiento de objetivos ─────────────────────────────── */
 .objective-perf-list {
@@ -223,16 +223,16 @@
   font-size: 0.88rem;
 }
 .objective-perf-title {
-  color: #111827;
+  color: var(--texto);
   font-weight: 600;
 }
 .objective-perf-pct {
-  color: #4f46e5;
+  color: var(--primario-texto);
   font-weight: 700;
 }
 .progress-track {
   height: 8px;
-  background: #eef0f4;
+  background: var(--superficie-3);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -264,12 +264,12 @@
 .insight-title {
   display: block;
   font-weight: 700;
-  color: #111827;
+  color: var(--texto);
   font-size: 0.88rem;
 }
 .insight-body {
   margin: 2px 0 0;
-  color: #6b7280;
+  color: var(--texto-suave);
   font-size: 0.82rem;
   line-height: 1.4;
 }
@@ -281,7 +281,7 @@
   gap: 12px;
 }
 .summary-stat {
-  background: #f9fafb;
+  background: var(--superficie-2);
   border-radius: 10px;
   padding: 14px;
   text-align: center;
@@ -289,11 +289,11 @@
 .summary-value {
   display: block;
   font-weight: 800;
-  color: #111827;
+  color: var(--texto);
   font-size: 1.15rem;
 }
 .summary-label {
-  color: #6b7280;
+  color: var(--texto-suave);
   font-size: 0.72rem;
 }
 

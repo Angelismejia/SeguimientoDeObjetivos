@@ -16,11 +16,11 @@
 .page-header h1 {
   font-size: 1.6rem;
   font-weight: 800;
-  color: #111827;
+  color: var(--texto);
   margin: 0 0 4px;
 }
 .page-header p {
-  color: #6b7280;
+  color: var(--texto-suave);
   margin: 0;
   font-size: 0.9rem;
 }
@@ -28,7 +28,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #6d28d9;
+  color: var(--violeta-texto);
   font-weight: 700;
   font-size: 0.85rem;
   text-decoration: none;
@@ -36,18 +36,18 @@
 .link-back:hover { text-decoration: underline; }
 .link-back .material-icons-round { font-size: 18px; }
 
-.state-msg { padding: 40px; text-align: center; color: #6b7280; }
-.state-msg.error { color: #dc2626; }
+.state-msg { padding: 40px; text-align: center; color: var(--texto-suave); }
+.state-msg.error { color: var(--peligro-texto); }
 
 .panel {
-  background: #fff;
+  background: var(--superficie);
   border-radius: 14px;
   padding: 20px;
   box-shadow: 0 4px 16px rgba(0,0,0,0.06);
   margin-bottom: 16px;
 }
 .panel-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.panel-empty { color: #9ca3af; font-size: 0.88rem; }
+.panel-empty { color: var(--texto-tenue); font-size: 0.88rem; }
 
 .calendar-header {
   display: flex;
@@ -61,22 +61,22 @@
   margin: 0;
   font-size: 1.1rem;
   font-weight: 800;
-  color: #111827;
+  color: var(--texto);
   text-transform: capitalize;
 }
 .calendar-nav { display: flex; align-items: center; gap: 8px; }
 .nav-btn {
-  border: none; background: #f3f4f6; color: #4b5563;
+  border: none; background: var(--superficie-3); color: var(--texto-3);
   border-radius: 8px; width: 30px; height: 30px;
   display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
 }
-.nav-btn:hover { background: #e5e7eb; }
+.nav-btn:hover { background: var(--pista); }
 .today-btn {
-  border: none; background: #ede9fe; color: #6d28d9;
+  border: none; background: var(--tinte-primario); color: var(--violeta-texto);
   font-weight: 700; font-size: 0.78rem; border-radius: 8px;
   padding: 6px 12px; cursor: pointer;
 }
-.today-btn:hover { background: #ddd6fe; }
+.today-btn:hover { background: var(--tinte-primario-fuerte); }
 
 .month-weekday-row {
   display: grid;
@@ -88,7 +88,7 @@
   text-align: center;
   font-size: 0.72rem;
   font-weight: 700;
-  color: #9ca3af;
+  color: var(--texto-tenue);
 }
 
 .month-grid {
@@ -98,7 +98,7 @@
 }
 .month-day {
   position: relative;
-  border: 1px solid #f3f4f6;
+  border: 1px solid var(--borde-suave);
   background: transparent;
   border-radius: 10px;
   padding: 10px 0 12px;
@@ -111,9 +111,9 @@
   cursor: pointer;
   font-family: inherit;
 }
-.month-day:hover { background: #f9fafb; }
+.month-day:hover { background: var(--superficie-2); }
 .month-day.other-month { opacity: 0.35; }
-.month-day .day-number { font-size: 0.9rem; color: #374151; font-weight: 600; }
+.month-day .day-number { font-size: 0.9rem; color: var(--texto-2); font-weight: 600; }
 .month-day.today .day-number {
   color: #fff;
   background: linear-gradient(135deg, #4f46e5, #7c3aed);
@@ -124,7 +124,7 @@
   align-items: center;
   justify-content: center;
 }
-.month-day.selected { background: #ede9fe; border-color: #ddd6fe; }
+.month-day.selected { background: var(--tinte-primario); border-color: var(--borde-primario); }
 .day-dot { width: 6px; height: 6px; border-radius: 50%; background: #818cf8; }
 .day-dot.overdue { background: #dc2626; }
 
@@ -132,7 +132,7 @@
   margin: 0;
   font-size: 0.92rem;
   font-weight: 700;
-  color: #374151;
+  color: var(--texto-2);
   text-transform: capitalize;
 }
 
@@ -143,11 +143,11 @@
   gap: 10px;
   padding: 10px 12px;
   border-radius: 8px;
-  background: #f9fafb;
+  background: var(--superficie-2);
 }
-.task-title { flex: 1; font-size: 0.85rem; color: #374151; }
-.task-title.done { color: #9ca3af; text-decoration: line-through; }
-.task-date { font-size: 0.78rem; color: #6b7280; font-weight: 600; }
+.task-title { flex: 1; font-size: 0.85rem; color: var(--texto-2); }
+.task-title.done { color: var(--texto-tenue); text-decoration: line-through; }
+.task-date { font-size: 0.78rem; color: var(--texto-suave); font-weight: 600; }
 .task-emoji { font-size: 1.1rem; line-height: 1; flex-shrink: 0; }
 .task-actions { display: inline-flex; gap: 4px; margin-left: auto; flex-shrink: 0; }
 
@@ -159,7 +159,7 @@
 .task-check .material-icons-round { font-size: 22px; }
 .task-check:hover { color: #818cf8; }
 .task-check .material-icons-round { transition: transform 0.15s ease; }
-.task-check.checked { color: #16a34a; }
+.task-check.checked { color: var(--exito-texto); }
 .task-check.checked .material-icons-round { animation: check-pop 0.2s ease; }
 @keyframes check-pop {
   0% { transform: scale(0.85); }
@@ -169,24 +169,24 @@
 @media (prefers-reduced-motion: reduce) {
   .task-check.checked .material-icons-round { animation: none; }
 }
-.task-check:disabled { color: #e5e7eb; cursor: not-allowed; }
+.task-check:disabled { color: var(--texto-deshabilitado); cursor: not-allowed; }
 
 .btn-icon-only {
-  border: none; background: #f3f4f6; color: #4b5563;
+  border: none; background: var(--superficie-3); color: var(--texto-3);
   border-radius: 8px; width: 28px; height: 28px;
   display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
 }
-.btn-icon-only.danger:hover { background: #fee2e2; color: #dc2626; }
+.btn-icon-only.danger:hover { background: var(--tinte-peligro); color: var(--peligro-texto); }
 .btn-icon-only .material-icons-round { font-size: 16px; }
 
 .btn-add-task-dashed {
   width: 100%;
   margin-top: 12px;
   padding: 12px;
-  border: 1.5px dashed #c7d2fe;
+  border: 1.5px dashed var(--borde-primario);
   border-radius: 10px;
   background: transparent;
-  color: #6d28d9;
+  color: var(--violeta-texto);
   font-weight: 700;
   font-size: 0.85rem;
   cursor: pointer;
@@ -197,7 +197,7 @@
   text-decoration: none;
   box-sizing: border-box;
 }
-.btn-add-task-dashed:hover { background: #f5f3ff; }
+.btn-add-task-dashed:hover { background: var(--tinte-primario); }
 
 @media (max-width: 480px) {
   .calendar-page { padding: 16px 16px calc(76px + env(safe-area-inset-bottom)); }
