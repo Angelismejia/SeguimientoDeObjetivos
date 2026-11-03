@@ -265,3 +265,11 @@ su propia cola de detalles:
   único en el backend.
 - En modo oscuro, los gráficos de Chart.js que ya están en pantalla no cambian de
   color al cambiar el tema: toman los colores nuevos la próxima vez que se dibujan.
+- La migración `QuitarTablaStreaksSinUso` hay que aplicarla a mano en Supabase, como
+  todas. No hay apuro ni orden obligatorio: ni el código nuevo ni el viejo leen esa
+  tabla, así que da igual que exista un tiempo más.
+- En la pantalla **Tareas**, marcar una recurrente todavía le mueve la `scheduledDate`
+  a hoy, que es la forma vieja. El dashboard ya usa `TaskCompletions`
+  (`setCompletion`); Tareas quedó atrás.
+- Las fechas del diario salen mitad en inglés ("Wednesday 23 de September"): el pipe
+  `date` usa el locale por defecto (`en-US`) y falta registrar `es`.
