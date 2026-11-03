@@ -1,0 +1,54 @@
+<div class="dialog-overlay" (click)="close()">
+  <div class="dialog-card form-card" (click)="$event.stopPropagation()">
+    <h2 class="dialog-title">Nueva categoría</h2>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="task-form">
+      <label class="field">
+        <span>Nombre *</span>
+        <input type="text" formControlName="name" placeholder="Ej. Trabajo" maxlength="50" />
+      </label>
+
+      <div class="field">
+        <span>Ícono</span>
+        <div class="emoji-grid">
+          @for (icon of icons; track icon) {
+            <button
+              type="button"
+              class="emoji-option"
+              [class.selected]="form.value.icon === icon"
+              (click)="pickIcon(icon)"
+            >
+              <span class="material-icons-round">{{ icon }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="field">
+        <span>Color</span>
+        <div class="color-row">
+          @for (c of colorPresets; track c) {
+            <button
+              type="button"
+              class="color-swatch"
+              [class.selected]="form.value.color === c"
+              [style.background]="c"
+              (click)="pickColor(c)"
+            ></button>
+          }
+        </div>
+      </div>
+
+      @if (formError()) {
+        <p class="form-error">{{ formError() }}</p>
+      }
+
+      <div class="dialog-actions">
+        <button type="button" class="btn-cancel" (click)="close()">Cancelar</button>
+        <button type="submit" class="btn-confirm" [disabled]="form.invalid || saving()">
+          {{ saving() ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

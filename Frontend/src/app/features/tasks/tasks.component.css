@@ -138,95 +138,6 @@
 .btn-icon-only.danger:hover { background: var(--tinte-peligro); color: var(--peligro-texto); }
 .btn-icon-only .material-icons-round { font-size: 16px; }
 
-/* ── MODALES (crear/editar tarea y categoría) ─────────── */
-.dialog-overlay {
-  position: fixed; inset: 0; background: rgba(17, 24, 39, 0.5);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 1000; padding: 16px;
-}
-.dialog-card {
-  background: var(--superficie); border-radius: 14px; padding: 24px;
-  max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-}
-.dialog-title { margin: 0 0 16px; font-size: 1.1rem; font-weight: 800; color: var(--texto); }
-
-.field {
-  display: flex; flex-direction: column; gap: 6px;
-  font-size: 0.8rem; font-weight: 600; color: var(--texto-2); flex: 1;
-}
-.field input, .field textarea, .field select {
-  font-family: inherit; font-size: 0.9rem; font-weight: 400;
-  padding: 10px 12px; border: 1px solid var(--borde); border-radius: 8px; color: var(--texto);
-}
-.field input:focus, .field textarea:focus, .field select:focus {
-  outline: none; border-color: #818cf8;
-}
-.field textarea { resize: vertical; }
-.field-row { display: flex; gap: 14px; flex-wrap: wrap; }
-.field-row .field { min-width: 120px; }
-
-.field-with-add { display: flex; gap: 8px; }
-.field-with-add select { flex: 1; }
-.btn-inline-add {
-  flex-shrink: 0; width: 38px; height: 38px;
-  border: none; border-radius: 8px;
-  background: var(--tinte-primario); color: var(--violeta-texto); cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-}
-.btn-inline-add:hover { background: var(--tinte-primario-fuerte); }
-.btn-inline-add .material-icons-round { font-size: 20px; }
-
-.task-form { display: flex; flex-direction: column; gap: 14px; }
-.checkbox-field { flex-direction: row; align-items: center; gap: 8px; }
-.checkbox-field input { width: auto; }
-
-.emoji-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
-  gap: 6px;
-}
-.emoji-option {
-  width: 38px; height: 38px; border-radius: 8px;
-  border: 1px solid var(--borde); background: var(--superficie);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.1rem; cursor: pointer;
-}
-.emoji-option:hover { background: var(--superficie-3); }
-.emoji-option.selected { background: var(--tinte-primario); border-color: #7c3aed; }
-
-.btn-toggle-emojis {
-  margin-top: 8px;
-  border: none;
-  background: transparent;
-  color: var(--violeta-texto);
-  font-size: 0.78rem;
-  font-weight: 700;
-  cursor: pointer;
-  padding: 0;
-  font-family: inherit;
-}
-.btn-toggle-emojis:hover { text-decoration: underline; }
-
-.color-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
-.color-swatch {
-  width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent;
-  cursor: pointer; padding: 0;
-}
-.color-swatch.selected { border-color: var(--texto); }
-
-.form-error { color: var(--peligro-texto); font-size: 0.85rem; margin: 0; }
-
-.dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
-.dialog-actions button {
-  border: none; border-radius: 8px; padding: 10px 18px;
-  font-weight: 700; font-size: 0.85rem; cursor: pointer;
-}
-.btn-cancel { background: var(--superficie-3); color: var(--texto-2); }
-.btn-cancel:hover { background: var(--pista); }
-.btn-confirm { background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff; }
-.btn-confirm:hover { opacity: 0.9; }
-.btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; }
-
 /* ── RESPONSIVE ───────────────────────────────────── */
 @media (max-width: 600px) {
   .tasks-page { padding: 20px 14px 40px; }
@@ -250,5 +161,5 @@
   .meta-chip { font-size: 0.66rem; padding: 2px 7px; }
   .task-actions { margin-left: 4px; }
 
-  .dialog-card { padding: 18px; }
+  
 }

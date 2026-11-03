@@ -1,0 +1,159 @@
+<div class="dialog-overlay" (click)="close()">
+  <div class="dialog-card form-card" (click)="$event.stopPropagation()">
+    <h2 class="dialog-title">{{ editing ? 'Editar tarea' : 'Nueva tarea' }}</h2>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="task-form">
+      <label class="field">
+        <span>Título *</span>
+        <input type="text" formControlName="title" placeholder="Ej. Estudiar 30 minutos" maxlength="150" />
+      </label>
+
+      <label class="field">
+        <span>Descripción</span>
+        <textarea formControlName="description" rows="3" placeholder="Detalles de la tarea (opcional)" maxlength="500"></textarea>
+      </label>
+
+      <div class="field">
+        <span>Emoji</span>
+        <div class="emoji-grid">
+          <button
+            type="button"
+            class="emoji-option"
+            [class.selected]="!form.value.emoji"
+            (click)="pickEmoji('')"
+            title="Sin emoji"
+          >—</button>
+          @for (e of (showAllEmojis() ? emojis : emojis.slice(0, emojiPreviewCount)); track e) {
+            <button
+              type="button"
+              class="emoji-option"
+              [class.selected]="form.value.emoji === e"
+              (click)="pickEmoji(e)"
+            >{{ e }}</button>
+          }
+        </div>
+        @if (emojis.length > emojiPreviewCount) {
+          <button type="button" class="btn-toggle-emojis" (click)="showAllEmojis.set(!showAllEmojis())">
+            {{ showAllEmojis() ? 'Ver menos' : 'Ver más' }}
+          </button>
+        }
+      </div>
+
+      <div class="field">
+        <span>Color</span>
+        <div class="color-row">
+          @for (c of pastelColors; track c) {
+            <button
+              type="button"
+              class="color-swatch"
+              [class.selected]="form.value.color === c"
+              [style.background]="c"
+              (click)="pickColor(c)"
+            ></button>
+          }
+        </div>
+      </div>
+
+      <div class="field-row">
+        <label class="field">
+          <span>Fecha *</span>
+          <input type="date" formControlName="scheduledDate" />
+        </label>
+        <label class="field">
+          <span>Hora inicio</span>
+          <input type="time" formControlName="scheduledTime" />
+        </label>
+        <label class="field">
+          <span>Hora fin</span>
+          <input type="time" formControlName="endTime" />
+        </label>
+        <label class="field">
+          <span>Prioridad</span>
+          <select formControlName="priority">
+            @for (p of taskPriorities; track p) {
+              <option [ngValue]="p">{{ taskPriorityLabel(p) }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <div class="field-row">
+        <label class="field">
+          <span>Categoría</span>
+          <div class="field-with-add">
+            <select formControlName="categoryId">
+              <option [ngValue]="null">Sin categoría</option>
+              @for (cat of categories; track cat.id) {
+                <option [ngValue]="cat.id">{{ cat.name }}</option>
+              }
+            </select>
+            <button type="button" class="btn-inline-add" (click)="showCategoryForm.set(true)" title="Nueva categoría">
+              <span class="material-icons-round">add</span>
+            </button>
+          </div>
+        </label>
+        <label class="field">
+          <span>Objetivo</span>
+          <select formControlName="objectiveId">
+            <option [ngValue]="null">Sin objetivo</option>
+            @for (obj of objectives; track obj.id) {
+              <option [ngValue]="obj.id">{{ obj.title }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <div class="field-row">
+        <label class="field checkbox-field">
+          <input type="checkbox" formControlName="isRecurring" (change)="onRecurringToggle()" />
+          <span>Tarea recurrente</span>
+        </label>
+        @if (form.value.isRecurring) {
+          <label class="field">
+            <span>Frecuencia</span>
+            <select formControlName="recurrenceType">
+              @for (r of recurrenceTypes; track r) {
+                <option [ngValue]="r">{{ recurrenceLabel(r) }}</option>
+              }
+            </select>
+          </label>
+        }
+      </div>
+
+      @if (editing) {
+        <label class="field">
+          <span>Estado</span>
+          <select formControlName="status">
+            @for (s of taskStatuses; track s) {
+              <option [ngValue]="s">{{ taskStatusLabel(s) }}</option>
+            }
+          </select>
+        </label>
+      }
+
+      @if (form.hasError('finAntesDeInicio')) {
+        <p class="form-error">La hora de fin no puede ser anterior a la de inicio.</p>
+      }
+
+      @if (formError()) {
+        <p class="form-error">{{ formError() }}</p>
+      }
+
+      <div class="dialog-actions">
+        <button type="button" class="btn-cancel" (click)="close()">Cancelar</button>
+        <button type="submit" class="btn-confirm" [disabled]="form.invalid || saving()">
+          {{ saving() ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Fuera del overlay de la tarea, como antes: queda encima y un clic en su fondo
+     no cierra tambien el formulario de la tarea. -->
+@if (showCategoryForm()) {
+  <app-category-quick-form
+    (created)="onCategoryCreated($event)"
+    (closed)="showCategoryForm.set(false)"
+  ></app-category-quick-form>
+}

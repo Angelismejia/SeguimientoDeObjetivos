@@ -1,28 +1,27 @@
 import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { TaskService } from '../../core/services/task.service';
 import { ObjectiveService } from '../../core/services/objective.service';
 import { CategoryService } from '../../core/services/category.service';
-import { TaskItem, TaskPriority, TaskStatus, RecurrenceType } from '../../core/models/task.model';
+import { TaskItem, TaskStatus } from '../../core/models/task.model';
 import { Objective } from '../../core/models/objective.model';
 import { Category } from '../../core/models/category.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { TaskFormDialogComponent, TaskSaved } from '../../shared/components/task-form-dialog/task-form-dialog.component';
+import { recurrenceLabel, taskPriorityLabel } from '../../core/utils/task-labels';
 import { isTaskDoneOn, isTaskOverdue } from '../../core/utils/task-status.util';
 import { cuerpoDeActualizacion } from '../../core/utils/task-update.util';
 import { computeObjectiveProgress } from '../../core/utils/objective-progress.util';
-import { TASK_EMOJIS } from '../../core/constants/task-emojis';
 import { mensajeDeError } from '../../core/utils/http-error.util';
-import { rangoOrdenado } from '../../core/utils/rango-ordenado.validator';
 
 type TaskFilter = 'all' | 'today' | 'upcoming' | 'recurring' | 'completed' | 'important';
 
 @Component({
   selector: 'app-tasks',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ConfirmDialogComponent],
+  imports: [CommonModule, ConfirmDialogComponent, TaskFormDialogComponent],
   templateUrl: './tasks.component.html',
   styleUrl: './tasks.component.css'
 })
@@ -83,78 +82,21 @@ export class TasksComponent implements OnInit {
     return [...tasks].sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime());
   });
 
-  // ── Form modal (crear/editar) ────────────────────────
+  // ── Tareas: form modal (shared/components/task-form-dialog) ──
   showTaskForm = signal(false);
-  editingTaskId = signal<number | null>(null);
-  taskFormError = signal('');
-  savingTask = signal(false);
+  /** La tarea que se esta editando; null cuando el formulario crea una nueva. */
+  editingTask = signal<TaskItem | null>(null);
   deleteTarget = signal<TaskItem | null>(null);
 
-  taskStatuses: TaskStatus[] = ['Pending', 'InProgress', 'Completed', 'Skipped'];
-  taskPriorities: TaskPriority[] = ['Low', 'Medium', 'High'];
-  // Sin 'None': el desplegable solo se muestra con la casilla de recurrente marcada,
-  // y una tarea recurrente sin frecuencia no se repite nunca (el backend la rechaza).
-  recurrenceTypes: RecurrenceType[] = ['Daily', 'Weekly', 'Monthly', 'Yearly'];
-
-  onRecurringToggle(): void {
-    const esRecurrente = this.taskForm.value.isRecurring;
-
-    if (esRecurrente && this.taskForm.value.recurrenceType === 'None') {
-      this.taskForm.patchValue({ recurrenceType: 'Daily' });
-    } else if (!esRecurrente) {
-      this.taskForm.patchValue({ recurrenceType: 'None' });
-    }
-  }
-
-  pastelColors = ['#c7d2fe', '#bbf7d0', '#fecaca', '#fed7aa', '#fef08a', '#bae6fd', '#f5d0fe', '#e5e7eb'];
-  emojis = TASK_EMOJIS;
-  emojiPreviewCount = 20;
-  showAllEmojis = signal(false);
-
-  taskForm: FormGroup;
-
-  // ── Categoría rápida (embebida en el form de tarea) ────
-  showCategoryForm = signal(false);
-  savingCategory = signal(false);
-  categoryFormError = signal('');
-  categoryForm: FormGroup;
-
-  categoryIcons = [
-    'label', 'work', 'school', 'fitness_center', 'restaurant', 'favorite',
-    'home', 'savings', 'book', 'music_note', 'self_improvement',
-    'medical_services', 'palette', 'code', 'sports_esports', 'pets',
-    'flight', 'shopping_cart', 'brush', 'directions_run'
-  ];
-  categoryColorPresets = ['#4f46e5', '#7c3aed', '#dc2626', '#ea580c', '#d97706', '#16a34a', '#0891b2', '#2563eb', '#db2777', '#64748b'];
+  taskPriorityLabel = taskPriorityLabel;
+  recurrenceLabel = recurrenceLabel;
 
   constructor(
-    private fb: FormBuilder,
     private auth: AuthService,
     private taskService: TaskService,
     private objectiveService: ObjectiveService,
     private categoryService: CategoryService
   ) {
-    this.taskForm = this.fb.group({
-      title: ['', Validators.required],
-      description: [''],
-      emoji: [''],
-      color: ['#c7d2fe'],
-      scheduledDate: ['', Validators.required],
-      scheduledTime: [''],
-      endTime: [''],
-      priority: ['Medium' as TaskPriority],
-      categoryId: [null],
-      objectiveId: [null],
-      isRecurring: [false],
-      recurrenceType: ['None' as RecurrenceType],
-      status: ['Pending' as TaskStatus]
-    }, { validators: rangoOrdenado('scheduledTime', 'endTime', 'finAntesDeInicio') });
-
-    this.categoryForm = this.fb.group({
-      name: ['', Validators.required],
-      color: ['#4f46e5'],
-      icon: ['label']
-    });
   }
 
   ngOnInit(): void {
@@ -214,33 +156,6 @@ export class TasksComponent implements OnInit {
     return isTaskDoneOn(task, dateKey ?? this.dateKey(new Date()));
   }
 
-  taskPriorityLabel(priority: TaskPriority): string {
-    switch (priority) {
-      case 'Low': return 'Baja';
-      case 'Medium': return 'Media';
-      case 'High': return 'Alta';
-    }
-  }
-
-  taskStatusLabel(status: TaskStatus): string {
-    switch (status) {
-      case 'Pending': return 'Pendiente';
-      case 'InProgress': return 'En progreso';
-      case 'Completed': return 'Completada';
-      case 'Skipped': return 'Omitida';
-    }
-  }
-
-  recurrenceLabel(type: RecurrenceType): string {
-    switch (type) {
-      case 'None': return 'No se repite';
-      case 'Daily': return 'Diaria';
-      case 'Weekly': return 'Semanal';
-      case 'Monthly': return 'Mensual';
-      case 'Yearly': return 'Anual';
-    }
-  }
-
   dateLabel(task: TaskItem): string {
     if (!task.scheduledDate) return '';
     const date = this.parseDateKey(task.scheduledDate.substring(0, 10));
@@ -269,99 +184,14 @@ export class TasksComponent implements OnInit {
     });
   }
 
-  // ── Categoría rápida ───────────────────────────────────
-  openCategoryForm(): void {
-    this.categoryFormError.set('');
-    this.categoryForm.reset({ name: '', color: '#4f46e5', icon: 'label' });
-    this.showCategoryForm.set(true);
-  }
-
-  closeCategoryForm(): void {
-    this.showCategoryForm.set(false);
-  }
-
-  pickCategoryColor(color: string): void {
-    this.categoryForm.patchValue({ color });
-  }
-
-  pickCategoryIcon(icon: string): void {
-    this.categoryForm.patchValue({ icon });
-  }
-
-  submitCategory(): void {
-    if (this.categoryForm.invalid) return;
-    this.savingCategory.set(true);
-    this.categoryFormError.set('');
-
-    const v = this.categoryForm.value;
-    this.categoryService.create({
-      name: v.name,
-      color: v.color,
-      icon: v.icon
-    }).subscribe({
-      next: created => {
-        this.categories.set([...this.categories(), created]);
-        this.taskForm.patchValue({ categoryId: created.id });
-        this.savingCategory.set(false);
-        this.showCategoryForm.set(false);
-      },
-      error: (e) => {
-        this.savingCategory.set(false);
-        this.categoryFormError.set(mensajeDeError(e, 'No se pudo crear la categoría. Intenta de nuevo.'));
-      }
-    });
-  }
-
   // ── Tareas: CRUD ──────────────────────────────────────
-  pickTaskColor(color: string): void {
-    this.taskForm.patchValue({ color });
-  }
-
-  pickTaskEmoji(emoji: string): void {
-    this.taskForm.patchValue({ emoji });
-  }
-
   openCreateTask(): void {
-    this.editingTaskId.set(null);
-    this.taskFormError.set('');
-    this.showAllEmojis.set(false);
-    this.taskForm.reset({
-      title: '',
-      description: '',
-      emoji: '',
-      color: '#c7d2fe',
-      scheduledDate: this.dateKey(new Date()),
-      scheduledTime: '',
-      endTime: '',
-      priority: 'Medium',
-      categoryId: null,
-      objectiveId: null,
-      isRecurring: false,
-      recurrenceType: 'None',
-      status: 'Pending'
-    });
+    this.editingTask.set(null);
     this.showTaskForm.set(true);
   }
 
   openEditTask(task: TaskItem): void {
-    this.editingTaskId.set(task.id);
-    this.taskFormError.set('');
-    this.showAllEmojis.set(!!task.emoji && !this.emojis.slice(0, this.emojiPreviewCount).includes(task.emoji));
-    this.taskForm.reset({
-      title: task.title,
-      description: task.description ?? '',
-      emoji: task.emoji ?? '',
-      color: task.color ?? '#c7d2fe',
-      scheduledDate: task.scheduledDate?.substring(0, 10) ?? '',
-      scheduledTime: task.scheduledTime?.substring(0, 5) ?? '',
-      endTime: task.endTime?.substring(0, 5) ?? '',
-      priority: task.priority,
-      categoryId: task.categoryId ?? null,
-      objectiveId: task.objectiveId ?? null,
-      isRecurring: task.isRecurring,
-      recurrenceType: task.recurrenceType,
-      status: task.status
-    });
+    this.editingTask.set(task);
     this.showTaskForm.set(true);
   }
 
@@ -369,89 +199,30 @@ export class TasksComponent implements OnInit {
     this.showTaskForm.set(false);
   }
 
-  submitTask(): void {
-    if (this.taskForm.invalid) return;
-    this.savingTask.set(true);
-    this.taskFormError.set('');
+  /** Dia que el formulario propone al crear una tarea. */
+  newTaskDate(): string {
+    return this.dateKey(new Date());
+  }
 
-    const v = this.taskForm.value;
-    const categoryId = v.categoryId ? Number(v.categoryId) : undefined;
-    const objectiveId = v.objectiveId ? Number(v.objectiveId) : undefined;
-    const scheduledTime = v.scheduledTime ? v.scheduledTime + ':00' : undefined;
-    const endTime = v.endTime ? v.endTime + ':00' : undefined;
-    const editingTaskId = this.editingTaskId();
+  onCategoryCreated(category: Category): void {
+    this.categories.set([...this.categories(), category]);
+  }
 
-    if (editingTaskId === null) {
-      this.taskService.create({
-        title: v.title,
-        description: v.description || undefined,
-        emoji: v.emoji || undefined,
-        color: v.color || undefined,
-        scheduledDate: v.scheduledDate,
-        scheduledTime,
-        endTime,
-        priority: v.priority,
-        isRecurring: v.isRecurring,
-        recurrenceType: v.recurrenceType,
-        categoryId,
-        objectiveId
-      }, this.auth.getUserId()).subscribe({
-        next: created => {
-          const updatedTasks = [...this.allTasks(), created];
-          this.allTasks.set(updatedTasks);
-          this.savingTask.set(false);
-          this.showTaskForm.set(false);
-          if (created.objectiveId) {
-            this.recomputeObjectiveProgress(created.objectiveId, updatedTasks);
-          }
-        },
-        error: (e) => {
-          this.savingTask.set(false);
-          this.taskFormError.set(mensajeDeError(e, 'No se pudo crear la tarea. Intenta de nuevo.'));
-        }
-      });
-    } else {
-      // La tarea previa hace falta entera, no solo su objectiveId: este PUT reemplaza
-      // la fila y el formulario no tiene campos para el recordatorio ni para la
-      // repeticion, asi que sin reenviarlos editar una tarea los borraba (la misma
-      // trampa que cuerpoDeActualizacion resuelve en las pantallas que solo marcan).
-      const previa = this.allTasks().find(t => t.id === editingTaskId);
-      const previousObjectiveId = previa?.objectiveId;
-      this.taskService.update(editingTaskId, {
-        title: v.title,
-        description: v.description || undefined,
-        emoji: v.emoji || undefined,
-        color: v.color || undefined,
-        scheduledDate: v.scheduledDate,
-        scheduledTime,
-        endTime,
-        priority: v.priority,
-        status: v.status,
-        isRecurring: v.isRecurring,
-        recurrenceType: v.recurrenceType,
-        reminderMinutesBefore: previa?.reminderMinutesBefore,
-        repeatEveryWeeks: previa?.repeatEveryWeeks,
-        endRepeatDate: previa?.endRepeatDate,
-        categoryId,
-        objectiveId
-      }).subscribe({
-        next: updated => {
-          const updatedTasks = this.allTasks().map(t => t.id === updated.id ? updated : t);
-          this.allTasks.set(updatedTasks);
-          this.savingTask.set(false);
-          this.showTaskForm.set(false);
-          if (updated.objectiveId) {
-            this.recomputeObjectiveProgress(updated.objectiveId, updatedTasks);
-          }
-          if (previousObjectiveId && previousObjectiveId !== updated.objectiveId) {
-            this.recomputeObjectiveProgress(previousObjectiveId, updatedTasks);
-          }
-        },
-        error: (e) => {
-          this.savingTask.set(false);
-          this.taskFormError.set(mensajeDeError(e, 'No se pudo guardar la tarea. Intenta de nuevo.'));
-        }
-      });
+  // El formulario ya guardo: aca solo se actualiza la lista y el progreso de
+  // los objetivos afectados (el nuevo y, si se cambio, el anterior).
+  onTaskSaved({ task, previousObjectiveId }: TaskSaved): void {
+    const existe = this.allTasks().some(t => t.id === task.id);
+    const updatedTasks = existe
+      ? this.allTasks().map(t => t.id === task.id ? task : t)
+      : [...this.allTasks(), task];
+    this.allTasks.set(updatedTasks);
+    this.showTaskForm.set(false);
+
+    if (task.objectiveId) {
+      this.recomputeObjectiveProgress(task.objectiveId, updatedTasks);
+    }
+    if (previousObjectiveId && previousObjectiveId !== task.objectiveId) {
+      this.recomputeObjectiveProgress(previousObjectiveId, updatedTasks);
     }
   }
 
