@@ -21,6 +21,18 @@ namespace Infrastructure.Repositories
                 .OrderBy(m => m.SentAt)
                 .ToListAsync();
 
+        public async Task<IEnumerable<int>> GetUnreadSenderIdsAsync(int receiverId)
+            => await _context.Messages
+                .Where(m => m.ReceiverId == receiverId && m.ReadAt == null)
+                .Select(m => m.SenderId)
+                .Distinct()
+                .ToListAsync();
+
+        public async Task<IEnumerable<Message>> GetUnreadFromAsync(int receiverId, int senderId)
+            => await _context.Messages
+                .Where(m => m.ReceiverId == receiverId && m.SenderId == senderId && m.ReadAt == null)
+                .ToListAsync();
+
         public Task<Message> CreateAsync(Message message)
         {
             _context.Messages.Add(message);

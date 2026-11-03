@@ -6,6 +6,8 @@ namespace Application.Interfaces.Repositories
     {
         Task<IEnumerable<Message>> GetConversationAsync(int userAId, int userBId);
         Task<Message> CreateAsync(Message message);
+        Task<IEnumerable<int>> GetUnreadSenderIdsAsync(int receiverId);
+        Task<IEnumerable<Message>> GetUnreadFromAsync(int receiverId, int senderId);
         Task DeleteAllForUserAsync(int userId);
     }
 }

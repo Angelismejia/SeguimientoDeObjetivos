@@ -28,5 +28,22 @@ namespace Api.Controllers
 
             return Ok(await _messageService.GetConversationAsync(userAId, userBId));
         }
+
+        // Ninguno de los dos recibe userId: el lector sale del token, asi que no
+        // hay forma de consultar ni marcar los mensajes de otro.
+        [HttpGet("unread-senders")]
+        public async Task<ActionResult<IEnumerable<int>>> GetUnreadSenders()
+        {
+            var requesterId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            return Ok(await _messageService.GetUnreadSenderIdsAsync(requesterId));
+        }
+
+        [HttpPut("read/{senderId}")]
+        public async Task<IActionResult> MarkAsRead(int senderId)
+        {
+            var requesterId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            await _messageService.MarkAsReadAsync(requesterId, senderId);
+            return NoContent();
+        }
     }
 }

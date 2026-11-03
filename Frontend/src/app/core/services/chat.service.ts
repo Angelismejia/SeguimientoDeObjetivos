@@ -31,7 +31,17 @@ export class ChatService {
 
   connect(): void {
     if (this.connection) return;
+    this.loadUnread();
     this.loadAndStart(undefined);
+  }
+
+  // Los sin leer se guardan en el backend (Message.ReadAt), asi que sobreviven a
+  // una recarga o a entrar desde otro dispositivo.
+  private loadUnread(): void {
+    this.http.get<number[]>(`${this.url}/unread-senders`).subscribe({
+      next: ids => this.unreadFrom.update(current => new Set([...current, ...ids])),
+      error: () => { /* sin la lista solo se pierde el aviso, no el chat */ }
+    });
   }
 
   private async loadAndStart(forceTransport: SignalR.HttpTransportType | undefined): Promise<void> {
@@ -71,6 +81,10 @@ export class ChatService {
       const isOpenConversation = message.senderId === this.activeFriendId();
       if (isIncoming && !isOpenConversation) {
         this.unreadFrom.update(current => new Set(current).add(message.senderId));
+      } else if (isIncoming) {
+        // Llego con la conversacion abierta: ya se esta viendo, se marca leido
+        // para que no reaparezca como nuevo al recargar.
+        this.saveRead(message.senderId);
       }
     });
 
@@ -110,6 +124,7 @@ export class ChatService {
     this.connection?.stop();
     this.connection = null;
     this.connected.set(false);
+    this.unreadFrom.set(new Set());
   }
 
   setActiveFriend(friendId: number | null): void {
@@ -118,12 +133,18 @@ export class ChatService {
   }
 
   markRead(friendId: number): void {
+    // Al backend se avisa siempre: la lista local puede no haber llegado todavia.
+    this.saveRead(friendId);
     if (!this.unreadFrom().has(friendId)) return;
     this.unreadFrom.update(current => {
       const next = new Set(current);
       next.delete(friendId);
       return next;
     });
+  }
+
+  private saveRead(friendId: number): void {
+    this.http.put<void>(`${this.url}/read/${friendId}`, {}).subscribe({ error: () => {} });
   }
 
   sendMessage(dto: CreateMessageDto): Promise<void> {

@@ -38,6 +38,23 @@ namespace Application.Services
             return ToDto(created);
         }
 
+        public Task<IEnumerable<int>> GetUnreadSenderIdsAsync(int receiverId)
+            => _messageRepository.GetUnreadSenderIdsAsync(receiverId);
+
+        // Solo se marcan los mensajes que RECIBIO quien lee: los que el mismo
+        // mando en esa conversacion los marca el otro al abrirla.
+        public async Task MarkAsReadAsync(int receiverId, int senderId)
+        {
+            var unread = (await _messageRepository.GetUnreadFromAsync(receiverId, senderId)).ToList();
+            if (unread.Count == 0) return;
+
+            var now = DateTime.UtcNow;
+            foreach (var message in unread)
+                message.ReadAt = now;
+
+            await _unitOfWork.SaveChangesAsync();
+        }
+
         private static MessageDto ToDto(Message m) => new()
         {
             Id = m.Id,
