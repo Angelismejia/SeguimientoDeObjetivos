@@ -20,7 +20,6 @@ namespace Infrastructure.Persistence
         public DbSet<TaskRepeatDay> TaskRepeatDays { get; set; }
         public DbSet<TaskCompletion> TaskCompletions { get; set; }
         public DbSet<DiaryEntry> DiaryEntries { get; set; }
-        public DbSet<Streak> Streaks { get; set; }
         public DbSet<Badge> Badges { get; set; }
         public DbSet<UserBadge> UserBadges { get; set; }
         public DbSet<Message> Messages { get; set; }
@@ -69,7 +68,6 @@ namespace Infrastructure.Persistence
             $"{nameof(DiaryEntry)}.{nameof(DiaryEntry.EntryDate)}",
             $"{nameof(Objective)}.{nameof(Objective.StartDate)}",
             $"{nameof(Objective)}.{nameof(Objective.EndDate)}",
-            $"{nameof(Streak)}.{nameof(Streak.LastCompletedDate)}",
             $"{nameof(TaskItem)}.{nameof(TaskItem.ScheduledDate)}",
             $"{nameof(TaskItem)}.{nameof(TaskItem.EndRepeatDate)}",
         };

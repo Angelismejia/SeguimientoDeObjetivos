@@ -419,37 +419,6 @@ namespace SeguimientoDeObjetivos.Infrastructure.Migrations
                     b.ToTable("Objectives");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Streak", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BestStreak")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("CurrentStreak")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("LastCompletedDate")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("Streaks");
-                });
-
             modelBuilder.Entity("Domain.Entities.TaskCompletion", b =>
                 {
                     b.Property<int>("Id")
@@ -830,17 +799,6 @@ namespace SeguimientoDeObjetivos.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Entities.Streak", b =>
-                {
-                    b.HasOne("Domain.Entities.User", "User")
-                        .WithOne("Streak")
-                        .HasForeignKey("Domain.Entities.Streak", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Domain.Entities.TaskCompletion", b =>
                 {
                     b.HasOne("Domain.Entities.TaskItem", "Task")
@@ -949,8 +907,6 @@ namespace SeguimientoDeObjetivos.Infrastructure.Migrations
                     b.Navigation("Notifications");
 
                     b.Navigation("Objectives");
-
-                    b.Navigation("Streak");
 
                     b.Navigation("Tasks");
 

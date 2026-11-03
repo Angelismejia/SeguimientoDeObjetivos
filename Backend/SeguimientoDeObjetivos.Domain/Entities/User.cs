@@ -23,8 +23,6 @@ namespace Domain.Entities
 
         public ICollection<DiaryEntry> DiaryEntries { get; set; } = new List<DiaryEntry>();
 
-        public Streak? Streak { get; set; }
-
         public ICollection<UserBadge> UserBadges { get; set; } = new List<UserBadge>();
 
         public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
