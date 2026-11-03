@@ -260,9 +260,6 @@ su propia cola de detalles:
 
 ## Qué queda abierto
 
-- La preferencia de tema claro/oscuro se guarda en la base y se lee de vuelta, pero
-  **ningún CSS reacciona a ella**: el interruptor del perfil no cambia nada en
-  pantalla.
 - El proyecto de tests apunta a `net9.0` mientras el resto apunta a `net8.0`. El CI
   instala el SDK 8 y compila igual solo porque el runner de GitHub trae el 9
   preinstalado.
@@ -270,4 +267,8 @@ su propia cola de detalles:
   forma de marcar un mensaje como leído.
 - Angular Material figura entre las dependencias pero solo lo importa
   `features/auth/register/`, que es código muerto: ninguna ruta lo carga.
-- La página **Comunidad** sigue siendo un placeholder.
+- La página **Comunidad** arma el feed con un `GET /api/objectives?userId` por cada
+  persona seguida. Alcanza con pocos seguidos; si crecen, conviene un endpoint de feed
+  único en el backend.
+- En modo oscuro, los gráficos de Chart.js que ya están en pantalla no cambian de
+  color al cambiar el tema: toman los colores nuevos la próxima vez que se dibujan.
