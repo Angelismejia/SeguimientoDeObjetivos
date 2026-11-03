@@ -260,13 +260,6 @@ su propia cola de detalles:
 
 ## Qué queda abierto
 
-- El proyecto de tests apunta a `net9.0` mientras el resto apunta a `net8.0`. El CI
-  instala el SDK 8 y compila igual solo porque el runner de GitHub trae el 9
-  preinstalado.
-- `Message.ReadAt` se guarda y se mapea al DTO, pero nada lo setea nunca: no existe
-  forma de marcar un mensaje como leído.
-- Angular Material figura entre las dependencias pero solo lo importa
-  `features/auth/register/`, que es código muerto: ninguna ruta lo carga.
 - La página **Comunidad** arma el feed con un `GET /api/objectives?userId` por cada
   persona seguida. Alcanza con pocos seguidos; si crecen, conviene un endpoint de feed
   único en el backend.

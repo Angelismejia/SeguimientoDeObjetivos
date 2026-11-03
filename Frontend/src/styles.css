@@ -1,5 +1,3 @@
-@import '@angular/material/prebuilt-themes/indigo-pink.css';
-
 /* ── Tema claro/oscuro ──────────────────────────────────
    Las hojas de los componentes no usan colores fijos para fondos, bordes y
    textos: usan estas variables. Los valores claros son los mismos colores que
