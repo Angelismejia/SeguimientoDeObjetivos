@@ -6,6 +6,8 @@ namespace Application.Interfaces.Services
     {
         Task<IEnumerable<NotificationDto>> GetByUserIdAsync(int userId);
         Task<IEnumerable<NotificationDto>> GetUnreadByUserIdAsync(int userId);
+        Task<IEnumerable<NotificationDto>> GetPageByUserIdAsync(int userId, int limit, int? beforeId);
+        Task<int> CountUnreadAsync(int userId);
         Task<NotificationDto> GetByIdAsync(int id);
         Task<NotificationDto> CreateAsync(CreateNotificationDto dto);
         Task MarkAsReadAsync(int id);

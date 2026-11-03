@@ -29,6 +29,13 @@ export class ChatComponent implements OnInit, OnDestroy {
   activeFriend = signal<UserSummary | null>(null);
   messages = signal<Message[]>([]);
   loadingConversation = signal(false);
+
+  // La conversacion se abre con los ultimos POR_PAGINA mensajes; los anteriores
+  // se piden con el boton de arriba. El cursor es el mas viejo que ya se tiene.
+  private readonly POR_PAGINA = 30;
+  hasOlder = signal(false);
+  loadingOlder = signal(false);
+  olderError = signal('');
   sendError = signal<string | null>(null);
   enviando = signal(false);
 
@@ -184,17 +191,42 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.activeFriend.set(friend);
     this.chatService.setActiveFriend(friend.id);
     this.messages.set([]);
+    this.hasOlder.set(false);
+    this.olderError.set('');
     this.conversationError.set('');
     this.loadingConversation.set(true);
-    this.chatService.getConversation(this.myId, friend.id).subscribe({
+    this.chatService.getConversationPage(this.myId, friend.id, this.POR_PAGINA).subscribe({
       next: messages => {
         this.messages.set(messages);
+        this.hasOlder.set(messages.length === this.POR_PAGINA);
         this.loadingConversation.set(false);
       },
       error: (e) => {
         this.loadingConversation.set(false);
         this.conversationError.set(
           mensajeDeError(e, 'No se pudo cargar la conversación.'));
+      }
+    });
+  }
+
+  loadOlder(): void {
+    const friend = this.activeFriend();
+    const oldest = this.messages()[0];
+    if (!friend || !oldest || this.loadingOlder()) return;
+
+    this.loadingOlder.set(true);
+    this.olderError.set('');
+    this.chatService.getConversationPage(this.myId, friend.id, this.POR_PAGINA, oldest.id).subscribe({
+      next: older => {
+        // Si mientras tanto se cambio de conversacion, esta pagina ya no sirve.
+        if (this.activeFriend()?.id !== friend.id) return;
+        this.messages.update(current => [...older, ...current]);
+        this.hasOlder.set(older.length === this.POR_PAGINA);
+        this.loadingOlder.set(false);
+      },
+      error: (e) => {
+        this.loadingOlder.set(false);
+        this.olderError.set(mensajeDeError(e, 'No se pudieron cargar los mensajes anteriores.'));
       }
     });
   }

@@ -19,7 +19,6 @@ import { FriendStreak, FriendStreakInvitation } from '../../core/models/friend-s
 import { TaskItem } from '../../core/models/task.model';
 import { Objective } from '../../core/models/objective.model';
 import { Badge } from '../../core/models/badge.model';
-import { DiaryEntry } from '../../core/models/diary-entry.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { environment } from '../../../environments/environment';
 import { mensajeDeError } from '../../core/utils/http-error.util';
@@ -52,7 +51,8 @@ export class ProfileComponent implements OnInit, AfterViewInit {
   allTasks = signal<TaskItem[]>([]);
   objectives = signal<Objective[]>([]);
   badges = signal<Badge[]>([]);
-  diaryEntries = signal<DiaryEntry[]>([]);
+  // Solo se muestra cuantas hay: bajar el diario entero para contarlo era de mas.
+  diaryCount = signal(0);
 
   friendStreaks = signal<FriendStreak[]>([]);
   receivedInvitations = signal<FriendStreakInvitation[]>([]);
@@ -172,16 +172,16 @@ export class ProfileComponent implements OnInit, AfterViewInit {
       tasks: this.taskService.getAll(userId),
       objectives: this.objectiveService.getAll(userId),
       badges: this.badgeService.getByUser(userId),
-      diaryEntries: this.diaryEntryService.getAll(userId),
+      diaryCount: this.diaryEntryService.count(),
       friendStreaks: this.friendStreakService.getForUser(userId),
       receivedInvitations: this.friendStreakService.getReceivedInvitations(userId),
       sentInvitations: this.friendStreakService.getSentInvitations(userId)
     }).subscribe({
-      next: ({ user, followers, following, tasks, objectives, badges, diaryEntries, friendStreaks, receivedInvitations, sentInvitations }) => {
+      next: ({ user, followers, following, tasks, objectives, badges, diaryCount, friendStreaks, receivedInvitations, sentInvitations }) => {
         this.user.set(user);
         this.objectives.set(objectives);
         this.badges.set(badges);
-        this.diaryEntries.set(diaryEntries);
+        this.diaryCount.set(diaryCount);
         this.followers.set(followers);
         this.following.set(following);
         this.allTasks.set(tasks);

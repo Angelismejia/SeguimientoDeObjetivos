@@ -29,6 +29,17 @@ namespace Infrastructure.Repositories
                 .OrderByDescending(n => n.CreatedAt)
                 .ToListAsync();
 
+        // El id sirve de cursor porque crece en el mismo orden en que se crean.
+        public async Task<IEnumerable<Notification>> GetPageByUserIdAsync(int userId, int limit, int? beforeId)
+            => await _context.Notifications
+                .Where(n => n.UserId == userId && (beforeId == null || n.Id < beforeId))
+                .OrderByDescending(n => n.Id)
+                .Take(limit)
+                .ToListAsync();
+
+        public Task<int> CountUnreadAsync(int userId)
+            => _context.Notifications.CountAsync(n => n.UserId == userId && !n.IsRead);
+
         public Task<Notification> CreateAsync(Notification notification)
         {
             _context.Notifications.Add(notification);

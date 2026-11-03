@@ -21,6 +21,14 @@ export class NotificationsComponent implements OnInit {
   actionError = signal('');
   notifications = signal<Notification[]>([]);
 
+  // Se cargan de a POR_PAGINA. El cursor es la ultima alerta que mando el
+  // servidor, no la ultima de la lista: si se borra una, el cursor no cambia.
+  private readonly POR_PAGINA = 20;
+  private cursor: number | undefined;
+  hasMore = signal(false);
+  loadingMore = signal(false);
+  loadMoreError = signal('');
+
   constructor(
     private auth: AuthService,
     private notificationService: NotificationService
@@ -42,9 +50,10 @@ export class NotificationsComponent implements OnInit {
   loadAll(): void {
     this.loading.set(true);
     this.loadError.set('');
-    this.notificationService.getAll(this.auth.getUserId()).subscribe({
+    this.notificationService.getPage(this.auth.getUserId(), this.POR_PAGINA).subscribe({
       next: notifications => {
         this.notifications.set(notifications);
+        this.recibirPagina(notifications);
         this.loading.set(false);
         this.marcarTodasComoVistas(notifications);
       },
@@ -53,6 +62,29 @@ export class NotificationsComponent implements OnInit {
         this.loadError.set(mensajeDeError(e, 'No se pudieron cargar tus alertas.'));
       }
     });
+  }
+
+  loadMore(): void {
+    if (this.loadingMore() || !this.hasMore()) return;
+    this.loadingMore.set(true);
+    this.loadMoreError.set('');
+    this.notificationService.getPage(this.auth.getUserId(), this.POR_PAGINA, this.cursor).subscribe({
+      next: page => {
+        this.notifications.update(current => [...current, ...page]);
+        this.recibirPagina(page);
+        this.loadingMore.set(false);
+      },
+      error: (e) => {
+        this.loadingMore.set(false);
+        this.loadMoreError.set(mensajeDeError(e, 'No se pudieron cargar más alertas.'));
+      }
+    });
+  }
+
+  // Una pagina llena significa que puede haber mas; una incompleta, que no.
+  private recibirPagina(page: Notification[]): void {
+    if (page.length > 0) this.cursor = page[page.length - 1].id;
+    this.hasMore.set(page.length === this.POR_PAGINA);
   }
 
   markAsRead(notification: Notification): void {

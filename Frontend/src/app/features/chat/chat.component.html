@@ -65,6 +65,14 @@
           } @else if (messages().length === 0) {
             <p class="panel-empty">Todavía no hay mensajes. ¡Escribí el primero!</p>
           } @else {
+            @if (hasOlder()) {
+              <button type="button" class="btn-load-more btn-load-older" (click)="loadOlder()" [disabled]="loadingOlder()">
+                {{ loadingOlder() ? 'Cargando...' : 'Ver mensajes anteriores' }}
+              </button>
+            }
+            @if (olderError()) {
+              <p class="panel-empty error">{{ olderError() }}</p>
+            }
             @for (dia of messageDays(); track dia.clave) {
               <div class="day-separator"><span>{{ dia.etiqueta }}</span></div>
 

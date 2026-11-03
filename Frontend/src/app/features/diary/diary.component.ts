@@ -19,6 +19,15 @@ export class DiaryComponent implements OnInit {
   loadError = signal('');
   entries = signal<DiaryEntry[]>([]);
 
+  // Se cargan de a POR_PAGINA. El cursor es la ultima entrada que mando el
+  // servidor y se guarda aparte: si se crea una entrada con fecha vieja, queda
+  // al final de la lista, y usarla de cursor saltearia las que estan en el medio.
+  private readonly POR_PAGINA = 20;
+  private cursor: DiaryEntry | undefined;
+  hasMore = signal(false);
+  loadingMore = signal(false);
+  loadMoreError = signal('');
+
   showForm = signal(false);
   editingId = signal<number | null>(null);
   formError = signal('');
@@ -46,9 +55,10 @@ export class DiaryComponent implements OnInit {
   loadAll(): void {
     this.loading.set(true);
     this.loadError.set('');
-    this.diaryEntryService.getAll(this.auth.getUserId()).subscribe({
+    this.diaryEntryService.getPage(this.auth.getUserId(), this.POR_PAGINA).subscribe({
       next: entries => {
         this.entries.set(this.sortEntries(entries));
+        this.recibirPagina(entries);
         this.loading.set(false);
       },
       error: (e) => {
@@ -58,8 +68,37 @@ export class DiaryComponent implements OnInit {
     });
   }
 
+  loadMore(): void {
+    if (this.loadingMore() || !this.hasMore()) return;
+    this.loadingMore.set(true);
+    this.loadMoreError.set('');
+    this.diaryEntryService.getPage(this.auth.getUserId(), this.POR_PAGINA, this.cursor).subscribe({
+      next: page => {
+        // Una entrada creada aca con fecha vieja ya esta en la lista y puede
+        // volver a llegar en una pagina: se descarta el repetido.
+        const ids = new Set(this.entries().map(e => e.id));
+        this.entries.set(this.sortEntries([...this.entries(), ...page.filter(e => !ids.has(e.id))]));
+        this.recibirPagina(page);
+        this.loadingMore.set(false);
+      },
+      error: (e) => {
+        this.loadingMore.set(false);
+        this.loadMoreError.set(mensajeDeError(e, 'No se pudieron cargar más entradas.'));
+      }
+    });
+  }
+
+  // Una pagina llena significa que puede haber mas; una incompleta, que no.
+  private recibirPagina(page: DiaryEntry[]): void {
+    if (page.length > 0) this.cursor = page[page.length - 1];
+    this.hasMore.set(page.length === this.POR_PAGINA);
+  }
+
+  // Mismo orden que el backend (fecha y, dentro del dia, id), para que las
+  // paginas encajen sin saltos.
   private sortEntries(entries: DiaryEntry[]): DiaryEntry[] {
-    return [...entries].sort((a, b) => new Date(b.entryDate).getTime() - new Date(a.entryDate).getTime());
+    return [...entries].sort((a, b) =>
+      new Date(b.entryDate).getTime() - new Date(a.entryDate).getTime() || b.id - a.id);
   }
 
   preview(content: string): string {

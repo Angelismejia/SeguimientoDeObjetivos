@@ -1,3 +1,4 @@
+using Application.Common;
 using Application.DTOs.DiaryEntries;
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
@@ -23,6 +24,15 @@ namespace Application.Services
             var entries = await _diaryEntryRepository.GetByUserIdAsync(userId);
             return entries.Select(ToDto);
         }
+
+        public async Task<IEnumerable<DiaryEntryDto>> GetPageByUserIdAsync(int userId, int limit, DateTime? beforeDate, int? beforeId)
+        {
+            var entries = await _diaryEntryRepository.GetPageByUserIdAsync(userId, Paginacion.Limite(limit), beforeDate, beforeId);
+            return entries.Select(ToDto);
+        }
+
+        public Task<int> CountByUserIdAsync(int userId)
+            => _diaryEntryRepository.CountByUserIdAsync(userId);
 
         public async Task<DiaryEntryDto> GetByIdAsync(int id)
         {

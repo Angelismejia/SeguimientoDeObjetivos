@@ -330,6 +330,8 @@ internal sealed class NotificationServiceFalso : INotificationService
     public Task<NotificationDto> CreateAsync(CreateNotificationDto dto) => Task.FromResult(new NotificationDto());
     public Task<IEnumerable<NotificationDto>> GetByUserIdAsync(int userId) => throw new NotSupportedException();
     public Task<IEnumerable<NotificationDto>> GetUnreadByUserIdAsync(int userId) => throw new NotSupportedException();
+    public Task<IEnumerable<NotificationDto>> GetPageByUserIdAsync(int userId, int limit, int? beforeId) => throw new NotSupportedException();
+    public Task<int> CountUnreadAsync(int userId) => throw new NotSupportedException();
     public Task<NotificationDto> GetByIdAsync(int id) => throw new NotSupportedException();
     public Task MarkAsReadAsync(int id) => throw new NotSupportedException();
     public Task<int> MarkAllAsReadAsync(int userId) => throw new NotSupportedException();

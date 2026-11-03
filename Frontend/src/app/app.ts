@@ -109,8 +109,8 @@ export class App {
       this.unreadCount.set(0);
       return;
     }
-    this.notificationService.getUnread(this.authService.getUserId()).subscribe({
-      next: list => this.unreadCount.set(list.length),
+    this.notificationService.getUnreadCount().subscribe({
+      next: count => this.unreadCount.set(count),
       error: () => {}
     });
   }

@@ -7,6 +7,8 @@ namespace Application.Interfaces.Repositories
         Task<Notification?> GetByIdAsync(int id);
         Task<IEnumerable<Notification>> GetByUserIdAsync(int userId);
         Task<IEnumerable<Notification>> GetUnreadByUserIdAsync(int userId);
+        Task<IEnumerable<Notification>> GetPageByUserIdAsync(int userId, int limit, int? beforeId);
+        Task<int> CountUnreadAsync(int userId);
         Task<Notification> CreateAsync(Notification notification);
         Task<bool> MarkAsReadAsync(int id);
         Task<int> MarkAllAsReadAsync(int userId);

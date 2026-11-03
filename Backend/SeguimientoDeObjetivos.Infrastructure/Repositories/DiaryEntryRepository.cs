@@ -23,6 +23,27 @@ namespace Infrastructure.Repositories
                 .OrderByDescending(d => d.EntryDate)
                 .ToListAsync();
 
+        // El diario se ordena por EntryDate, que elige el usuario: no sigue el orden
+        // de los ids y puede repetirse en el mismo dia. Por eso el cursor es el par
+        // (fecha, id), y el id desempata dentro del mismo dia.
+        public async Task<IEnumerable<DiaryEntry>> GetPageByUserIdAsync(int userId, int limit, DateTime? beforeDate, int? beforeId)
+        {
+            var query = _context.DiaryEntries.Where(d => d.UserId == userId);
+
+            if (beforeDate is not null && beforeId is not null)
+                query = query.Where(d => d.EntryDate < beforeDate
+                    || (d.EntryDate == beforeDate && d.Id < beforeId));
+
+            return await query
+                .OrderByDescending(d => d.EntryDate)
+                .ThenByDescending(d => d.Id)
+                .Take(limit)
+                .ToListAsync();
+        }
+
+        public Task<int> CountByUserIdAsync(int userId)
+            => _context.DiaryEntries.CountAsync(d => d.UserId == userId);
+
         public Task<DiaryEntry> CreateAsync(DiaryEntry entry)
         {
             _context.DiaryEntries.Add(entry);

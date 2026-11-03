@@ -1,3 +1,4 @@
+using Application.Common;
 using Application.DTOs.Messages;
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
@@ -20,6 +21,12 @@ namespace Application.Services
         public async Task<IEnumerable<MessageDto>> GetConversationAsync(int userAId, int userBId)
         {
             var messages = await _messageRepository.GetConversationAsync(userAId, userBId);
+            return messages.Select(ToDto);
+        }
+
+        public async Task<IEnumerable<MessageDto>> GetConversationPageAsync(int userAId, int userBId, int limit, int? beforeId)
+        {
+            var messages = await _messageRepository.GetConversationPageAsync(userAId, userBId, Paginacion.Limite(limit), beforeId);
             return messages.Select(ToDto);
         }
 

@@ -155,7 +155,10 @@ export class ChatService {
     return this.connection.invoke('SendMessage', dto);
   }
 
-  getConversation(userAId: number, userBId: number): Observable<Message[]> {
-    return this.http.get<Message[]>(`${this.url}/conversation?userAId=${userAId}&userBId=${userBId}`);
+  /** Los `limit` mensajes anteriores a `beforeId`, del mas viejo al mas nuevo. */
+  getConversationPage(userAId: number, userBId: number, limit: number, beforeId?: number): Observable<Message[]> {
+    const cursor = beforeId ? `&beforeId=${beforeId}` : '';
+    return this.http.get<Message[]>(
+      `${this.url}/conversation?userAId=${userAId}&userBId=${userBId}&limit=${limit}${cursor}`);
   }
 }

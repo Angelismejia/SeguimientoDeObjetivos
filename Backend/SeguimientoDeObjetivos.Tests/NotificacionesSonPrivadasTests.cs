@@ -62,6 +62,48 @@ public class NotificacionesSonPrivadasTests
         Assert.Single((IEnumerable<NotificationDto>)ok.Value!);
     }
 
+    // La version paginada pasa por el mismo control: pedir de a pedazos no es
+    // otra puerta de entrada.
+    [Fact]
+    public async Task No_se_pueden_listar_de_a_paginas_las_alertas_de_otro()
+    {
+        var servicio = new NotificacionesFalsas(Alerta(10, Otro));
+        var controller = ControllerComo(Yo, servicio);
+
+        var respuesta = await controller.GetByUser(Otro, limit: 20);
+
+        Assert.IsType<ForbidResult>(respuesta.Result);
+        Assert.Empty(servicio.Llamadas);
+    }
+
+    [Fact]
+    public async Task Con_limit_se_pide_una_pagina_y_sin_limit_la_lista_entera()
+    {
+        var servicio = new NotificacionesFalsas(Alerta(10, Yo));
+        var controller = ControllerComo(Yo, servicio);
+
+        await controller.GetByUser(Yo, limit: 20);
+        await controller.GetByUser(Yo);
+
+        Assert.Equal(new[] { $"GetPage({Yo})", $"GetByUser({Yo})" }, servicio.Llamadas);
+    }
+
+    // Igual que read-all: el contador sale del token, no de un parametro.
+    [Fact]
+    public async Task El_contador_de_no_leidas_usa_el_token()
+    {
+        var servicio = new NotificacionesFalsas(Alerta(10, Yo), Alerta(11, Otro));
+        var controller = ControllerComo(Yo, servicio);
+
+        Assert.Empty(typeof(NotificationsController)
+            .GetMethod(nameof(NotificationsController.GetUnreadCount))!
+            .GetParameters());
+
+        var ok = Assert.IsType<OkObjectResult>((await controller.GetUnreadCount()).Result);
+        Assert.Equal(1, ok.Value);
+        Assert.Contains($"CountUnread({Yo})", servicio.Llamadas);
+    }
+
     [Fact]
     public async Task No_se_pueden_listar_las_no_leidas_de_otro()
     {
@@ -170,6 +212,18 @@ internal sealed class NotificacionesFalsas : INotificationService
     {
         Llamadas.Add($"GetUnread({userId})");
         return Task.FromResult(_porId.Values.Where(n => n.UserId == userId && !n.IsRead));
+    }
+
+    public Task<IEnumerable<NotificationDto>> GetPageByUserIdAsync(int userId, int limit, int? beforeId)
+    {
+        Llamadas.Add($"GetPage({userId})");
+        return Task.FromResult(_porId.Values.Where(n => n.UserId == userId));
+    }
+
+    public Task<int> CountUnreadAsync(int userId)
+    {
+        Llamadas.Add($"CountUnread({userId})");
+        return Task.FromResult(_porId.Values.Count(n => n.UserId == userId && !n.IsRead));
     }
 
     public Task<NotificationDto> GetByIdAsync(int id) => Task.FromResult(_porId[id]);

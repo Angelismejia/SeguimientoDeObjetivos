@@ -127,6 +127,7 @@ public class MensajesLeidosTests
                 .ToList());
 
         public Task<IEnumerable<Message>> GetConversationAsync(int a, int b) => throw new NotSupportedException();
+        public Task<IEnumerable<Message>> GetConversationPageAsync(int a, int b, int limit, int? beforeId) => throw new NotSupportedException();
         public Task<Message> CreateAsync(Message message) => throw new NotSupportedException();
         public Task DeleteAllForUserAsync(int userId) => throw new NotSupportedException();
     }

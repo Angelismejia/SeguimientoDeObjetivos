@@ -1,3 +1,4 @@
+using Application.Common;
 using Application.DTOs.Notifications;
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
@@ -29,6 +30,15 @@ namespace Application.Services
             var notifications = await _notificationRepository.GetUnreadByUserIdAsync(userId);
             return notifications.Select(ToDto);
         }
+
+        public async Task<IEnumerable<NotificationDto>> GetPageByUserIdAsync(int userId, int limit, int? beforeId)
+        {
+            var notifications = await _notificationRepository.GetPageByUserIdAsync(userId, Paginacion.Limite(limit), beforeId);
+            return notifications.Select(ToDto);
+        }
+
+        public Task<int> CountUnreadAsync(int userId)
+            => _notificationRepository.CountUnreadAsync(userId);
 
         public async Task<NotificationDto> GetByIdAsync(int id)
         {

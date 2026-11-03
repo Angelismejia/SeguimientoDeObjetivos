@@ -10,8 +10,21 @@ export class DiaryEntryService {
 
   constructor(private http: HttpClient) {}
 
-  getAll(userId: number): Observable<DiaryEntry[]> {
-    return this.http.get<DiaryEntry[]>(`${this.url}?userId=${userId}`);
+  /**
+   * Las `limit` entradas anteriores a `before` (sin cursor: las mas recientes).
+   * El cursor es fecha + id porque el diario se ordena por la fecha que elige el
+   * usuario, y puede haber varias entradas el mismo dia.
+   */
+  getPage(userId: number, limit: number, before?: DiaryEntry): Observable<DiaryEntry[]> {
+    const cursor = before
+      ? `&beforeDate=${encodeURIComponent(before.entryDate)}&beforeId=${before.id}`
+      : '';
+    return this.http.get<DiaryEntry[]>(`${this.url}?userId=${userId}&limit=${limit}${cursor}`);
+  }
+
+  /** Cuantas entradas tiene el usuario autenticado, sin bajar el texto. */
+  count(): Observable<number> {
+    return this.http.get<number>(`${this.url}/count`);
   }
 
   getById(id: number): Observable<DiaryEntry> {

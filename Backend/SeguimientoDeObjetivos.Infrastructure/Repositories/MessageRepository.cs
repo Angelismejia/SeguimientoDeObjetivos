@@ -21,6 +21,22 @@ namespace Infrastructure.Repositories
                 .OrderBy(m => m.SentAt)
                 .ToListAsync();
 
+        // Se piden los N mas nuevos (orden descendente) y se devuelven del mas viejo
+        // al mas nuevo, que es como se muestran en la conversacion.
+        public async Task<IEnumerable<Message>> GetConversationPageAsync(int userAId, int userBId, int limit, int? beforeId)
+        {
+            var page = await _context.Messages
+                .Where(m => (m.SenderId == userAId && m.ReceiverId == userBId) ||
+                            (m.SenderId == userBId && m.ReceiverId == userAId))
+                .Where(m => beforeId == null || m.Id < beforeId)
+                .OrderByDescending(m => m.Id)
+                .Take(limit)
+                .ToListAsync();
+
+            page.Reverse();
+            return page;
+        }
+
         public async Task<IEnumerable<int>> GetUnreadSenderIdsAsync(int receiverId)
             => await _context.Messages
                 .Where(m => m.ReceiverId == receiverId && m.ReadAt == null)

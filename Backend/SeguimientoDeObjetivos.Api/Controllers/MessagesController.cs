@@ -19,14 +19,20 @@ namespace Api.Controllers
         }
 
         [HttpGet("conversation")]
-        public async Task<ActionResult<IEnumerable<MessageDto>>> GetConversation([FromQuery] int userAId, [FromQuery] int userBId)
+        // Sin limit devuelve la conversacion entera, como antes. Con limit, los
+        // mensajes anteriores a beforeId (el mas viejo que ya tiene el front).
+        public async Task<ActionResult<IEnumerable<MessageDto>>> GetConversation(
+            [FromQuery] int userAId, [FromQuery] int userBId,
+            [FromQuery] int? limit = null, [FromQuery] int? beforeId = null)
         {
             var requesterId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             if (requesterId != userAId && requesterId != userBId)
                 return Forbid();
 
+            if (limit is null)
+                return Ok(await _messageService.GetConversationAsync(userAId, userBId));
 
-            return Ok(await _messageService.GetConversationAsync(userAId, userBId));
+            return Ok(await _messageService.GetConversationPageAsync(userAId, userBId, limit.Value, beforeId));
         }
 
         // Ninguno de los dos recibe userId: el lector sale del token, asi que no

@@ -115,6 +115,9 @@
   gap: 8px;
 }
 
+/* Arriba de la conversacion y sin margen extra: el gap de la lista ya separa. */
+.btn-load-older { margin: 0 auto 4px; }
+
 .message-row { display: flex; }
 .message-row.mine { justify-content: flex-end; }
 

@@ -19,12 +19,15 @@ export class NotificationService {
 
   constructor(private http: HttpClient) {}
 
-  getAll(userId: number): Observable<Notification[]> {
-    return this.http.get<Notification[]>(`${this.url}?userId=${userId}`);
+  /** Las `limit` alertas anteriores a `beforeId` (sin cursor: las mas nuevas). */
+  getPage(userId: number, limit: number, beforeId?: number): Observable<Notification[]> {
+    const cursor = beforeId ? `&beforeId=${beforeId}` : '';
+    return this.http.get<Notification[]>(`${this.url}?userId=${userId}&limit=${limit}${cursor}`);
   }
 
-  getUnread(userId: number): Observable<Notification[]> {
-    return this.http.get<Notification[]>(`${this.url}/unread?userId=${userId}`);
+  /** Solo el numero: el header lo pide cada 30s y no necesita las alertas. */
+  getUnreadCount(): Observable<number> {
+    return this.http.get<number>(`${this.url}/unread-count`);
   }
 
   markAsRead(id: number): Observable<void> {

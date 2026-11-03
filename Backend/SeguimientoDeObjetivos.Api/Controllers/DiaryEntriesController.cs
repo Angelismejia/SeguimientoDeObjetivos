@@ -23,12 +23,24 @@ namespace Api.Controllers
         private int RequesterId => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<DiaryEntryDto>>> GetByUser([FromQuery] int userId)
+        // Sin limit devuelve todo, como antes. Con limit, las entradas anteriores
+        // al cursor (beforeDate + beforeId), que es la ultima que ya tiene el front.
+        public async Task<ActionResult<IEnumerable<DiaryEntryDto>>> GetByUser(
+            [FromQuery] int userId, [FromQuery] int? limit = null,
+            [FromQuery] DateTime? beforeDate = null, [FromQuery] int? beforeId = null)
         {
             if (userId != RequesterId) return Forbid();
 
-            return Ok(await _diaryEntryService.GetByUserIdAsync(userId));
+            if (limit is null)
+                return Ok(await _diaryEntryService.GetByUserIdAsync(userId));
+
+            return Ok(await _diaryEntryService.GetPageByUserIdAsync(userId, limit.Value, beforeDate, beforeId));
         }
+
+        // El perfil solo muestra cuantas entradas hay: no hace falta bajar el texto.
+        [HttpGet("count")]
+        public async Task<ActionResult<int>> GetCount()
+            => Ok(await _diaryEntryService.CountByUserIdAsync(RequesterId));
 
         [HttpGet("{id}")]
         public async Task<ActionResult<DiaryEntryDto>> GetById(int id)

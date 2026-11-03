@@ -38,5 +38,14 @@
         </li>
       }
     </ul>
+
+    @if (loadMoreError()) {
+      <p class="state-msg error">{{ loadMoreError() }}</p>
+    }
+    @if (hasMore()) {
+      <button type="button" class="btn-load-more" (click)="loadMore()" [disabled]="loadingMore()">
+        {{ loadingMore() ? 'Cargando...' : 'Ver alertas anteriores' }}
+      </button>
+    }
   }
 </div>

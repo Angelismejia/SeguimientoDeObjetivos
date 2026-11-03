@@ -25,12 +25,23 @@ namespace Api.Controllers
         // llegaba por la URL y no se contrastaba con nadie, asi que cambiando un
         // numero se leian, marcaban y borraban las alertas de cualquier usuario.
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<NotificationDto>>> GetByUser([FromQuery] int userId)
+        // Sin limit devuelve todas, como antes; con limit, la pagina anterior a beforeId.
+        public async Task<ActionResult<IEnumerable<NotificationDto>>> GetByUser(
+            [FromQuery] int userId, [FromQuery] int? limit = null, [FromQuery] int? beforeId = null)
         {
             if (userId != RequesterId) return Forbid();
 
-            return Ok(await _notificationService.GetByUserIdAsync(userId));
+            if (limit is null)
+                return Ok(await _notificationService.GetByUserIdAsync(userId));
+
+            return Ok(await _notificationService.GetPageByUserIdAsync(userId, limit.Value, beforeId));
         }
+
+        // El header lo consulta cada 30 segundos solo para mostrar un numero: antes
+        // descargaba todas las alertas sin leer para contarlas en el navegador.
+        [HttpGet("unread-count")]
+        public async Task<ActionResult<int>> GetUnreadCount()
+            => Ok(await _notificationService.CountUnreadAsync(RequesterId));
 
         [HttpGet("unread")]
         public async Task<ActionResult<IEnumerable<NotificationDto>>> GetUnread([FromQuery] int userId)
