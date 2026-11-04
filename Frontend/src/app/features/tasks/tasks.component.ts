@@ -166,14 +166,28 @@ export class TasksComponent implements OnInit {
     const currentlyDone = this.isDone(task);
     if (!currentlyDone && this.isFuture(task)) return;
     const newStatus: TaskStatus = currentlyDone ? 'Pending' : 'Completed';
-    // Las recurrentes son una sola fila con una unica scheduledDate: al completarla hay
-    // que moverla a "hoy" para que la racha la vea como hecha. Usamos el hoy LOCAL del
-    // navegador (no el del backend, que corre en UTC y puede ser otro dia distinto).
-    const scheduledDate = (task.isRecurring && newStatus === 'Completed')
-      ? this.dateKey(new Date())
-      : task.scheduledDate;
+
+    // Igual que en el dashboard: las recurrentes guardan un registro por dia en
+    // TaskCompletions y la fila de la tarea no se toca. Antes se le movia la
+    // scheduledDate a hoy, lo que la borraba del calendario en los dias anteriores.
+    // El dia es el hoy LOCAL del navegador (el backend corre en UTC).
+    if (task.isRecurring) {
+      const dia = this.dateKey(new Date());
+      this.taskService.setCompletion(task.id, dia, !currentlyDone).subscribe({
+        next: () => {
+          const dias = new Set(task.completedDates ?? []);
+          if (currentlyDone) dias.delete(dia); else dias.add(dia);
+          const actualizada = { ...task, completedDates: [...dias].sort() };
+          const tareas = this.allTasks().map(t => t.id === task.id ? actualizada : t);
+          this.allTasks.set(tareas);
+          if (task.objectiveId) this.recomputeObjectiveProgress(task.objectiveId, tareas);
+        }
+      });
+      return;
+    }
+
     this.taskService.update(task.id,
-      cuerpoDeActualizacion(task, { scheduledDate, status: newStatus })).subscribe({
+      cuerpoDeActualizacion(task, { status: newStatus })).subscribe({
       next: updated => {
         const updatedTasks = this.allTasks().map(t => t.id === updated.id ? updated : t);
         this.allTasks.set(updatedTasks);
