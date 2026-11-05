@@ -29,7 +29,7 @@
               </button>
             </div>
           </div>
-          <button type="button" class="forgot-btn">¿Olvidaste tu contraseña?</button>
+          <a routerLink="/forgot-password" class="forgot-btn">¿Olvidaste tu contraseña?</a>
           <p class="form-error" *ngIf="loginError()">{{ loginError() }}</p>
           <button class="btn-main" type="submit" [disabled]="loginForm.invalid || loading()">
             <span class="spinner" *ngIf="loading()" aria-hidden="true"></span>

@@ -2,6 +2,7 @@ using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Infrastructure.BackgroundServices;
 using Infrastructure.Common;
+using Infrastructure.Email;
 using Infrastructure.Persistence;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -36,6 +37,7 @@ namespace Infrastructure
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddSingleton<IAppClock, AppClock>();
+            services.AddScoped<IEmailSender, SmtpEmailSender>();
 
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();

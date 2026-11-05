@@ -27,6 +27,15 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${this.url}/register`, data);
   }
 
+  /** Siempre responde bien, exista o no el correo (la API no lo revela). */
+  forgotPassword(email: string): Observable<void> {
+    return this.http.post<void>(`${this.url}/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<void> {
+    return this.http.post<void>(`${this.url}/reset-password`, { token, newPassword });
+  }
+
   logout(): void {
     localStorage.clear();
     this.router.navigate(['/login']);

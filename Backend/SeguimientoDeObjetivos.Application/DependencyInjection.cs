@@ -23,6 +23,7 @@ namespace Application
             services.AddScoped<IUserDataExportService, UserDataExportService>();
             services.AddScoped<IUserSettingService, UserSettingService>();
             services.AddScoped<IObjectiveSocialService, ObjectiveSocialService>();
+            services.AddScoped<IPasswordResetService, PasswordResetService>();
 
             return services;
         }

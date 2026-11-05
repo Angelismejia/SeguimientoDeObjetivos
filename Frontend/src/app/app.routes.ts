@@ -19,6 +19,17 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/auth.component').then(m => m.AuthComponent)
   },
   {
+    path: 'forgot-password',
+    canActivate: [guestGuard],
+    loadComponent: () => import('./features/auth/password-reset.component').then(m => m.PasswordResetComponent)
+  },
+  {
+    // Sin guestGuard: el enlace del correo tiene que funcionar aunque haya una
+    // sesion abierta en ese navegador.
+    path: 'reset-password',
+    loadComponent: () => import('./features/auth/password-reset.component').then(m => m.PasswordResetComponent)
+  },
+  {
     path: 'dashboard',
     canActivate: [authGuard],
     loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
