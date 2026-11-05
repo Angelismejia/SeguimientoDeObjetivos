@@ -15,17 +15,23 @@ namespace Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IBadgeAwardService _badgeAwardService;
         private readonly INotificationService _notificationService;
+        private readonly IFollowRepository _followRepository;
+        private readonly IUserRepository _userRepository;
 
         public ObjectiveService(
             IObjectiveRepository objectiveRepository,
             IUnitOfWork unitOfWork,
             IBadgeAwardService badgeAwardService,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            IFollowRepository followRepository,
+            IUserRepository userRepository)
         {
             _objectiveRepository = objectiveRepository;
             _unitOfWork = unitOfWork;
             _badgeAwardService = badgeAwardService;
             _notificationService = notificationService;
+            _followRepository = followRepository;
+            _userRepository = userRepository;
         }
 
         public async Task<IEnumerable<ObjectiveDto>> GetByUserIdAsync(int userId)
@@ -124,9 +130,39 @@ namespace Application.Services
                     Message = $"Completaste \"{objective.Title}\". ¡Felicidades!",
                     Type = "objective_completed"
                 });
+
+                if (!objective.IsPrivate)
+                    await AvisarALosSeguidoresAsync(objective);
             }
 
             return ToDto(objective);
+        }
+
+        // La comunidad es para ver como mejoran los amigos: cuando alguien cumple un
+        // objetivo publico, a quienes lo siguen les llega una alerta para que vayan
+        // a felicitarlo. Los privados no se anuncian (nadie mas puede verlos).
+        //
+        // Va una alerta por seguidor, cada una con su guardado. Con pocos seguidos
+        // alcanza; si un usuario llegara a tener cientos, convendria insertarlas
+        // todas juntas.
+        private async Task AvisarALosSeguidoresAsync(Objective objective)
+        {
+            var seguidores = await _followRepository.GetFollowersAsync(objective.UserId);
+            if (!seguidores.Any()) return;
+
+            var duenio = await _userRepository.GetByIdAsync(objective.UserId);
+            var nombre = duenio?.Name ?? "Alguien que sigues";
+
+            foreach (var seguidor in seguidores)
+            {
+                await _notificationService.CreateAsync(new CreateNotificationDto
+                {
+                    UserId = seguidor.FollowerId,
+                    Title = "¡Un amigo cumplió un objetivo!",
+                    Message = $"{nombre} cumplió \"{objective.Title}\". Pasa por Comunidad a darle tus felicitaciones.",
+                    Type = "friend_objective_completed"
+                });
+            }
         }
 
         public async Task<ObjectiveDto> SetPrimaryAsync(int userId, int objectiveId, bool isPrimary)

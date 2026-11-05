@@ -85,7 +85,8 @@ internal sealed class FollowRepoFalso : IFollowRepository
 {
     public Task<Follow?> GetByIdAsync(int id) => throw new NotSupportedException();
     public Task<Follow?> GetAsync(int a, int b) => throw new NotSupportedException();
-    public Task<IEnumerable<Follow>> GetFollowersAsync(int userId) => throw new NotSupportedException();
+    public Task<IEnumerable<Follow>> GetFollowersAsync(int userId) =>
+        Task.FromResult<IEnumerable<Follow>>(new List<Follow>());
     public Task<IEnumerable<Follow>> GetFollowingAsync(int userId) => throw new NotSupportedException();
     public Task<Follow> CreateAsync(Follow follow) => throw new NotSupportedException();
     public Task<bool> DeleteAsync(int a, int b) => throw new NotSupportedException();

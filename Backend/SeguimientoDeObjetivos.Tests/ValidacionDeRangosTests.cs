@@ -23,7 +23,8 @@ public class ValidacionDeRangosTests
 
     private static ObjectiveService ServicioDeObjetivos(Objective? existente = null) =>
         new(new ObjectiveRepoFalso(existente), new UnitOfWorkFalso(),
-            new BadgeAwardFalso(), new NotificationServiceFalso());
+            new BadgeAwardFalso(), new NotificationServiceFalso(),
+            new FollowRepoFalso(), new UserRepoFalso());
 
     private static CreateObjectiveDto CrearObjetivo(DateTime? inicio, DateTime? fin) =>
         new() { Title = "Aprender Angular", StartDate = inicio, EndDate = fin };
