@@ -6,6 +6,7 @@ import { TaskService } from '../../core/services/task.service';
 import { TaskItem } from '../../core/models/task.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { isTaskDoneOn, isTaskOverdue } from '../../core/utils/task-status.util';
+import { taskOccursOn } from '../../core/utils/task-recurrence.util';
 import { cuerpoDeActualizacion } from '../../core/utils/task-update.util';
 import { mensajeDeError } from '../../core/utils/http-error.util';
 
@@ -44,7 +45,7 @@ export class CalendarComponent implements OnInit {
       const date = new Date(gridStart);
       date.setDate(date.getDate() + i);
       const key = this.dateKey(date);
-      const dayTasks = tasks.filter(t => this.taskOccursOn(t, date));
+      const dayTasks = tasks.filter(t => taskOccursOn(t, date));
       return {
         date,
         key,
@@ -62,7 +63,7 @@ export class CalendarComponent implements OnInit {
     if (!key) return [];
     const date = this.parseDateKey(key);
     return this.allTasks()
-      .filter(t => this.taskOccursOn(t, date))
+      .filter(t => taskOccursOn(t, date))
       .sort((a, b) => (a.scheduledTime ?? '99:99').localeCompare(b.scheduledTime ?? '99:99'));
   });
 
@@ -139,11 +140,24 @@ export class CalendarComponent implements OnInit {
     const currentlyDone = this.isDone(task, dateKey);
     if (!currentlyDone && this.isFuture(task)) return;
     const newStatus = currentlyDone ? 'Pending' : 'Completed';
-    const scheduledDate = (task.isRecurring && newStatus === 'Completed')
-      ? (dateKey ?? this.dateKey(new Date()))
-      : task.scheduledDate;
+
+    // Igual que en el dashboard y en Tareas: las recurrentes guardan un registro
+    // por dia en TaskCompletions y la fila de la tarea no se toca. Antes se le
+    // movia la scheduledDate al dia marcado, y como esa fecha es el inicio de la
+    // repeticion, la tarea desaparecia del calendario en todos los dias anteriores.
+    if (task.isRecurring) {
+      const dia = dateKey ?? this.dateKey(new Date());
+      this.taskService.setCompletion(task.id, dia, !currentlyDone).subscribe(() => {
+        const dias = new Set(task.completedDates ?? []);
+        if (currentlyDone) dias.delete(dia); else dias.add(dia);
+        const actualizada = { ...task, completedDates: [...dias].sort() };
+        this.allTasks.set(this.allTasks().map(t => t.id === task.id ? actualizada : t));
+      });
+      return;
+    }
+
     this.taskService.update(task.id,
-      cuerpoDeActualizacion(task, { scheduledDate, status: newStatus })).subscribe(updated => {
+      cuerpoDeActualizacion(task, { status: newStatus })).subscribe(updated => {
       this.allTasks.set(this.allTasks().map(t => t.id === updated.id ? updated : t));
     });
   }
@@ -171,34 +185,6 @@ export class CalendarComponent implements OnInit {
     });
   }
 
-  private taskOccursOn(task: TaskItem, date: Date): boolean {
-    if (!task.scheduledDate) return false;
-    const start = this.parseDateKey(task.scheduledDate.substring(0, 10));
-    const day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    if (day < start) return false;
-    if (task.endRepeatDate) {
-      const end = this.parseDateKey(task.endRepeatDate.substring(0, 10));
-      if (day > end) return false;
-    }
-    if (!task.isRecurring || task.recurrenceType === 'None') {
-      return day.getTime() === start.getTime();
-    }
-    const diffDays = Math.round((day.getTime() - start.getTime()) / 86400000);
-    switch (task.recurrenceType) {
-      case 'Daily':
-        return true;
-      case 'Weekly': {
-        const weeks = task.repeatEveryWeeks && task.repeatEveryWeeks > 0 ? task.repeatEveryWeeks : 1;
-        return diffDays % (7 * weeks) === 0;
-      }
-      case 'Monthly':
-        return day.getDate() === start.getDate();
-      case 'Yearly':
-        return day.getDate() === start.getDate() && day.getMonth() === start.getMonth();
-      default:
-        return false;
-    }
-  }
 
   private startOfMonth(date: Date): Date {
     return new Date(date.getFullYear(), date.getMonth(), 1);

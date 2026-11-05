@@ -13,6 +13,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
 import { TaskFormDialogComponent, TaskSaved } from '../../shared/components/task-form-dialog/task-form-dialog.component';
 import { recurrenceLabel, taskPriorityLabel } from '../../core/utils/task-labels';
 import { completedDayKeys, isTaskDoneOn, isTaskOverdue } from '../../core/utils/task-status.util';
+import { taskOccursOn } from '../../core/utils/task-recurrence.util';
 import { cuerpoDeActualizacion } from '../../core/utils/task-update.util';
 import { computeObjectiveProgress } from '../../core/utils/objective-progress.util';
 import { mensajeDeError } from '../../core/utils/http-error.util';
@@ -96,7 +97,7 @@ export class DashboardComponent implements OnInit {
       const date = new Date(weekStart);
       date.setDate(date.getDate() + i);
       const key = this.dateKey(date);
-      const dayTasks = tasks.filter(t => this.taskOccursOn(t, date));
+      const dayTasks = tasks.filter(t => taskOccursOn(t, date));
       return {
         date,
         key,
@@ -138,7 +139,7 @@ export class DashboardComponent implements OnInit {
   todayTasks = computed(() => {
     const today = new Date();
     return this.allTasks()
-      .filter(t => this.taskOccursOn(t, today) && t.status !== 'Skipped')
+      .filter(t => taskOccursOn(t, today) && t.status !== 'Skipped')
       .sort((a, b) => (a.scheduledTime ?? '99:99').localeCompare(b.scheduledTime ?? '99:99'));
   });
 
@@ -207,7 +208,7 @@ export class DashboardComponent implements OnInit {
     const key = this.selectedDate();
     if (!key) return [];
     const date = this.parseDateKey(key);
-    return this.allTasks().filter(t => this.taskOccursOn(t, date));
+    return this.allTasks().filter(t => taskOccursOn(t, date));
   });
 
   weekRangeLabel = computed(() => {
@@ -218,34 +219,6 @@ export class DashboardComponent implements OnInit {
     return `${fmt(start)} – ${fmt(end)} ${end.getFullYear()}`;
   });
 
-  private taskOccursOn(task: TaskItem, date: Date): boolean {
-    if (!task.scheduledDate) return false;
-    const start = this.parseDateKey(task.scheduledDate.substring(0, 10));
-    const day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    if (day < start) return false;
-    if (task.endRepeatDate) {
-      const end = this.parseDateKey(task.endRepeatDate.substring(0, 10));
-      if (day > end) return false;
-    }
-    if (!task.isRecurring || task.recurrenceType === 'None') {
-      return day.getTime() === start.getTime();
-    }
-    const diffDays = Math.round((day.getTime() - start.getTime()) / 86400000);
-    switch (task.recurrenceType) {
-      case 'Daily':
-        return true;
-      case 'Weekly': {
-        const weeks = task.repeatEveryWeeks && task.repeatEveryWeeks > 0 ? task.repeatEveryWeeks : 1;
-        return diffDays % (7 * weeks) === 0;
-      }
-      case 'Monthly':
-        return day.getDate() === start.getDate();
-      case 'Yearly':
-        return day.getDate() === start.getDate() && day.getMonth() === start.getMonth();
-      default:
-        return false;
-    }
-  }
 
   private parseDateKey(key: string): Date {
     const [y, m, d] = key.split('-').map(Number);
