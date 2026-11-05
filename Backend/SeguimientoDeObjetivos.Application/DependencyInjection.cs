@@ -22,6 +22,7 @@ namespace Application
             services.AddScoped<IMessageService, MessageService>();
             services.AddScoped<IUserDataExportService, UserDataExportService>();
             services.AddScoped<IUserSettingService, UserSettingService>();
+            services.AddScoped<IObjectiveSocialService, ObjectiveSocialService>();
 
             return services;
         }

@@ -27,6 +27,8 @@ namespace Infrastructure.Persistence
         public DbSet<Follow> Follows { get; set; }
         public DbSet<FriendStreakInvitation> FriendStreakInvitations { get; set; }
         public DbSet<FriendStreak> FriendStreaks { get; set; }
+        public DbSet<ObjectiveLike> ObjectiveLikes { get; set; }
+        public DbSet<ObjectiveComment> ObjectiveComments { get; set; }
 
         /// <summary>
         /// Fuerza a que TODA fecha se guarde como "timestamp without time zone" y
@@ -261,6 +263,41 @@ namespace Infrastructure.Persistence
                     .WithMany()
                     .HasForeignKey(f => f.UserBId)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Likes y comentarios se borran solos con el objetivo o con la cuenta de
+            // quien los hizo (Cascade en las dos FK), asi DeleteAccountAsync no tiene
+            // que acordarse de ellos. SQL Server rechazaba dos caminos de cascada hacia
+            // la misma tabla (User -> Objective -> Like y User -> Like); PostgreSQL no.
+            modelBuilder.Entity<ObjectiveLike>(entity =>
+            {
+                entity.HasIndex(l => new { l.ObjectiveId, l.UserId }).IsUnique();
+
+                entity.HasOne(l => l.Objective)
+                    .WithMany()
+                    .HasForeignKey(l => l.ObjectiveId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(l => l.User)
+                    .WithMany()
+                    .HasForeignKey(l => l.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<ObjectiveComment>(entity =>
+            {
+                entity.Property(c => c.Content).HasMaxLength(500).IsRequired();
+                entity.HasIndex(c => c.ObjectiveId);
+
+                entity.HasOne(c => c.Objective)
+                    .WithMany()
+                    .HasForeignKey(c => c.ObjectiveId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(c => c.User)
+                    .WithMany()
+                    .HasForeignKey(c => c.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             SembrarCatalogoDeInsignias(modelBuilder);

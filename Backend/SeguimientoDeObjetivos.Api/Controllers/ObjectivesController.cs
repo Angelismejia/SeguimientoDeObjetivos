@@ -14,14 +14,26 @@ namespace Api.Controllers
     {
         private readonly IObjectiveService _objectiveService;
         private readonly IFollowService _followService;
+        private readonly IObjectiveSocialService _socialService;
 
-        public ObjectivesController(IObjectiveService objectiveService, IFollowService followService)
+        public ObjectivesController(
+            IObjectiveService objectiveService,
+            IFollowService followService,
+            IObjectiveSocialService socialService)
         {
             _objectiveService = objectiveService;
             _followService = followService;
+            _socialService = socialService;
         }
 
         private int RequesterId => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+        // La misma regla que GetById: lo tuyo siempre; lo de otro, solo si lo sigues
+        // y el objetivo no es privado. Likes y comentarios pasan por aca, asi que no
+        // se puede reaccionar a algo que no podrias ver.
+        private async Task<bool> PuedeVerAsync(int requesterId, ObjectiveDto objective)
+            => objective.UserId == requesterId
+            || (!objective.IsPrivate && await _followService.IsFollowingAsync(requesterId, objective.UserId));
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ObjectiveDto>>> GetByUser([FromQuery] int userId)
@@ -40,15 +52,82 @@ namespace Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ObjectiveDto>> GetById(int id)
         {
-            var requesterId = RequesterId;
             var objective = await _objectiveService.GetByIdAsync(id);
-            if (objective.UserId != requesterId)
-            {
-                if (objective.IsPrivate || !await _followService.IsFollowingAsync(requesterId, objective.UserId))
-                    return Forbid();
-            }
+            if (!await PuedeVerAsync(RequesterId, objective)) return Forbid();
 
             return Ok(objective);
+        }
+
+        // ── Comunidad: likes y comentarios ─────────────────────
+
+        // Resumen de likes y comentarios de los objetivos de una persona. Mismo
+        // control que GetByUser, y los privados no aparecen.
+        [HttpGet("social")]
+        public async Task<ActionResult<IEnumerable<ObjectiveSocialDto>>> GetSocial([FromQuery] int userId)
+        {
+            var requesterId = RequesterId;
+            if (requesterId != userId && !await _followService.IsFollowingAsync(requesterId, userId))
+                return Forbid();
+
+            var objectives = await _objectiveService.GetByUserIdAsync(userId);
+            var visibles = objectives
+                .Where(o => requesterId == userId || !o.IsPrivate)
+                .Select(o => o.Id);
+
+            return Ok(await _socialService.GetSummariesAsync(requesterId, visibles));
+        }
+
+        [HttpPut("{id}/like")]
+        public async Task<ActionResult<ObjectiveSocialDto>> Like(int id)
+            => await CambiarLike(id, true);
+
+        [HttpDelete("{id}/like")]
+        public async Task<ActionResult<ObjectiveSocialDto>> Unlike(int id)
+            => await CambiarLike(id, false);
+
+        private async Task<ActionResult<ObjectiveSocialDto>> CambiarLike(int id, bool liked)
+        {
+            var requesterId = RequesterId;
+            var objective = await _objectiveService.GetByIdAsync(id);
+            if (!await PuedeVerAsync(requesterId, objective)) return Forbid();
+
+            return Ok(await _socialService.SetLikeAsync(requesterId, id, liked));
+        }
+
+        [HttpGet("{id}/comments")]
+        public async Task<ActionResult<IEnumerable<ObjectiveCommentDto>>> GetComments(int id)
+        {
+            var objective = await _objectiveService.GetByIdAsync(id);
+            if (!await PuedeVerAsync(RequesterId, objective)) return Forbid();
+
+            return Ok(await _socialService.GetCommentsAsync(id));
+        }
+
+        [HttpPost("{id}/comments")]
+        public async Task<ActionResult<ObjectiveCommentDto>> AddComment(int id, CreateObjectiveCommentDto dto)
+        {
+            var requesterId = RequesterId;
+            var objective = await _objectiveService.GetByIdAsync(id);
+            if (!await PuedeVerAsync(requesterId, objective)) return Forbid();
+
+            return Ok(await _socialService.AddCommentAsync(requesterId, id, dto));
+        }
+
+        // Un comentario lo puede borrar quien lo escribio o el dueño del objetivo
+        // (es su logro: puede limpiar lo que no quiere que se vea ahi).
+        [HttpDelete("comments/{commentId}")]
+        public async Task<IActionResult> DeleteComment(int commentId)
+        {
+            var requesterId = RequesterId;
+            var comment = await _socialService.GetCommentAsync(commentId);
+            if (comment.UserId != requesterId)
+            {
+                var objective = await _objectiveService.GetByIdAsync(comment.ObjectiveId);
+                if (objective.UserId != requesterId) return Forbid();
+            }
+
+            await _socialService.DeleteCommentAsync(commentId);
+            return NoContent();
         }
 
         [HttpPost]

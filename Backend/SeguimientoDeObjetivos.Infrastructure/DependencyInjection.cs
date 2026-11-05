@@ -50,6 +50,7 @@ namespace Infrastructure
             services.AddScoped<IMessageRepository, MessageRepository>();
             services.AddScoped<IUserSettingRepository, UserSettingRepository>();
             services.AddScoped<ITaskCompletionRepository, TaskCompletionRepository>();
+            services.AddScoped<IObjectiveSocialRepository, ObjectiveSocialRepository>();
 
             services.AddHostedService<TaskReminderBackgroundService>();
 
