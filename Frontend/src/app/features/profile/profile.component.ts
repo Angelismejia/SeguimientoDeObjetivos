@@ -2,7 +2,7 @@ import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, signal } from 
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, forkJoin, map, of, switchMap, tap } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { ChatService } from '../../core/services/chat.service';
 import { UserService } from '../../core/services/user.service';
@@ -101,7 +101,6 @@ export class ProfileComponent implements OnInit, AfterViewInit {
   addFriendForm: FormGroup;
   searching = signal(false);
   searchError = signal('');
-  allUsers = signal<User[]>([]);
   searchResults = signal<User[]>([]);
 
   unfollowTarget = signal<UserSummary | null>(null);
@@ -131,7 +130,27 @@ export class ProfileComponent implements OnInit, AfterViewInit {
     this.addFriendForm = this.fb.group({
       username: ['']
     });
-    this.addFriendForm.get('username')!.valueChanges.subscribe(() => this.applyFilter());
+    // Busca en el servidor 300 ms despues de la ultima tecla. Antes se bajaba la
+    // lista entera de usuarios al abrir el dialogo y se filtraba aca.
+    this.addFriendForm.get('username')!.valueChanges.pipe(
+      map(v => (v ?? '').trim()),
+      debounceTime(300),
+      distinctUntilChanged(),
+      tap(q => { this.searchError.set(''); this.searching.set(!!q); }),
+      switchMap(q => q
+        ? this.userService.search(q, 20).pipe(catchError(e => {
+            this.searchError.set(mensajeDeError(e, 'No se pudo buscar usuarios.'));
+            return of([] as User[]);
+          }))
+        : of([] as User[]))
+    ).subscribe(users => {
+      this.searching.set(false);
+      // Los que ya seguis tambien aparecen: buscar a alguien y no encontrarlo se
+      // lee como que no existe, no como que ya es tu amigo. En la lista se
+      // distinguen porque en vez del boton "Seguir" muestran que ya lo seguis.
+      const myId = this.auth.getUserId();
+      this.searchResults.set(users.filter(u => u.id !== myId));
+    });
 
     this.editProfileForm = this.fb.group({
       name: ['', Validators.required],
@@ -539,41 +558,12 @@ export class ProfileComponent implements OnInit, AfterViewInit {
     this.searchResults.set([]);
     this.showAddFriend.set(true);
 
-    this.searching.set(true);
-    this.userService.getAll().subscribe({
-      next: users => {
-        this.allUsers.set(users);
-        this.searching.set(false);
-        this.applyFilter();
-      },
-      error: (e) => {
-        this.searching.set(false);
-        this.searchError.set(mensajeDeError(e, 'No se pudo cargar la lista de usuarios.'));
-      }
-    });
   }
 
   closeAddFriend(): void {
     this.showAddFriend.set(false);
   }
 
-  private applyFilter(): void {
-    const query = (this.addFriendForm.value.username ?? '').trim().toLowerCase();
-    if (!query) {
-      this.searchResults.set([]);
-      return;
-    }
-    // Los que ya seguis tambien aparecen: buscar a alguien y no encontrarlo se lee
-    // como que no existe, no como que ya es tu amigo. En la lista se distinguen
-    // porque en vez del boton "Seguir" muestran que ya lo seguis.
-    const myId = this.auth.getUserId();
-    this.searchResults.set(
-      this.allUsers()
-        .filter(u => u.id !== myId)
-        .filter(u => u.username.toLowerCase().includes(query) || u.name.toLowerCase().includes(query))
-        .slice(0, 20)
-    );
-  }
 
   yaLoSigo(userId: number): boolean {
     return this.following().some(f => f.id === userId);

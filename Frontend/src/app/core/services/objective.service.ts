@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
-  Objective, CreateObjectiveDto, UpdateObjectiveDto, ObjectiveSocial, ObjectiveComment
+  Objective, CreateObjectiveDto, UpdateObjectiveDto, ObjectiveSocial, ObjectiveComment, CommunityFeedItem
 } from '../models/objective.model';
 import { environment } from '../../../environments/environment';
 
@@ -42,9 +42,11 @@ export class ObjectiveService {
 
   // ── Comunidad: likes y comentarios en objetivos logrados ──
 
-  getSocial(userId: number): Observable<ObjectiveSocial[]> {
-    return this.http.get<ObjectiveSocial[]>(`${this.url}/social?userId=${userId}`);
+  /** Objetivos publicos de quienes sigo, con dueño y reacciones, en una sola peticion. */
+  getFeed(limit = 30): Observable<CommunityFeedItem[]> {
+    return this.http.get<CommunityFeedItem[]>(`${this.url}/feed?limit=${limit}`);
   }
+
 
   setLike(id: number, liked: boolean): Observable<ObjectiveSocial> {
     return liked

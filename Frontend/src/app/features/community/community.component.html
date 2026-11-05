@@ -25,8 +25,8 @@
       <p class="form-error">{{ actionError() }}</p>
     }
 
-    @if (loading()) {
-      <p class="status">Cargando personas...</p>
+    @if (loading() || searching()) {
+      <p class="status">{{ loading() ? 'Cargando personas...' : 'Buscando...' }}</p>
     } @else if (loadError()) {
       <div class="status">
         <p class="form-error">{{ loadError() }}</p>

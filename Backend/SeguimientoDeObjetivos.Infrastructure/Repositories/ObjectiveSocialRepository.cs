@@ -53,5 +53,18 @@ namespace Infrastructure.Repositories
 
         public void AddComment(ObjectiveComment comment) => _context.ObjectiveComments.Add(comment);
         public void RemoveComment(ObjectiveComment comment) => _context.ObjectiveComments.Remove(comment);
+
+        public async Task<IEnumerable<ObjectiveComment>> GetCommentsByUserAsync(int userId)
+            => await _context.ObjectiveComments
+                .Include(c => c.User)
+                .Where(c => c.UserId == userId)
+                .OrderBy(c => c.CreatedAt)
+                .ToListAsync();
+
+        public async Task<IEnumerable<int>> GetLikedObjectiveIdsAsync(int userId)
+            => await _context.ObjectiveLikes
+                .Where(l => l.UserId == userId)
+                .Select(l => l.ObjectiveId)
+                .ToListAsync();
     }
 }

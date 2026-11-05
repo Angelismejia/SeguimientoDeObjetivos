@@ -8,6 +8,7 @@ namespace Application.Interfaces.Repositories
         Task<User?> GetByUsernameAsync(string username);
         Task<User?> GetByEmailAsync(string email);
         Task<IEnumerable<User>> GetAllAsync();
+        Task<IEnumerable<User>> SearchActiveAsync(string? query, int limit);
         void Add(User user);
         Task<User> CreateAsync(User user);
         Task<User> UpdateAsync(User user);

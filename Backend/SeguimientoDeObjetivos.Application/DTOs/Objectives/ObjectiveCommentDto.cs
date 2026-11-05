@@ -1,3 +1,6 @@
+using System.Text.Json.Serialization;
+using Application.Common;
+
 namespace Application.DTOs.Objectives
 {
     public class ObjectiveCommentDto
@@ -9,6 +12,7 @@ namespace Application.DTOs.Objectives
         public string Name { get; set; } = string.Empty;
         public string? ProfilePhotoUrl { get; set; }
         public string Content { get; set; } = string.Empty;
+        [JsonConverter(typeof(InstanteUtcJsonConverter))]
         public DateTime CreatedAt { get; set; }
     }
 }

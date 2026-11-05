@@ -60,22 +60,13 @@ namespace Api.Controllers
 
         // ── Comunidad: likes y comentarios ─────────────────────
 
-        // Resumen de likes y comentarios de los objetivos de una persona. Mismo
-        // control que GetByUser, y los privados no aparecen.
-        [HttpGet("social")]
-        public async Task<ActionResult<IEnumerable<ObjectiveSocialDto>>> GetSocial([FromQuery] int userId)
-        {
-            var requesterId = RequesterId;
-            if (requesterId != userId && !await _followService.IsFollowingAsync(requesterId, userId))
-                return Forbid();
+        // El feed de Comunidad: objetivos publicos de quienes sigues, con su dueño
+        // y sus reacciones, en una sola peticion. Solo muestra lo del propio
+        // usuario que pide, asi que no necesita mas control que el token.
+        [HttpGet("feed")]
+        public async Task<ActionResult<IEnumerable<CommunityFeedItemDto>>> GetFeed([FromQuery] int limit = 30)
+            => Ok(await _socialService.GetFeedAsync(RequesterId, limit));
 
-            var objectives = await _objectiveService.GetByUserIdAsync(userId);
-            var visibles = objectives
-                .Where(o => requesterId == userId || !o.IsPrivate)
-                .Select(o => o.Id);
-
-            return Ok(await _socialService.GetSummariesAsync(requesterId, visibles));
-        }
 
         [HttpPut("{id}/like")]
         public async Task<ActionResult<ObjectiveSocialDto>> Like(int id)

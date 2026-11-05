@@ -1,3 +1,5 @@
+using Application.Common;
+using Application.DTOs.Follows;
 using Application.DTOs.Notifications;
 using Application.DTOs.Objectives;
 using Application.Interfaces;
@@ -18,19 +20,51 @@ namespace Application.Services
         private readonly IUserRepository _userRepository;
         private readonly INotificationService _notificationService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IFollowRepository _followRepository;
 
         public ObjectiveSocialService(
             IObjectiveSocialRepository socialRepository,
             IObjectiveRepository objectiveRepository,
             IUserRepository userRepository,
             INotificationService notificationService,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IFollowRepository followRepository)
         {
             _socialRepository = socialRepository;
             _objectiveRepository = objectiveRepository;
             _userRepository = userRepository;
             _notificationService = notificationService;
             _unitOfWork = unitOfWork;
+            _followRepository = followRepository;
+        }
+
+        // Todo el feed en una sola consulta. Antes el front pedia los objetivos y
+        // los likes de cada persona seguida por separado: con 50 seguidos eran 100
+        // peticiones. La regla de visibilidad es la misma que en GET api/objectives:
+        // solo de quienes sigues, y nunca los privados.
+        public async Task<IEnumerable<CommunityFeedItemDto>> GetFeedAsync(int requesterId, int limit)
+        {
+            var seguidos = (await _followRepository.GetFollowingAsync(requesterId))
+                .Select(f => f.FollowingId)
+                .ToList();
+            if (seguidos.Count == 0) return Enumerable.Empty<CommunityFeedItemDto>();
+
+            var objetivos = (await _objectiveRepository.GetPublicFeedAsync(seguidos, Paginacion.Limite(limit))).ToList();
+            var social = (await GetSummariesAsync(requesterId, objetivos.Select(o => o.Id)))
+                .ToDictionary(s => s.ObjectiveId);
+
+            return objetivos.Select(o => new CommunityFeedItemDto
+            {
+                Objective = ObjectiveService.ToDto(o),
+                Owner = new UserSummaryDto
+                {
+                    Id = o.User.Id,
+                    Username = o.User.Username,
+                    Name = o.User.Name,
+                    ProfilePhotoUrl = o.User.ProfilePhotoUrl
+                },
+                Social = social[o.Id]
+            }).ToList();
         }
 
         public async Task<IEnumerable<ObjectiveSocialDto>> GetSummariesAsync(int requesterId, IEnumerable<int> objectiveIds)
@@ -129,6 +163,12 @@ namespace Application.Services
             _socialRepository.RemoveComment(comentario);
             await _unitOfWork.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<ObjectiveCommentDto>> GetCommentsByUserAsync(int userId)
+            => (await _socialRepository.GetCommentsByUserAsync(userId)).Select(ToDto).ToList();
+
+        public Task<IEnumerable<int>> GetLikedObjectiveIdsAsync(int userId)
+            => _socialRepository.GetLikedObjectiveIdsAsync(userId);
 
         // La comunidad es para celebrar lo que los amigos ya lograron: los objetivos
         // en marcha se ven, pero no se les da like ni se comentan.

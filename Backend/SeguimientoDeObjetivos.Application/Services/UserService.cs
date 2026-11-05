@@ -1,3 +1,4 @@
+using Application.Common;
 using Application.DTOs.Users;
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
@@ -37,6 +38,15 @@ namespace Application.Services
         {
             var users = await _userRepository.GetAllAsync();
             return users.Select(ToDto);
+        }
+
+        // Para buscar personas en Comunidad y en "Agregar amigo". Antes el front
+        // pedia GET /api/users (TODOS los usuarios) y filtraba en el navegador:
+        // con muchos usuarios eso es una descarga enorme para mostrar 20.
+        public async Task<IEnumerable<UserDto>> SearchAsync(string? query, int limit)
+        {
+            var users = await _userRepository.SearchActiveAsync(query?.Trim(), Paginacion.Limite(limit));
+            return users.Select(ToDto).ToList();
         }
 
         public async Task<UserDto> GetByIdAsync(int id)

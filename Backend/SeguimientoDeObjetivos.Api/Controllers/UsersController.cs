@@ -38,11 +38,15 @@ namespace Api.Controllers
             if (dto.Id != requesterId) dto.Email = string.Empty;
         }
 
+        // Sin parametros devuelve todos, como siempre. Con query y/o limit busca en
+        // el servidor (solo cuentas activas, ordenadas por nombre, maximo 100).
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserDto>>> GetAll()
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetAll([FromQuery] string? query = null, [FromQuery] int? limit = null)
         {
             var requesterId = RequesterId;
-            var users = await _userService.GetAllAsync();
+            var users = query is null && limit is null
+                ? await _userService.GetAllAsync()
+                : await _userService.SearchAsync(query, limit ?? 20);
             foreach (var u in users) RedactEmailIfNotSelf(u, requesterId);
             return Ok(users);
         }

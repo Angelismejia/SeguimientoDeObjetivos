@@ -1,38 +1,29 @@
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { Observable, catchError, forkJoin, map, of } from 'rxjs';
+import { Subject, catchError, debounceTime, distinctUntilChanged, forkJoin, of, switchMap } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { FollowService } from '../../core/services/follow.service';
 import { ObjectiveService } from '../../core/services/objective.service';
 import { User } from '../../core/models/user.model';
-import { Objective, ObjectiveComment, ObjectiveSocial, ObjectiveStatus } from '../../core/models/objective.model';
+import {
+  CommunityFeedItem, Objective, ObjectiveComment, ObjectiveSocial, ObjectiveStatus
+} from '../../core/models/objective.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { environment } from '../../../environments/environment';
 import { mensajeDeError } from '../../core/utils/http-error.util';
 import { fechaDelBackend } from '../../core/utils/fecha.util';
 
-/** Un objetivo publico de alguien que sigo, con quien es el dueño. */
-interface ActivityItem {
-  objective: Objective;
-  owner: User;
-}
+/** Cuantas personas se muestran: sin buscar, una muestra; buscando, los primeros resultados. */
+const PERSONAS_POR_PAGINA = 30;
 
 const STATUS_LABEL: Record<ObjectiveStatus, string> = {
   Pending: 'Pendiente',
   InProgress: 'En progreso',
   Completed: 'Completado',
   Cancelled: 'Cancelado'
-};
-
-// Los logrados primero: la comunidad es para ver como mejoran los amigos y
-// felicitarlos. Despues lo que esta en marcha.
-const STATUS_ORDER: Record<ObjectiveStatus, number> = {
-  Completed: 0,
-  InProgress: 1,
-  Pending: 2,
-  Cancelled: 3
 };
 
 const VACIO: ObjectiveSocial = { objectiveId: 0, likeCount: 0, likedByMe: false, commentCount: 0 };
@@ -59,10 +50,13 @@ export class CommunityComponent implements OnInit {
   pendingIds = signal<Set<number>>(new Set());
   unfollowTarget = signal<User | null>(null);
 
-  // Objetivos por id de usuario seguido. Se guarda por persona para poder
-  // agregar o sacar a una sola al seguirla o dejarla, sin recargar todo.
-  objectivesByUser = signal<Map<number, Objective[]>>(new Map());
+  // El feed llega ya ordenado del backend: logrados primero, despues lo mas
+  // reciente. Antes se pedian los objetivos de cada persona seguida por separado.
+  activity = signal<CommunityFeedItem[]>([]);
   activityLoading = signal(false);
+  searching = signal(false);
+  private searchTerms = new Subject<string>();
+  private destroyRef = inject(DestroyRef);
 
   // Likes y comentarios por id de objetivo (solo los logrados admiten reacciones).
   socialById = signal<Map<number, ObjectiveSocial>>(new Map());
@@ -77,27 +71,8 @@ export class CommunityComponent implements OnInit {
 
   private apiOrigin = environment.apiUrl.replace('/api', '');
 
-  filtered = computed(() => {
-    const q = this.query().trim().toLowerCase();
-    if (!q) return this.people();
-    return this.people().filter(u =>
-      u.username.toLowerCase().includes(q) || u.name.toLowerCase().includes(q));
-  });
-
-  activity = computed<ActivityItem[]>(() => {
-    const owners = new Map(this.people().map(u => [u.id, u]));
-    const items: ActivityItem[] = [];
-    for (const [userId, objectives] of this.objectivesByUser()) {
-      const owner = owners.get(userId);
-      if (!owner) continue;
-      for (const objective of objectives) items.push({ objective, owner });
-    }
-    return items
-      .sort((a, b) =>
-        STATUS_ORDER[a.objective.status] - STATUS_ORDER[b.objective.status] ||
-        (b.objective.updatedAt ?? b.objective.createdAt).localeCompare(a.objective.updatedAt ?? a.objective.createdAt))
-      .slice(0, 30);
-  });
+  // La busqueda la hace el servidor; aca solo se saca a uno mismo.
+  filtered = computed(() => this.people().filter(u => u.id !== this.myId));
 
   constructor(
     private auth: AuthService,
@@ -109,6 +84,21 @@ export class CommunityComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Busca en el servidor 300 ms despues de la ultima tecla; switchMap descarta
+    // la respuesta de una busqueda vieja si llega despues de una nueva.
+    this.searchTerms.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(q => {
+        this.searching.set(true);
+        return this.userService.search(q, PERSONAS_POR_PAGINA).pipe(catchError(() => of(null)));
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(users => {
+      this.searching.set(false);
+      if (users) this.people.set(users);
+      else this.actionError.set('No se pudo buscar. Intenta de nuevo.');
+    });
     this.load();
   }
 
@@ -118,19 +108,18 @@ export class CommunityComponent implements OnInit {
     this.loadError.set('');
 
     forkJoin({
-      users: this.userService.getAll(),
+      users: this.userService.search(this.query().trim(), PERSONAS_POR_PAGINA),
       following: this.followService.getFollowing(myId),
       // Si falla, la pagina sigue funcionando: solo no se marca "Te sigue".
       followers: this.followService.getFollowers(myId).pipe(catchError(() => of([])))
     }).subscribe({
       next: ({ users, following, followers }) => {
-        // GetAll no filtra por IsActive: las cuentas desactivadas se ocultan aca
-        // para no ofrecer seguir a alguien que ya no usa la app.
-        this.people.set(users.filter(u => u.id !== myId && u.isActive));
+        // El servidor ya deja afuera las cuentas desactivadas.
+        this.people.set(users);
         this.followingIds.set(new Set(following.map(f => f.id)));
         this.followerIds.set(new Set(followers.map(f => f.id)));
         this.loading.set(false);
-        this.loadActivity(following.map(f => f.id));
+        this.loadActivity();
       },
       error: (e) => {
         this.loading.set(false);
@@ -139,26 +128,25 @@ export class CommunityComponent implements OnInit {
     });
   }
 
-  private loadActivity(userIds: number[]): void {
-    this.objectivesByUser.set(new Map());
-    this.socialById.set(new Map());
-    if (userIds.length === 0) return;
+  private loadActivity(): void {
+    if (this.followingIds().size === 0) {
+      this.activity.set([]);
+      this.socialById.set(new Map());
+      return;
+    }
     this.activityLoading.set(true);
-    forkJoin(userIds.map(id => this.objectivesOf(id))).subscribe(results => {
-      this.objectivesByUser.set(new Map(results.map(r => [r.userId, r.objectives] as [number, Objective[]])));
-      this.socialById.set(new Map(results.flatMap(r => r.social.map(x => [x.objectiveId, x] as [number, ObjectiveSocial]))));
-      this.activityLoading.set(false);
+    this.objectiveService.getFeed().subscribe({
+      next: items => {
+        this.activity.set(items);
+        this.socialById.set(new Map(items.map(i => [i.objective.id, i.social] as [number, ObjectiveSocial])));
+        this.activityLoading.set(false);
+      },
+      error: () => {
+        // Sin feed la pagina sigue sirviendo para buscar y seguir personas.
+        this.activity.set([]);
+        this.activityLoading.set(false);
+      }
     });
-  }
-
-  // Si falla la peticion de una persona, esa sale vacia en vez de tumbar la
-  // actividad de todas las demas dentro del forkJoin. Lo mismo con los likes:
-  // si no llegan, los objetivos se ven igual, con los contadores en cero.
-  private objectivesOf(userId: number): Observable<{ userId: number; objectives: Objective[]; social: ObjectiveSocial[] }> {
-    return forkJoin({
-      objectives: this.objectiveService.getAll(userId).pipe(catchError(() => of([] as Objective[]))),
-      social: this.objectiveService.getSocial(userId).pipe(catchError(() => of([] as ObjectiveSocial[])))
-    }).pipe(map(r => ({ userId, ...r })));
   }
 
   // ── Likes y comentarios ──────────────────────────────
@@ -278,7 +266,9 @@ export class CommunityComponent implements OnInit {
   }
 
   onSearch(event: Event): void {
-    this.query.set((event.target as HTMLInputElement).value);
+    const value = (event.target as HTMLInputElement).value;
+    this.query.set(value);
+    this.searchTerms.next(value.trim());
   }
 
   followsMe(userId: number): boolean {
@@ -293,7 +283,7 @@ export class CommunityComponent implements OnInit {
     return this.pendingIds().has(userId);
   }
 
-  photoUrl(u: User): string | null {
+  photoUrl(u: { profilePhotoUrl?: string | null }): string | null {
     return u.profilePhotoUrl ? this.apiOrigin + u.profilePhotoUrl : null;
   }
 
@@ -304,12 +294,7 @@ export class CommunityComponent implements OnInit {
       next: () => {
         this.followingIds.set(new Set(this.followingIds()).add(u.id));
         this.setPending(u.id, false);
-        this.objectivesOf(u.id).subscribe(r => {
-          this.objectivesByUser.set(new Map(this.objectivesByUser()).set(r.userId, r.objectives));
-          const social = new Map(this.socialById());
-          r.social.forEach(x => social.set(x.objectiveId, x));
-          this.socialById.set(social);
-        });
+        this.loadActivity();
       },
       error: (e) => {
         this.setPending(u.id, false);
@@ -337,9 +322,7 @@ export class CommunityComponent implements OnInit {
         const ids = new Set(this.followingIds());
         ids.delete(target.id);
         this.followingIds.set(ids);
-        const byUser = new Map(this.objectivesByUser());
-        byUser.delete(target.id);
-        this.objectivesByUser.set(byUser);
+        this.activity.set(this.activity().filter(i => i.owner.id !== target.id));
         this.setPending(target.id, false);
       },
       error: (e) => {

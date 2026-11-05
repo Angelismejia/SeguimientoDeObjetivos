@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { User, UpdateUserDto, ChangePasswordDto, UpdateFollowPrivacyDto, DeleteAccountDto } from '../models/user.model';
 import { environment } from '../../../environments/environment';
@@ -12,6 +12,12 @@ export class UserService {
 
   getAll(): Observable<User[]> {
     return this.http.get<User[]>(this.url);
+  }
+
+  /** Busca en el servidor (solo cuentas activas, ordenadas por nombre). */
+  search(query: string, limit = 20): Observable<User[]> {
+    const params = new HttpParams().set('query', query).set('limit', limit);
+    return this.http.get<User[]>(this.url, { params });
   }
 
   getById(id: number): Observable<User> {

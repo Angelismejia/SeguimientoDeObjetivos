@@ -43,7 +43,7 @@ public class ComunidadLikesYComentariosTests
             var objetivos = new ObjectiveService(new ObjectiveRepoFalso(objetivo), uow,
                 new BadgeAwardFalso(), Alertas, follows, usuarios);
             var seguir = new FollowService(follows, usuarios, uow, Alertas);
-            var social = new ObjectiveSocialService(Social, new ObjectiveRepoFalso(objetivo), usuarios, Alertas, uow);
+            var social = new ObjectiveSocialService(Social, new ObjectiveRepoFalso(objetivo), usuarios, Alertas, uow, follows);
 
             _armar = userId => new ObjectivesController(objetivos, seguir, social)
             {
@@ -198,7 +198,8 @@ internal sealed class SeguidosFijos : IFollowRepository
         Task.FromResult<IEnumerable<Follow>>(_follows.Where(f => f.FollowingId == userId).ToList());
 
     public Task<Follow?> GetByIdAsync(int id) => throw new NotSupportedException();
-    public Task<IEnumerable<Follow>> GetFollowingAsync(int userId) => throw new NotSupportedException();
+    public Task<IEnumerable<Follow>> GetFollowingAsync(int userId) =>
+        Task.FromResult<IEnumerable<Follow>>(_follows.Where(f => f.FollowerId == userId).ToList());
     public Task<Follow> CreateAsync(Follow follow) => throw new NotSupportedException();
     public Task<bool> DeleteAsync(int a, int b) => throw new NotSupportedException();
     public Task DeleteAllForUserAsync(int userId) => throw new NotSupportedException();
@@ -225,6 +226,10 @@ internal sealed class SocialRepoEnMemoria : IObjectiveSocialRepository
         Task.FromResult(Comentarios.FirstOrDefault(c => c.Id == id));
     public void AddComment(ObjectiveComment comment) => Comentarios.Add(comment);
     public void RemoveComment(ObjectiveComment comment) => Comentarios.Remove(comment);
+    public Task<IEnumerable<ObjectiveComment>> GetCommentsByUserAsync(int userId) =>
+        Task.FromResult<IEnumerable<ObjectiveComment>>(Comentarios.Where(c => c.UserId == userId).ToList());
+    public Task<IEnumerable<int>> GetLikedObjectiveIdsAsync(int userId) =>
+        Task.FromResult<IEnumerable<int>>(Likes.Where(l => l.UserId == userId).Select(l => l.ObjectiveId).ToList());
 }
 
 internal sealed class AlertasAnotadas : INotificationService

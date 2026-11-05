@@ -41,6 +41,13 @@ export interface UpdateObjectiveDto {
   endDate?: string;
 }
 
+/** Un objetivo del feed de Comunidad, con su dueño y sus reacciones. */
+export interface CommunityFeedItem {
+  objective: Objective;
+  owner: { id: number; username: string; name: string; profilePhotoUrl?: string | null };
+  social: ObjectiveSocial;
+}
+
 /** Likes y comentarios de un objetivo, vistos por quien los pide. */
 export interface ObjectiveSocial {
   objectiveId: number;

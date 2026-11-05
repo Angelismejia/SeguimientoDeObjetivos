@@ -5,6 +5,7 @@ namespace Application.Interfaces.Services
     public interface IUserService
     {
         Task<IEnumerable<UserDto>> GetAllAsync();
+        Task<IEnumerable<UserDto>> SearchAsync(string? query, int limit);
         Task<UserDto> GetByIdAsync(int id);
         Task<UserDto> GetByUsernameAsync(string username);
         Task<UserDto> CreateAsync(CreateUserDto dto);

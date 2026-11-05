@@ -18,5 +18,11 @@ namespace Application.DTOs.Users
         public IEnumerable<TaskDto> Tasks { get; set; } = Array.Empty<TaskDto>();
         public IEnumerable<DiaryEntryDto> DiaryEntries { get; set; } = Array.Empty<DiaryEntryDto>();
         public IEnumerable<BadgeDto> Badges { get; set; } = Array.Empty<BadgeDto>();
+
+        /// <summary>Comentarios que la persona escribio en logros de otros (o en los suyos).</summary>
+        public IEnumerable<ObjectiveCommentDto> CommentsWritten { get; set; } = Array.Empty<ObjectiveCommentDto>();
+
+        /// <summary>Ids de los objetivos a los que la persona les dio me gusta.</summary>
+        public IEnumerable<int> LikedObjectiveIds { get; set; } = Array.Empty<int>();
     }
 }

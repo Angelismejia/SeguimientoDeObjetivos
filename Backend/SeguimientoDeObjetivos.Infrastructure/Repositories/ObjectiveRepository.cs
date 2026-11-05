@@ -1,5 +1,6 @@
 using Application.Interfaces.Repositories;
 using Domain.Entities;
+using Domain.Enums;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +22,22 @@ namespace Infrastructure.Repositories
             => await _context.Objectives
                 .Where(o => o.UserId == userId)
                 .ToListAsync();
+
+        // Los publicos de varias personas, logrados primero y luego los mas
+        // recientes. El orden y el limite van en la consulta, no en memoria.
+        public async Task<IEnumerable<Objective>> GetPublicFeedAsync(IEnumerable<int> userIds, int limit)
+        {
+            var ids = userIds.ToList();
+            return await _context.Objectives
+                .Include(o => o.User)
+                .Where(o => ids.Contains(o.UserId) && !o.IsPrivate)
+                .OrderBy(o => o.Status == ObjectiveStatus.Completed ? 0
+                    : o.Status == ObjectiveStatus.InProgress ? 1
+                    : o.Status == ObjectiveStatus.Pending ? 2 : 3)
+                .ThenByDescending(o => o.UpdatedAt ?? o.CreatedAt)
+                .Take(limit)
+                .ToListAsync();
+        }
 
         public Task<Objective> CreateAsync(Objective objective)
         {

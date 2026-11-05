@@ -11,6 +11,7 @@ namespace Application.Services
         private readonly ITaskService _taskService;
         private readonly IDiaryEntryService _diaryEntryService;
         private readonly IBadgeService _badgeService;
+        private readonly IObjectiveSocialService _socialService;
 
         public UserDataExportService(
             IUserService userService,
@@ -18,7 +19,8 @@ namespace Application.Services
             IObjectiveService objectiveService,
             ITaskService taskService,
             IDiaryEntryService diaryEntryService,
-            IBadgeService badgeService)
+            IBadgeService badgeService,
+            IObjectiveSocialService socialService)
         {
             _userService = userService;
             _categoryService = categoryService;
@@ -26,6 +28,7 @@ namespace Application.Services
             _taskService = taskService;
             _diaryEntryService = diaryEntryService;
             _badgeService = badgeService;
+            _socialService = socialService;
         }
 
         public async Task<UserDataExportDto> ExportAsync(int userId)
@@ -39,7 +42,9 @@ namespace Application.Services
                 Objectives = await _objectiveService.GetByUserIdAsync(userId),
                 Tasks = await _taskService.GetByUserIdAsync(userId),
                 DiaryEntries = await _diaryEntryService.GetByUserIdAsync(userId),
-                Badges = await _badgeService.GetByUserIdAsync(userId)
+                Badges = await _badgeService.GetByUserIdAsync(userId),
+                CommentsWritten = await _socialService.GetCommentsByUserAsync(userId),
+                LikedObjectiveIds = await _socialService.GetLikedObjectiveIdsAsync(userId)
             };
         }
     }

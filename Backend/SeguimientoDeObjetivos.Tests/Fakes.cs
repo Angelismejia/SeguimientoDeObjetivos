@@ -72,6 +72,7 @@ internal sealed class UserRepoFalso : IUserRepository
         Task.FromResult<User?>(new User { Id = id, Username = $"user{id}", Name = $"Usuario {id}" });
 
     public Task<IEnumerable<User>> GetAllAsync() => throw new NotSupportedException();
+    public Task<IEnumerable<User>> SearchActiveAsync(string? query, int limit) => throw new NotSupportedException();
     public Task<User?> GetByUsernameAsync(string username) => throw new NotSupportedException();
     public Task<User?> GetByEmailAsync(string email) => throw new NotSupportedException();
     public void Add(User user) => throw new NotSupportedException();

@@ -209,7 +209,7 @@ namespace Application.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        private static ObjectiveDto ToDto(Objective o) => new()
+        internal static ObjectiveDto ToDto(Objective o) => new()
         {
             Id = o.Id,
             Title = o.Title,

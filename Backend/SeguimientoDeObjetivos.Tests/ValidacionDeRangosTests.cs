@@ -294,6 +294,7 @@ internal sealed class ObjectiveRepoFalso : IObjectiveRepository
     public Task<Objective> CreateAsync(Objective o) { o.Id = 1; return Task.FromResult(o); }
     public Task<Objective> UpdateAsync(Objective o) => Task.FromResult(o);
     public Task<IEnumerable<Objective>> GetByUserIdAsync(int userId) => throw new NotSupportedException();
+    public Task<IEnumerable<Objective>> GetPublicFeedAsync(IEnumerable<int> userIds, int limit) => throw new NotSupportedException();
     public Task<bool> DeleteAsync(int id) => throw new NotSupportedException();
 }
 

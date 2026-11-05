@@ -14,5 +14,8 @@ namespace Application.Interfaces.Repositories
         Task<ObjectiveComment?> GetCommentAsync(int id);
         void AddComment(ObjectiveComment comment);
         void RemoveComment(ObjectiveComment comment);
+
+        Task<IEnumerable<ObjectiveComment>> GetCommentsByUserAsync(int userId);
+        Task<IEnumerable<int>> GetLikedObjectiveIdsAsync(int userId);
     }
 }
