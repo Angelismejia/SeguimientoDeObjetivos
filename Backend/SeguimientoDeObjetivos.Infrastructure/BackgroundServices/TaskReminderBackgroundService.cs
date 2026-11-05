@@ -1,3 +1,4 @@
+using Application.Common;
 using Application.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
@@ -60,13 +61,33 @@ namespace Infrastructure.BackgroundServices
             var todayStartUtc = _appClock.ToUtc(today);
             var todayEndUtc = todayStartUtc.AddDays(1);
 
-            var dueTasks = await db.Tasks
-                .Where(t => t.ScheduledDate.Date == today
-                    && t.ScheduledTime != null
-                    && t.ScheduledTime <= now
-                    && t.Status != TaskItemStatus.Completed
+            // La base solo hace el primer filtro grueso: tareas con hora que ya
+            // empezaron y no terminaron su repeticion. Si toca HOY (recurrencia) y
+            // si ya llego su momento de aviso lo decide RecurrenciaDeTareas, la
+            // misma regla que usa el front para el calendario.
+            //
+            // Antes se pedia ScheduledDate == hoy, y una recurrente solo tiene UNA
+            // ScheduledDate (el dia que empieza): avisaba el primer dia y nunca mas.
+            var candidatas = await db.Tasks
+                .Where(t => t.ScheduledTime != null
+                    && t.ScheduledDate.Date <= today
+                    && (t.IsRecurring || t.ScheduledDate.Date == today)
+                    && (t.EndRepeatDate == null || t.EndRepeatDate.Value.Date >= today)
                     && t.Status != TaskItemStatus.Skipped)
                 .ToListAsync(stoppingToken);
+
+            if (candidatas.Count == 0) return;
+
+            // Las recurrentes no usan Status: lo hecho hoy esta en TaskCompletions.
+            var ids = candidatas.Select(t => t.Id).ToList();
+            var hechasHoy = (await db.TaskCompletions
+                .Where(c => ids.Contains(c.TaskId) && c.Date == today)
+                .Select(c => c.TaskId)
+                .ToListAsync(stoppingToken)).ToHashSet();
+
+            var dueTasks = candidatas
+                .Where(t => RecurrenciaDeTareas.DebeAvisar(t, hechasHoy.Contains(t.Id), today, now))
+                .ToList();
 
             if (dueTasks.Count == 0) return;
 
@@ -84,7 +105,9 @@ namespace Infrastructure.BackgroundServices
                     UserId = task.UserId,
                     TaskId = task.Id,
                     Title = "Es hora de tu tarea",
-                    Message = $"\"{task.Title}\" estaba programada para ahora.",
+                    Message = task.ReminderMinutesBefore is > 0
+                        ? $"\"{task.Title}\" empieza en {task.ReminderMinutesBefore} minutos."
+                        : $"\"{task.Title}\" estaba programada para ahora.",
                     Type = "TaskReminder",
                     SentAt = DateTime.UtcNow
                 });
