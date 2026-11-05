@@ -53,6 +53,11 @@ describe('mensajeDeError', () => {
     expect(mensajeDeError({ status: 429 }, POR_DEFECTO)).toContain('Demasiados intentos');
   });
 
+  it('un 404 no muestra el detail tecnico del backend', () => {
+    const e = problemDetails(404, 'Objective con id 5 no fue encontrado.');
+    expect(mensajeDeError(e, POR_DEFECTO)).toContain('ya no existe');
+  });
+
   it('403 y 404 tienen mensaje propio', () => {
     expect(mensajeDeError({ status: 403 }, POR_DEFECTO)).toContain('permiso');
     expect(mensajeDeError({ status: 404 }, POR_DEFECTO)).toContain('ya no existe');

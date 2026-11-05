@@ -1,4 +1,4 @@
-using Application.Common;
+﻿using Application.Common;
 using Application.DTOs.Users;
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
@@ -114,7 +114,7 @@ namespace Application.Services
 
             var passwordValid = BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash);
             if (!passwordValid)
-                throw new BusinessRuleException("Current password is incorrect");
+                throw new BusinessRuleException("La contraseña actual no es correcta.");
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
             user.UpdatedAt = DateTime.UtcNow;

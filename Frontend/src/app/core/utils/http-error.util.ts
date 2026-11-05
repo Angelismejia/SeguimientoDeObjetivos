@@ -21,8 +21,10 @@ export function mensajeDeError(error: any, porDefecto: string): string {
   const cuerpo = error?.error;
 
   // Explicacion del backend, ya redactada para el usuario.
+  // El detail de un 404 es tecnico ("Objective con id 5 no fue encontrado."):
+  // nombra la entidad en ingles y el id. Para ese caso gana el mensaje propio.
   const detail = typeof cuerpo?.detail === 'string' ? cuerpo.detail.trim() : '';
-  if (detail) return detail;
+  if (detail && status !== 404) return detail;
 
   // Validacion de DTO: sabemos que el problema esta en el formulario, pero los
   // textos del framework no son mostrables.

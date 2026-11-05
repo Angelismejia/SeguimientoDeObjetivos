@@ -1,4 +1,4 @@
-using Application.DTOs.Users;
+﻿using Application.DTOs.Users;
 using Domain.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
@@ -46,11 +46,11 @@ namespace Application.Services
         {
             var existingUser = await _userRepository.GetByUsernameAsync(createUserDto.Username);
             if (existingUser != null)
-                throw new BusinessRuleException("Username already exists");
+                throw new BusinessRuleException("Ese nombre de usuario ya está en uso.");
 
             var existingEmail = await _userRepository.GetByEmailAsync(createUserDto.Email);
             if (existingEmail != null)
-                throw new BusinessRuleException("Email already exists");
+                throw new BusinessRuleException("Ya hay una cuenta con ese correo.");
 
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password);
 
@@ -101,15 +101,20 @@ namespace Application.Services
         public async Task<LoginResponseDto> LoginAsync(LoginRequestDto loginRequestDto)
         {
             var user = await _userRepository.GetByUsernameAsync(loginRequestDto.Username);
+            // El mismo mensaje para "no existe" y "contraseña mal": si fueran
+            // distintos, probando nombres se podria averiguar quien tiene cuenta.
+            const string credencialesInvalidas = "Usuario o contraseña incorrectos.";
             if (user == null)
-                throw new BusinessRuleException("Invalid username or password");
-
-            if (!user.IsActive)
-                throw new BusinessRuleException("User account is inactive");
+                throw new BusinessRuleException(credencialesInvalidas);
 
             var passwordValid = BCrypt.Net.BCrypt.Verify(loginRequestDto.Password, user.PasswordHash);
             if (!passwordValid)
-                throw new BusinessRuleException("Invalid username or password");
+                throw new BusinessRuleException(credencialesInvalidas);
+
+            // Va DESPUES de verificar la contraseña. Antes iba primero, y cualquiera
+            // podia confirmar que una cuenta desactivada existia sin conocer la clave.
+            if (!user.IsActive)
+                throw new BusinessRuleException("Esta cuenta está desactivada.");
 
             var token = GenerateJwtToken(user);
 
