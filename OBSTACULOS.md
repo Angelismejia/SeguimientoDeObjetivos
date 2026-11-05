@@ -260,18 +260,24 @@ su propia cola de detalles:
 
 ## Qué queda abierto
 
-- La página **Comunidad** arma el feed con un `GET /api/objectives?userId` por cada
-  persona seguida. Alcanza con pocos seguidos; si crecen, conviene un endpoint de feed
-  único en el backend.
 - En modo oscuro, los gráficos de Chart.js que ya están en pantalla no cambian de
   color al cambiar el tema: toman los colores nuevos la próxima vez que se dibujan.
 - La migración `QuitarTablaStreaksSinUso` hay que aplicarla a mano en Supabase, como
   todas. No hay apuro ni orden obligatorio: ni el código nuevo ni el viejo leen esa
   tabla, así que da igual que exista un tiempo más.
 - La migración `AgregarLikesYComentariosEnObjetivos` **sí** hay que aplicarla antes de
-  usar likes y comentarios: sin las tablas, esos endpoints dan 500. El feed de
-  Comunidad no se cae (si no llegan los likes, muestra los contadores en cero), pero
-  dar like o comentar falla.
+  desplegar: sin esas tablas, el feed de Comunidad (`GET api/objectives/feed`), los
+  likes y los comentarios dan 500. La página no se cae (sigue sirviendo para buscar y
+  seguir personas), pero la actividad sale vacía.
 - Al cumplir un objetivo público se crea una alerta por cada seguidor, cada una con
   su propio guardado. Con pocos seguidores alcanza; con cientos conviene insertarlas
   todas juntas.
+- **Correos:** "olvidé mi contraseña" manda el enlace por SMTP (`SmtpEmailSender`, con
+  MailKit). Mientras no se configure la sección `Email` (Host, User, Password,
+  FromAddress) no se manda nada: el endpoint responde igual y queda anotado en el log.
+  En Development el log trae el correo entero, enlace incluido, para probar en local.
+- **Recordatorios a tiempo:** el workflow `mantener-despierta.yml` llama a
+  `/api/health` cada 5 minutos para que Azure no apague la app (y con ella el servicio
+  de recordatorios). GitHub puede atrasar esos disparos varios minutos y los
+  desactiva si el repo pasa 60 días sin actividad; si eso molesta, cron-job.org puede
+  llamar a la misma URL.
