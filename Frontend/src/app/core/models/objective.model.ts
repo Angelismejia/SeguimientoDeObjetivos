@@ -16,6 +16,7 @@ export interface Objective {
   endDate?: string;
   userId: number;
   createdAt: string;
+  updatedAt?: string | null;
 }
 
 export interface CreateObjectiveDto {
@@ -38,4 +39,23 @@ export interface UpdateObjectiveDto {
   completionAskedAtTaskCount?: number | null;
   startDate?: string;
   endDate?: string;
+}
+
+/** Likes y comentarios de un objetivo, vistos por quien los pide. */
+export interface ObjectiveSocial {
+  objectiveId: number;
+  likeCount: number;
+  likedByMe: boolean;
+  commentCount: number;
+}
+
+export interface ObjectiveComment {
+  id: number;
+  objectiveId: number;
+  userId: number;
+  username: string;
+  name: string;
+  profilePhotoUrl?: string | null;
+  content: string;
+  createdAt: string;
 }

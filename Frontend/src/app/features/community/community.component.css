@@ -236,6 +236,118 @@ button:disabled { opacity: 0.6; cursor: default; }
   text-align: right;
 }
 
+.follows-me {
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: var(--superficie-3);
+  color: var(--texto-3);
+}
+
+/* ── Likes y comentarios ─────────────────────────────── */
+.reactions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+.reaction {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px; /* objetivo tactil comodo en el celular */
+  padding: 6px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--texto-2);
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.reaction .material-icons-round { font-size: 18px; }
+.reaction-on {
+  border-color: var(--borde-primario);
+  background: var(--tinte-primario);
+  color: var(--violeta-texto);
+}
+.reaction-on .material-icons-round:first-child { color: #e11d48; }
+.reaction-on[aria-expanded] .material-icons-round:first-child { color: inherit; }
+
+.comments {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--superficie-2);
+}
+.comments-empty {
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+  color: var(--texto-suave);
+}
+.comment {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.avatar-xs { width: 26px; height: 26px; }
+.avatar-xs.avatar-empty { font-size: 26px; }
+.comment-body { flex: 1; min-width: 0; }
+.comment-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.comment-author {
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--texto);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.comment-date {
+  font-size: 0.72rem;
+  color: var(--texto-tenue);
+  white-space: nowrap;
+}
+.comment-delete {
+  margin-left: auto;
+  display: inline-flex;
+  padding: 2px;
+  border: none;
+  background: transparent;
+  color: var(--texto-tenue);
+  cursor: pointer;
+}
+.comment-delete .material-icons-round { font-size: 16px; }
+.comment-text {
+  margin: 2px 0 0;
+  font-size: 0.88rem;
+  color: var(--texto-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.comment-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+.comment-form textarea {
+  flex: 1;
+  min-width: 0;
+  resize: vertical;
+  padding: 8px 10px;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--superficie);
+  color: var(--texto);
+  font: inherit;
+  font-size: 0.88rem;
+}
+.comment-form textarea:focus { outline: none; border-color: #7c3aed; }
+
 /* En pantallas chicas se aliviana el padding; el boton se queda al lado del
    nombre, que se corta con puntos suspensivos en vez de empujarlo fuera. */
 @media (max-width: 520px) {
@@ -245,4 +357,7 @@ button:disabled { opacity: 0.6; cursor: default; }
   .avatar { width: 38px; height: 38px; }
   .avatar-empty { font-size: 38px; }
   .btn-follow, .btn-following { padding: 7px 12px; }
+  .comments { padding: 10px; }
+  /* El boton Enviar baja debajo del texto en vez de achicar el cuadro. */
+  .comment-form { flex-direction: column; align-items: stretch; }
 }

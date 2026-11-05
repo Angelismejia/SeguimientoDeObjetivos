@@ -123,6 +123,9 @@ export class NotificationsComponent implements OnInit {
       case 'objective_completed': return 'emoji_events';
       case 'badge_awarded': return 'military_tech';
       case 'new_follower': return 'person_add';
+      case 'friend_objective_completed': return 'celebration';
+      case 'objective_liked': return 'favorite';
+      case 'objective_comment': return 'chat_bubble';
       default: return 'notifications';
     }
   }

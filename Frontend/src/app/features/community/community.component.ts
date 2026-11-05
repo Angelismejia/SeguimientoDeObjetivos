@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Observable, catchError, forkJoin, map, of } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
@@ -6,10 +7,11 @@ import { UserService } from '../../core/services/user.service';
 import { FollowService } from '../../core/services/follow.service';
 import { ObjectiveService } from '../../core/services/objective.service';
 import { User } from '../../core/models/user.model';
-import { Objective, ObjectiveStatus } from '../../core/models/objective.model';
+import { Objective, ObjectiveComment, ObjectiveSocial, ObjectiveStatus } from '../../core/models/objective.model';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { environment } from '../../../environments/environment';
 import { mensajeDeError } from '../../core/utils/http-error.util';
+import { fechaDelBackend } from '../../core/utils/fecha.util';
 
 /** Un objetivo publico de alguien que sigo, con quien es el dueño. */
 interface ActivityItem {
@@ -24,18 +26,21 @@ const STATUS_LABEL: Record<ObjectiveStatus, string> = {
   Cancelled: 'Cancelado'
 };
 
-// Los que estan en marcha primero: son los que invitan a dar animo.
+// Los logrados primero: la comunidad es para ver como mejoran los amigos y
+// felicitarlos. Despues lo que esta en marcha.
 const STATUS_ORDER: Record<ObjectiveStatus, number> = {
-  InProgress: 0,
-  Pending: 1,
-  Completed: 2,
+  Completed: 0,
+  InProgress: 1,
+  Pending: 2,
   Cancelled: 3
 };
+
+const VACIO: ObjectiveSocial = { objectiveId: 0, likeCount: 0, likedByMe: false, commentCount: 0 };
 
 @Component({
   selector: 'app-community',
   standalone: true,
-  imports: [RouterLink, ConfirmDialogComponent],
+  imports: [RouterLink, DatePipe, ConfirmDialogComponent],
   templateUrl: './community.component.html',
   styleUrl: './community.component.css'
 })
@@ -46,6 +51,8 @@ export class CommunityComponent implements OnInit {
 
   people = signal<User[]>([]);
   followingIds = signal<Set<number>>(new Set());
+  // Quienes me siguen: se marcan con "Te sigue" en la lista de personas.
+  followerIds = signal<Set<number>>(new Set());
   query = signal('');
   // Mientras una peticion de seguir/dejar de seguir esta en vuelo, el boton se
   // deshabilita: un doble click mandaba el POST dos veces y el segundo fallaba.
@@ -56,6 +63,17 @@ export class CommunityComponent implements OnInit {
   // agregar o sacar a una sola al seguirla o dejarla, sin recargar todo.
   objectivesByUser = signal<Map<number, Objective[]>>(new Map());
   activityLoading = signal(false);
+
+  // Likes y comentarios por id de objetivo (solo los logrados admiten reacciones).
+  socialById = signal<Map<number, ObjectiveSocial>>(new Map());
+  likePendingIds = signal<Set<number>>(new Set());
+  openCommentsId = signal<number | null>(null);
+  comments = signal<ObjectiveComment[]>([]);
+  commentsLoading = signal(false);
+  commentDraft = signal('');
+  sendingComment = signal(false);
+  commentError = signal('');
+  readonly myId: number;
 
   private apiOrigin = environment.apiUrl.replace('/api', '');
 
@@ -77,7 +95,7 @@ export class CommunityComponent implements OnInit {
     return items
       .sort((a, b) =>
         STATUS_ORDER[a.objective.status] - STATUS_ORDER[b.objective.status] ||
-        b.objective.createdAt.localeCompare(a.objective.createdAt))
+        (b.objective.updatedAt ?? b.objective.createdAt).localeCompare(a.objective.updatedAt ?? a.objective.createdAt))
       .slice(0, 30);
   });
 
@@ -86,7 +104,9 @@ export class CommunityComponent implements OnInit {
     private userService: UserService,
     private followService: FollowService,
     private objectiveService: ObjectiveService
-  ) {}
+  ) {
+    this.myId = this.auth.getUserId();
+  }
 
   ngOnInit(): void {
     this.load();
@@ -99,13 +119,16 @@ export class CommunityComponent implements OnInit {
 
     forkJoin({
       users: this.userService.getAll(),
-      following: this.followService.getFollowing(myId)
+      following: this.followService.getFollowing(myId),
+      // Si falla, la pagina sigue funcionando: solo no se marca "Te sigue".
+      followers: this.followService.getFollowers(myId).pipe(catchError(() => of([])))
     }).subscribe({
-      next: ({ users, following }) => {
+      next: ({ users, following, followers }) => {
         // GetAll no filtra por IsActive: las cuentas desactivadas se ocultan aca
         // para no ofrecer seguir a alguien que ya no usa la app.
         this.people.set(users.filter(u => u.id !== myId && u.isActive));
         this.followingIds.set(new Set(following.map(f => f.id)));
+        this.followerIds.set(new Set(followers.map(f => f.id)));
         this.loading.set(false);
         this.loadActivity(following.map(f => f.id));
       },
@@ -118,21 +141,136 @@ export class CommunityComponent implements OnInit {
 
   private loadActivity(userIds: number[]): void {
     this.objectivesByUser.set(new Map());
+    this.socialById.set(new Map());
     if (userIds.length === 0) return;
     this.activityLoading.set(true);
     forkJoin(userIds.map(id => this.objectivesOf(id))).subscribe(results => {
-      this.objectivesByUser.set(new Map(results));
+      this.objectivesByUser.set(new Map(results.map(r => [r.userId, r.objectives] as [number, Objective[]])));
+      this.socialById.set(new Map(results.flatMap(r => r.social.map(x => [x.objectiveId, x] as [number, ObjectiveSocial]))));
       this.activityLoading.set(false);
     });
   }
 
   // Si falla la peticion de una persona, esa sale vacia en vez de tumbar la
-  // actividad de todas las demas dentro del forkJoin.
-  private objectivesOf(userId: number): Observable<[number, Objective[]]> {
-    return this.objectiveService.getAll(userId).pipe(
-      map(objectives => [userId, objectives] as [number, Objective[]]),
-      catchError(() => of([userId, []] as [number, Objective[]]))
-    );
+  // actividad de todas las demas dentro del forkJoin. Lo mismo con los likes:
+  // si no llegan, los objetivos se ven igual, con los contadores en cero.
+  private objectivesOf(userId: number): Observable<{ userId: number; objectives: Objective[]; social: ObjectiveSocial[] }> {
+    return forkJoin({
+      objectives: this.objectiveService.getAll(userId).pipe(catchError(() => of([] as Objective[]))),
+      social: this.objectiveService.getSocial(userId).pipe(catchError(() => of([] as ObjectiveSocial[])))
+    }).pipe(map(r => ({ userId, ...r })));
+  }
+
+  // ── Likes y comentarios ──────────────────────────────
+
+  canReact(objective: Objective): boolean {
+    return objective.status === 'Completed';
+  }
+
+  socialOf(objective: Objective): ObjectiveSocial {
+    return this.socialById().get(objective.id) ?? { ...VACIO, objectiveId: objective.id };
+  }
+
+  isLikePending(objective: Objective): boolean {
+    return this.likePendingIds().has(objective.id);
+  }
+
+  toggleLike(objective: Objective): void {
+    if (this.isLikePending(objective)) return;
+    const liked = !this.socialOf(objective).likedByMe;
+    this.setLikePending(objective.id, true);
+    this.actionError.set('');
+    this.objectiveService.setLike(objective.id, liked).subscribe({
+      next: social => {
+        this.socialById.set(new Map(this.socialById()).set(objective.id, social));
+        this.setLikePending(objective.id, false);
+      },
+      error: (e) => {
+        this.setLikePending(objective.id, false);
+        this.actionError.set(mensajeDeError(e, 'No se pudo guardar el me gusta. Intenta de nuevo.'));
+      }
+    });
+  }
+
+  toggleComments(objective: Objective): void {
+    if (this.openCommentsId() === objective.id) {
+      this.openCommentsId.set(null);
+      return;
+    }
+    this.openCommentsId.set(objective.id);
+    this.comments.set([]);
+    this.commentDraft.set('');
+    this.commentError.set('');
+    this.commentsLoading.set(true);
+    this.objectiveService.getComments(objective.id).subscribe({
+      next: list => {
+        this.comments.set(list);
+        this.commentsLoading.set(false);
+      },
+      error: (e) => {
+        this.commentsLoading.set(false);
+        this.commentError.set(mensajeDeError(e, 'No se pudieron cargar los comentarios.'));
+      }
+    });
+  }
+
+  onCommentInput(event: Event): void {
+    this.commentDraft.set((event.target as HTMLTextAreaElement).value);
+  }
+
+  sendComment(objective: Objective): void {
+    const content = this.commentDraft().trim();
+    if (!content || this.sendingComment()) return;
+    this.sendingComment.set(true);
+    this.commentError.set('');
+    this.objectiveService.addComment(objective.id, content).subscribe({
+      next: comment => {
+        this.comments.set([...this.comments(), comment]);
+        this.commentDraft.set('');
+        this.bumpCommentCount(objective, 1);
+        this.sendingComment.set(false);
+      },
+      error: (e) => {
+        this.sendingComment.set(false);
+        this.commentError.set(mensajeDeError(e, 'No se pudo publicar el comentario.'));
+      }
+    });
+  }
+
+  // Lo puede borrar quien lo escribio o el dueño del objetivo (el backend lo controla).
+  canDeleteComment(comment: ObjectiveComment, objective: Objective): boolean {
+    return comment.userId === this.myId || objective.userId === this.myId;
+  }
+
+  deleteComment(comment: ObjectiveComment, objective: Objective): void {
+    this.commentError.set('');
+    this.objectiveService.deleteComment(comment.id).subscribe({
+      next: () => {
+        this.comments.set(this.comments().filter(c => c.id !== comment.id));
+        this.bumpCommentCount(objective, -1);
+      },
+      error: (e) => this.commentError.set(mensajeDeError(e, 'No se pudo borrar el comentario.'))
+    });
+  }
+
+  commentDate(comment: ObjectiveComment): Date {
+    return fechaDelBackend(comment.createdAt);
+  }
+
+  commentPhoto(comment: ObjectiveComment): string | null {
+    return comment.profilePhotoUrl ? this.apiOrigin + comment.profilePhotoUrl : null;
+  }
+
+  private bumpCommentCount(objective: Objective, delta: number): void {
+    const actual = this.socialOf(objective);
+    const nuevo = { ...actual, commentCount: Math.max(0, actual.commentCount + delta) };
+    this.socialById.set(new Map(this.socialById()).set(objective.id, nuevo));
+  }
+
+  private setLikePending(objectiveId: number, pending: boolean): void {
+    const ids = new Set(this.likePendingIds());
+    if (pending) ids.add(objectiveId); else ids.delete(objectiveId);
+    this.likePendingIds.set(ids);
   }
 
   statusLabel(status: ObjectiveStatus): string {
@@ -141,6 +279,10 @@ export class CommunityComponent implements OnInit {
 
   onSearch(event: Event): void {
     this.query.set((event.target as HTMLInputElement).value);
+  }
+
+  followsMe(userId: number): boolean {
+    return this.followerIds().has(userId);
   }
 
   isFollowing(userId: number): boolean {
@@ -162,8 +304,12 @@ export class CommunityComponent implements OnInit {
       next: () => {
         this.followingIds.set(new Set(this.followingIds()).add(u.id));
         this.setPending(u.id, false);
-        this.objectivesOf(u.id).subscribe(([id, objectives]) =>
-          this.objectivesByUser.set(new Map(this.objectivesByUser()).set(id, objectives)));
+        this.objectivesOf(u.id).subscribe(r => {
+          this.objectivesByUser.set(new Map(this.objectivesByUser()).set(r.userId, r.objectives));
+          const social = new Map(this.socialById());
+          r.social.forEach(x => social.set(x.objectiveId, x));
+          this.socialById.set(social);
+        });
       },
       error: (e) => {
         this.setPending(u.id, false);

@@ -48,7 +48,10 @@
               }
               <span class="person-info">
                 <span class="person-name">{{ u.name }}</span>
-                <span class="person-username">&#64;{{ u.username }}</span>
+                <span class="person-username">
+                  &#64;{{ u.username }}
+                  @if (followsMe(u.id)) { <span class="follows-me">Te sigue</span> }
+                </span>
               </span>
             </a>
 
@@ -101,6 +104,84 @@
                 <div class="progress-fill" [style.width.%]="item.objective.progressPercentage"></div>
               </div>
               <span class="progress-label">{{ item.objective.progressPercentage }}%</span>
+
+              @if (canReact(item.objective)) {
+                <div class="reactions">
+                  <button
+                    type="button"
+                    class="reaction"
+                    [class.reaction-on]="socialOf(item.objective).likedByMe"
+                    [disabled]="isLikePending(item.objective)"
+                    [attr.aria-pressed]="socialOf(item.objective).likedByMe"
+                    [attr.aria-label]="socialOf(item.objective).likedByMe ? 'Quitar me gusta' : 'Me gusta'"
+                    (click)="toggleLike(item.objective)"
+                  >
+                    <span class="material-icons-round">{{ socialOf(item.objective).likedByMe ? 'favorite' : 'favorite_border' }}</span>
+                    {{ socialOf(item.objective).likeCount }}
+                  </button>
+                  <button
+                    type="button"
+                    class="reaction"
+                    [class.reaction-on]="openCommentsId() === item.objective.id"
+                    [attr.aria-expanded]="openCommentsId() === item.objective.id"
+                    aria-label="Comentarios"
+                    (click)="toggleComments(item.objective)"
+                  >
+                    <span class="material-icons-round">chat_bubble_outline</span>
+                    {{ socialOf(item.objective).commentCount }}
+                  </button>
+                </div>
+
+                @if (openCommentsId() === item.objective.id) {
+                  <div class="comments">
+                    @if (commentsLoading()) {
+                      <p class="status">Cargando comentarios...</p>
+                    } @else {
+                      @if (comments().length === 0) {
+                        <p class="comments-empty">Sé el primero en felicitar a {{ item.owner.name }}.</p>
+                      }
+                      @for (c of comments(); track c.id) {
+                        <div class="comment">
+                          @if (commentPhoto(c); as src) {
+                            <img [src]="src" alt="" class="avatar avatar-xs" />
+                          } @else {
+                            <span class="material-icons-round avatar avatar-xs avatar-empty">account_circle</span>
+                          }
+                          <div class="comment-body">
+                            <div class="comment-head">
+                              <span class="comment-author">{{ c.name }}</span>
+                              <span class="comment-date">{{ commentDate(c) | date: 'd MMM, HH:mm' }}</span>
+                              @if (canDeleteComment(c, item.objective)) {
+                                <button type="button" class="comment-delete" aria-label="Borrar comentario" (click)="deleteComment(c, item.objective)">
+                                  <span class="material-icons-round">close</span>
+                                </button>
+                              }
+                            </div>
+                            <p class="comment-text">{{ c.content }}</p>
+                          </div>
+                        </div>
+                      }
+                    }
+
+                    @if (commentError()) {
+                      <p class="form-error">{{ commentError() }}</p>
+                    }
+
+                    <form class="comment-form" (submit)="$event.preventDefault(); sendComment(item.objective)">
+                      <textarea
+                        rows="2"
+                        maxlength="500"
+                        placeholder="Escribe algo de ánimo..."
+                        [value]="commentDraft()"
+                        (input)="onCommentInput($event)"
+                      ></textarea>
+                      <button type="submit" class="btn-follow" [disabled]="!commentDraft().trim() || sendingComment()">
+                        Enviar
+                      </button>
+                    </form>
+                  </div>
+                }
+              }
             </li>
           }
         </ul>
