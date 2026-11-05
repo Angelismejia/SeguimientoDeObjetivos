@@ -268,3 +268,10 @@ su propia cola de detalles:
 - La migración `QuitarTablaStreaksSinUso` hay que aplicarla a mano en Supabase, como
   todas. No hay apuro ni orden obligatorio: ni el código nuevo ni el viejo leen esa
   tabla, así que da igual que exista un tiempo más.
+- La migración `AgregarLikesYComentariosEnObjetivos` **sí** hay que aplicarla antes de
+  usar likes y comentarios: sin las tablas, esos endpoints dan 500. El feed de
+  Comunidad no se cae (si no llegan los likes, muestra los contadores en cero), pero
+  dar like o comentar falla.
+- Al cumplir un objetivo público se crea una alerta por cada seguidor, cada una con
+  su propio guardado. Con pocos seguidores alcanza; con cientos conviene insertarlas
+  todas juntas.
