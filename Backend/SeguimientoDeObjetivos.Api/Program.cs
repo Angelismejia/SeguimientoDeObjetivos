@@ -3,6 +3,7 @@ using Api.Hubs;
 using Api.Middleware;
 using Application;
 using Infrastructure;
+using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.FileProviders;
@@ -187,6 +188,17 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<ChatHub>("/hubs/chat");
+
+// Lo llama cada 5 minutos el workflow .github/workflows/mantener-despierta.yml.
+// En el plan gratuito, Azure apaga la app tras unos 20 minutos sin trafico, y con
+// ella se para TaskReminderBackgroundService: los recordatorios de "es hora de tu
+// tarea" solo salian si justo alguien estaba usando la app. Toca la base a
+// proposito, asi Supabase tampoco se pausa por inactividad.
+app.MapGet("/api/health", async (ApplicationDbContext db, CancellationToken ct) =>
+    await db.Database.CanConnectAsync(ct)
+        ? Results.Ok(new { status = "ok" })
+        : Results.StatusCode(StatusCodes.Status503ServiceUnavailable))
+    .AllowAnonymous();
 app.MapFallbackToFile("index.html", noCacheStaticFileOptions);
 
 app.Run();
