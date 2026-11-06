@@ -11,6 +11,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <!-- Npgsql 8.0.11 trae EF Core 8.0.11, pero Design/Tools son 8.0.28: sin fijar
+         Relational aca, Infrastructure compilaba contra una version y los tests
+         cargaban la otra (decenas de warnings MSB3277). -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.28" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
   </ItemGroup>
 

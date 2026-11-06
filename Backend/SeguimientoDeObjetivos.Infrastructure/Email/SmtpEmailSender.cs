@@ -48,10 +48,16 @@ namespace Infrastructure.Email
                 return;
             }
 
+            // Con servidor pero sin credenciales es un error de configuracion, no un
+            // caso normal: se dice claro que falta en vez de fallar adentro de MailKit.
+            var usuario = _configuration["Email:User"];
+            var clave = _configuration["Email:Password"];
+            var remitente = _configuration["Email:FromAddress"] is { Length: > 0 } desde ? desde : usuario;
+            if (string.IsNullOrWhiteSpace(usuario) || string.IsNullOrWhiteSpace(clave) || string.IsNullOrWhiteSpace(remitente))
+                throw new InvalidOperationException("Email:Host esta configurado pero faltan Email:User, Email:Password o Email:FromAddress.");
+
             var mensaje = new MimeMessage();
-            mensaje.From.Add(new MailboxAddress(
-                _configuration["Email:FromName"] ?? "BetterMe",
-                _configuration["Email:FromAddress"] ?? _configuration["Email:User"]));
+            mensaje.From.Add(new MailboxAddress(_configuration["Email:FromName"] ?? "BetterMe", remitente));
             mensaje.To.Add(MailboxAddress.Parse(to));
             mensaje.Subject = subject;
             mensaje.Body = new BodyBuilder { HtmlBody = html }.ToMessageBody();
@@ -61,7 +67,7 @@ namespace Infrastructure.Email
             // 465 es SSL directo; 587 (lo normal en Brevo y Gmail) arranca en claro y sube a TLS.
             await smtp.ConnectAsync(host, puerto,
                 puerto == 465 ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls, ct);
-            await smtp.AuthenticateAsync(_configuration["Email:User"], _configuration["Email:Password"], ct);
+            await smtp.AuthenticateAsync(usuario, clave, ct);
             await smtp.SendAsync(mensaje, ct);
             await smtp.DisconnectAsync(true, ct);
         }
