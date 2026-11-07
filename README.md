@@ -1,5 +1,7 @@
 # BetterMe — Seguimiento de Objetivos
 
+[![Build y deploy](https://github.com/Angelismejia/SeguimientoDeObjetivos/actions/workflows/master_better-me.yml/badge.svg)](https://github.com/Angelismejia/SeguimientoDeObjetivos/actions/workflows/master_better-me.yml)
+
 ## 🌐 Demo en vivo
 
 **[better-me-d6gugua2dnhucpfg.centralus-01.azurewebsites.net](https://better-me-d6gugua2dnhucpfg.centralus-01.azurewebsites.net)**
@@ -12,29 +14,53 @@ El proyecto arrancó como una app de consola en C# hecha para una asignatura en 
 
 ---
 
+## 📸 Capturas
+
+| Inicio | Inicio de sesión |
+|---|---|
+| ![Página de inicio](docs/capturas/inicio.png) | ![Inicio de sesión](docs/capturas/login.png) |
+
+---
+
 ## 🚀 Funcionalidades
 
 **Objetivos y tareas**
-- Crear, editar y eliminar objetivos, organizados por categorías
-- Tareas asociadas a cada objetivo, con fecha programada y estado
-- Cálculo automático de progreso según tareas completadas
-- Dashboard con resumen del día y objetivos recientes
+- Objetivos con fechas, categorías, objetivo principal y progreso automático según las tareas completadas
+- Tareas con hora, prioridad y repetición (diaria, semanal, cada N semanas, mensual o anual), con historial por día
+- Dashboard del día, calendario mensual y estadísticas con gráficos
+- Recordatorio cuando llega la hora de una tarea (o unos minutos antes)
 
 **Hábitos y seguimiento**
 - Diario personal con entradas por día
 - Racha de días consecutivos completando tareas
-- Insignias/logros que se desbloquean según el progreso
+- Insignias que se desbloquean según el progreso
 
-**Social**
-- Seguir a otros usuarios (seguidores/seguidos)
-- Perfil propio y perfil público de cada usuario (foto, racha, insignias, objetivos)
-- Rachas compartidas: invitá a un amigo y mantengan la racha juntos
-- Chat en tiempo real vía SignalR, con notificaciones de mensajes nuevos
-- Búsqueda de usuarios por nombre o username
+**Comunidad**
+- Seguir a otras personas y ver sus objetivos públicos en un feed
+- Me gusta y comentarios en los objetivos logrados de tus amigos
+- Avisos cuando alguien te sigue, reacciona a tu logro o cumple un objetivo
+- Rachas compartidas con amigos y chat en tiempo real (SignalR)
+- Objetivos privados y opción de no aceptar seguidores
 
 **Cuenta**
 - Registro e inicio de sesión con JWT
-- Foto de perfil
+- Recuperar la contraseña con un enlace por correo
+- Foto de perfil, modo claro/oscuro, cambiar contraseña
+- Exportar todos tus datos en JSON y eliminar la cuenta
+
+---
+
+## ✅ Calidad
+
+- **Tests:** 98 en el backend (xUnit) y 57 en el frontend (Vitest). Además de la lógica
+  de negocio, los tests de seguridad llaman a cada endpoint haciéndose pasar por otro
+  usuario y exigen un 403.
+- **CI/CD:** cada push a `master` compila, corre los tests y, solo si pasan, despliega a
+  Azure App Service con GitHub Actions.
+- **Seguridad:** secretos fuera del repo (user-secrets / variables de Azure), CSP y
+  cabeceras de seguridad, límite de intentos en login, contraseñas con BCrypt, correos
+  ocultos a otros usuarios, y una recuperación de contraseña que no revela qué cuentas
+  existen.
 
 ---
 
@@ -57,16 +83,18 @@ Frontend/
 └── src/app/
     ├── core/        # Servicios, modelos, guards, interceptors
     ├── features/    # Una carpeta por pantalla (dashboard, objectives, chat, profile, ...)
-    └── shared/      # Componentes reutilizables (navbar, confirm-dialog, ...)
+    └── shared/      # Componentes reutilizables (sidebar, barra inferior móvil, diálogos, ...)
 ```
 
 ---
 
 ## 🛠️ Tecnologías
 
-**Backend**: ASP.NET Core 8, Entity Framework Core, PostgreSQL (Supabase), SignalR, JWT Bearer Auth
+**Backend**: ASP.NET Core 8, Entity Framework Core, PostgreSQL (Supabase), SignalR, JWT Bearer Auth, MailKit, xUnit
 
-**Frontend**: Angular 21 (standalone), Chart.js / ng2-charts, SignalR client, RxJS
+**Frontend**: Angular 21 (standalone, signals), Chart.js / ng2-charts, SignalR client, RxJS, Vitest
+
+**Infraestructura**: Azure App Service, Supabase (PostgreSQL), GitHub Actions
 
 ---
 
