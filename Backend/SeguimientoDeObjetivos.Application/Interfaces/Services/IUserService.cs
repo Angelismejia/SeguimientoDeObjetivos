@@ -14,6 +14,5 @@ namespace Application.Interfaces.Services
         Task ChangePasswordAsync(int id, ChangePasswordDto dto);
         Task<UserDto> UpdateFollowPrivacyAsync(int id, UpdateFollowPrivacyDto dto);
         Task DeleteAccountAsync(int id, DeleteAccountDto dto);
-        Task DeleteAsync(int id);
     }
 }

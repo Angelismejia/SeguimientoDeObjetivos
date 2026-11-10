@@ -535,6 +535,14 @@ export class ProfileComponent implements OnInit, AfterViewInit {
     const file = input.files?.[0];
     if (!file) return;
 
+    // Mismo tope que la API (FotosDePerfil.TamanoMaximo): asi se avisa al toque
+    // en vez de subir varios MB para que el servidor los rechace.
+    if (file.size > 5 * 1024 * 1024) {
+      this.uploadError.set('La foto no puede pesar más de 5 MB.');
+      input.value = '';
+      return;
+    }
+
     this.uploading.set(true);
     this.uploadError.set('');
     this.userService.uploadPhoto(this.auth.getUserId(), file).subscribe({

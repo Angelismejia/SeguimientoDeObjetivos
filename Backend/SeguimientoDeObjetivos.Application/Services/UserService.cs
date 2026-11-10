@@ -1,4 +1,4 @@
-﻿using Application.Common;
+using Application.Common;
 using Application.DTOs.Users;
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
@@ -134,13 +134,6 @@ namespace Application.Services
             await _userRepository.UpdateAsync(user);
             await _unitOfWork.SaveChangesAsync();
             return ToDto(user);
-        }
-
-        public async Task DeleteAsync(int id)
-        {
-            var deleted = await _userRepository.DeleteAsync(id);
-            if (!deleted) throw new NotFoundException("User", id);
-            await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task DeleteAccountAsync(int id, DeleteAccountDto dto)

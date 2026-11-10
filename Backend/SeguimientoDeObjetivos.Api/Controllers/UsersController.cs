@@ -123,19 +123,34 @@ namespace Api.Controllers
         }
 
         [HttpPost("{id}/photo")]
+        // Tope duro para el cuerpo entero: lo que pase de aca ni se termina de leer.
+        // Es un poco mas que TamanoMaximo para que el caso normal reciba el mensaje
+        // claro de abajo en vez de un 413 pelado.
+        [RequestSizeLimit(FotosDePerfil.TamanoMaximo + 1024 * 1024)]
         public async Task<ActionResult<UserDto>> UploadPhoto(int id, IFormFile file)
         {
             if (id != RequesterId) return Forbid();
 
             if (file.Length == 0)
                 return BadRequest("El archivo está vacío.");
+            if (file.Length > FotosDePerfil.TamanoMaximo)
+                return BadRequest("La foto no puede pesar más de 5 MB.");
 
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-            if (!allowedExtensions.Contains(extension))
+            if (!FotosDePerfil.Extensiones.Contains(extension))
                 return BadRequest("Formato no permitido. Usa JPG, PNG o WEBP.");
 
+            var cabecera = new byte[12];
+            int leidos;
+            await using (var lectura = file.OpenReadStream())
+            {
+                leidos = await lectura.ReadAtLeastAsync(cabecera, cabecera.Length, throwOnEndOfStream: false);
+            }
+            if (!FotosDePerfil.CabeceraCoincide(cabecera.AsSpan(0, leidos), extension))
+                return BadRequest("El archivo no es una imagen JPG, PNG o WEBP válida.");
+
             var uploadsFolder = PersistentStorage.UploadsPath(_env);
+            var anterior = (await _userService.GetByIdAsync(id)).ProfilePhotoUrl;
 
             var fileName = $"user{id}-{Guid.NewGuid()}{extension}";
             var filePath = Path.Combine(uploadsFolder, fileName);
@@ -145,23 +160,24 @@ namespace Api.Controllers
                 await file.CopyToAsync(stream);
             }
 
-            var photoUrl = $"/uploads/{fileName}";
-            return Ok(await _userService.UpdatePhotoAsync(id, photoUrl));
+            var actualizado = await _userService.UpdatePhotoAsync(id, $"/uploads/{fileName}");
+            // Recien despues de guardar la nueva: si algo fallaba antes, el usuario
+            // se quedaba sin ninguna foto.
+            FotosDePerfil.Borrar(anterior, uploadsFolder);
+            return Ok(actualizado);
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            if (id != RequesterId) return Forbid();
-            await _userService.DeleteAsync(id);
-            return NoContent();
-        }
-
+        // Habia tambien un DELETE {id} que borraba la cuenta SIN pedir la contraseña
+        // (y sin limpiar seguidores ni mensajes). El front nunca lo uso, y dejaba
+        // sin sentido el pedido de clave de este: con un token robado alcanzaba.
         [HttpDelete("{id}/account")]
         public async Task<IActionResult> DeleteAccount(int id, [FromBody] DeleteAccountDto dto)
         {
             if (id != RequesterId) return Forbid();
+            var foto = (await _userService.GetByIdAsync(id)).ProfilePhotoUrl;
             await _userService.DeleteAccountAsync(id, dto);
+            // La cuenta ya no existe: su foto tampoco tiene por que quedarse en el disco.
+            FotosDePerfil.Borrar(foto, PersistentStorage.UploadsPath(_env));
             return NoContent();
         }
     }
