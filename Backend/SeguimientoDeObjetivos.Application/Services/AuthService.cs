@@ -1,4 +1,5 @@
-﻿using Application.DTOs.Users;
+using Application.Common;
+using Application.DTOs.Users;
 using Domain.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
@@ -134,6 +135,16 @@ namespace Application.Services
             };
         }
 
+        // Despues de cambiar la contraseña, el token de quien la cambio ya no sirve
+        // (lleva el sello del hash viejo). Se le da uno nuevo para que no lo saque
+        // de la sesion; las demas sesiones si quedan cerradas, que es lo buscado.
+        public async Task<string> IssueTokenAsync(int userId)
+        {
+            var user = await _userRepository.GetByIdAsync(userId)
+                ?? throw new NotFoundException("User", userId);
+            return GenerateJwtToken(user);
+        }
+
         private string GenerateJwtToken(User user)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSecret));
@@ -143,7 +154,8 @@ namespace Application.Services
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Email, user.Email)
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(SelloDeSesion.Claim, SelloDeSesion.De(user.PasswordHash))
             };
 
             var token = new JwtSecurityToken(

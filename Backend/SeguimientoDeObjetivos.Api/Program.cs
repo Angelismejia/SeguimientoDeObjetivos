@@ -2,9 +2,12 @@ using Api;
 using Api.Hubs;
 using Api.Middleware;
 using Application;
+using Application.Common;
+using Application.Interfaces.Repositories;
 using Infrastructure;
 using Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
@@ -23,7 +26,9 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // al arrancar en vez de firmar tokens con un secreto conocido/predecible.
 var jwtSecret = builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("Jwt:Secret no esta configurado. Local: 'dotnet user-secrets set Jwt:Secret <valor>'. Azure: Application setting 'Jwt__Secret'.");
-var key = Encoding.ASCII.GetBytes(jwtSecret);
+// UTF8, igual que AuthService al firmar: con ASCII, un secreto con caracteres
+// no ASCII se convertia en "?" de un lado y no del otro, y ningun token validaba.
+var key = Encoding.UTF8.GetBytes(jwtSecret);
 
 builder.Services
     .AddAuthentication(options =>
@@ -59,6 +64,31 @@ builder.Services
                 }
 
                 return Task.CompletedTask;
+            },
+
+            // La firma y la fecha ya las valido el middleware; esto agrega que la
+            // sesion siga siendo legitima. Se rechaza el token si la cuenta ya no
+            // existe, si se desactivo, o si la contraseña cambio despues de emitirlo
+            // (el sello no coincide). Tambien caen los tokens viejos que no traen
+            // sello: eso obliga a todos a iniciar sesion una vez tras este deploy.
+            //
+            // Cuesta una consulta por clave primaria por peticion. En SignalR se
+            // valida al conectar, asi que un chat ya abierto sigue vivo hasta que
+            // se reconecte.
+            OnTokenValidated = async context =>
+            {
+                var id = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var sello = context.Principal?.FindFirst(SelloDeSesion.Claim)?.Value;
+                if (!int.TryParse(id, out var userId) || sello is null)
+                {
+                    context.Fail("Token sin sello de sesion.");
+                    return;
+                }
+
+                var users = context.HttpContext.RequestServices.GetRequiredService<IUserRepository>();
+                var user = await users.GetByIdAsync(userId);
+                if (!SelloDeSesion.SigueVigente(user, sello))
+                    context.Fail("La sesion ya no es valida.");
             }
         };
     });
@@ -87,19 +117,40 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Limite de intentos en login/registro: sin esto, nada impedia probar
-// contraseñas o emails en loop contra /api/auth. 5 intentos por minuto por IP
-// alcanza de sobra para un usuario real que se equivoca de contraseña, y
-// frena fuerza bruta/credential stuffing.
+// Limite de intentos en /api/auth (login, registro, recuperar contraseña): sin
+// esto, nada impedia probar contraseñas o emails en loop. 5 por minuto POR IP
+// alcanza de sobra para un usuario real que se equivoca de contraseña, y frena
+// fuerza bruta/credential stuffing.
+//
+// Antes era AddFixedWindowLimiter, que pese al comentario NO separaba por IP:
+// era un unico contador compartido por todo el mundo. Cinco personas
+// iniciando sesion en el mismo minuto le dejaban el login en 429 a la sexta, y
+// un atacante podia bloquearle el acceso a todos con 5 peticiones por minuto.
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    options.AddFixedWindowLimiter("auth", limiterOptions =>
-    {
-        limiterOptions.PermitLimit = 5;
-        limiterOptions.Window = TimeSpan.FromMinutes(1);
-        limiterOptions.QueueLimit = 0;
-    });
+    options.AddPolicy("auth", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "desconocida",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+});
+
+// En Azure la app esta detras de un proxy: sin esto, RemoteIpAddress seria la
+// IP del proxy y el limite por IP de arriba volveria a ser un contador global.
+// ForwardLimit = 1 lee solo la ULTIMA entrada de X-Forwarded-For, la que agrega
+// el proxy de Azure; las anteriores las puede inventar el cliente. Se vacian
+// KnownNetworks/KnownProxies porque la IP del proxy de Azure no es fija.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.ForwardLimit = 1;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
 });
 
 builder.Services.AddControllers()
@@ -113,6 +164,10 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 var app = builder.Build();
+
+// Primero de todo, para que todo lo que sigue (rate limiter, HTTPS, logs) vea
+// la IP y el esquema reales del cliente.
+app.UseForwardedHeaders();
 
 if (app.Environment.IsDevelopment())
 {

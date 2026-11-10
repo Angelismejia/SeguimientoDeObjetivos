@@ -14,14 +14,17 @@ namespace Api.Controllers
         private readonly IUserService _userService;
         private readonly IUserDataExportService _dataExportService;
         private readonly IUserSettingService _userSettingService;
+        private readonly IAuthService _authService;
         private readonly IWebHostEnvironment _env;
 
         public UsersController(
             IUserService userService,
             IUserDataExportService dataExportService,
             IUserSettingService userSettingService,
+            IAuthService authService,
             IWebHostEnvironment env)
         {
+            _authService = authService;
             _userService = userService;
             _dataExportService = dataExportService;
             _userSettingService = userSettingService;
@@ -86,7 +89,9 @@ namespace Api.Controllers
         {
             if (id != RequesterId) return Forbid();
             await _userService.ChangePasswordAsync(id, dto);
-            return NoContent();
+            // Cambiar la clave cierra todas las sesiones (ver SelloDeSesion), esta
+            // incluida. Se devuelve un token nuevo para que quien la cambio siga dentro.
+            return Ok(new { accessToken = await _authService.IssueTokenAsync(id) });
         }
 
         [HttpPut("{id}/allow-follows")]

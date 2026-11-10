@@ -6,5 +6,6 @@ namespace Application.Interfaces.Services
     {
         Task<LoginResponseDto> RegisterAsync(CreateUserDto createUserDto);
         Task<LoginResponseDto> LoginAsync(LoginRequestDto loginRequestDto);
+        Task<string> IssueTokenAsync(int userId);
     }
 }

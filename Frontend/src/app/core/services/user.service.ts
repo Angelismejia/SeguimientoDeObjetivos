@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 import { User, UpdateUserDto, ChangePasswordDto, UpdateFollowPrivacyDto, DeleteAccountDto } from '../models/user.model';
 import { environment } from '../../../environments/environment';
 
@@ -32,8 +32,16 @@ export class UserService {
     return this.http.put<User>(`${this.url}/${id}`, data);
   }
 
+  /**
+   * Cambiar la contraseña cierra todas las sesiones abiertas, esta incluida: el
+   * token lleva un sello de la contraseña con la que se emitio. La API devuelve
+   * uno nuevo y se guarda aca para no sacar al usuario de la app.
+   */
   changePassword(id: number, data: ChangePasswordDto): Observable<void> {
-    return this.http.put<void>(`${this.url}/${id}/password`, data);
+    return this.http.put<{ accessToken: string }>(`${this.url}/${id}/password`, data).pipe(
+      tap(res => localStorage.setItem('token', res.accessToken)),
+      map(() => undefined)
+    );
   }
 
   updateFollowPrivacy(id: number, data: UpdateFollowPrivacyDto): Observable<User> {
