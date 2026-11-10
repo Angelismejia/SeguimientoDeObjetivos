@@ -265,7 +265,10 @@ export class ChatComponent implements OnInit, OnDestroy {
       })
       .catch(err => {
         console.error('Error al enviar mensaje:', err);
-        this.sendError.set('No se pudo enviar el mensaje. Revisá tu conexión.');
+        // Las reglas del servidor (mensaje vacio, demasiado largo, no se siguen)
+        // llegan como "...HubException: <motivo>"; ese motivo es para mostrarlo.
+        const motivo = /HubException: (.+)$/.exec(String(err?.message ?? ''))?.[1];
+        this.sendError.set(motivo ?? 'No se pudo enviar el mensaje. Revisá tu conexión.');
       })
       .finally(() => {
         this.enviando.set(false);

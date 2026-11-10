@@ -4,17 +4,31 @@ using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Domain.Entities;
+using Domain.Exceptions;
 
 namespace Application.Services
 {
     public class MessageService : IMessageService
     {
+        // Mismo tope que el [MaxLength] de CreateMessageDto. Se repite aca porque
+        // el chat entra por SignalR, y SignalR NO corre las validaciones de los
+        // DTOs: sin esto, el hub guardaba mensajes vacios o de megabytes.
+        public const int LargoMaximo = 2000;
+
         private readonly IMessageRepository _messageRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly IFollowRepository _followRepository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public MessageService(IMessageRepository messageRepository, IUnitOfWork unitOfWork)
+        public MessageService(
+            IMessageRepository messageRepository,
+            IUserRepository userRepository,
+            IFollowRepository followRepository,
+            IUnitOfWork unitOfWork)
         {
             _messageRepository = messageRepository;
+            _userRepository = userRepository;
+            _followRepository = followRepository;
             _unitOfWork = unitOfWork;
         }
 
@@ -32,11 +46,33 @@ namespace Application.Services
 
         public async Task<MessageDto> SendAsync(int senderId, CreateMessageDto dto)
         {
+            var content = dto.Content?.Trim() ?? string.Empty;
+            if (content.Length == 0)
+                throw new BusinessRuleException("El mensaje está vacío.");
+            if (content.Length > LargoMaximo)
+                throw new BusinessRuleException($"El mensaje no puede pasar de {LargoMaximo} caracteres.");
+            if (dto.ReceiverId == senderId)
+                throw new BusinessRuleException("No puedes enviarte mensajes a ti mismo.");
+
+            // Antes un ReceiverId inexistente llegaba hasta la base y reventaba con
+            // un error de clave foranea.
+            var receiver = await _userRepository.GetByIdAsync(dto.ReceiverId);
+            if (receiver is null || !receiver.IsActive)
+                throw new BusinessRuleException("Esa persona no está disponible.");
+
+            // Los contactos del chat son seguidos + seguidores, asi que la regla es
+            // la misma: basta con que uno de los dos siga al otro. Sin esto, cualquiera
+            // podia escribirle a cualquier id, aunque no se conocieran.
+            var seConocen = await _followRepository.GetAsync(senderId, dto.ReceiverId) is not null
+                || await _followRepository.GetAsync(dto.ReceiverId, senderId) is not null;
+            if (!seConocen)
+                throw new BusinessRuleException("Solo puedes escribirle a quien sigues o te sigue.");
+
             var message = new Message
             {
                 SenderId = senderId,
                 ReceiverId = dto.ReceiverId,
-                Content = dto.Content
+                Content = content
             };
 
             var created = await _messageRepository.CreateAsync(message);

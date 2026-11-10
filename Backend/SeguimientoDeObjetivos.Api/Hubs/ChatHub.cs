@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Application.DTOs.Messages;
 using Application.Interfaces.Services;
+using Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
@@ -29,7 +30,18 @@ namespace Api.Hubs
         public async Task SendMessage(CreateMessageDto dto)
         {
             var senderId = int.Parse(Context.User!.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var message = await _messageService.SendAsync(senderId, dto);
+            MessageDto message;
+            try
+            {
+                message = await _messageService.SendAsync(senderId, dto);
+            }
+            catch (BusinessRuleException ex)
+            {
+                // SignalR esconde el texto de cualquier excepcion (podria ser interna)
+                // salvo el de HubException. Las reglas de negocio estan escritas para
+                // que las lea una persona, asi que esas si se dejan pasar.
+                throw new HubException(ex.Message);
+            }
 
             await Clients.Group($"user-{dto.ReceiverId}").SendAsync("ReceiveMessage", message);
             await Clients.Group($"user-{senderId}").SendAsync("ReceiveMessage", message);

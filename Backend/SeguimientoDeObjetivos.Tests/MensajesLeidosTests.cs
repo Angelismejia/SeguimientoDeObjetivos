@@ -28,7 +28,7 @@ public class MensajesLeidosTests
         var deBeto = Mensaje(2, Beto, Yo);
         var mioParaAna = Mensaje(3, Yo, Ana);
         var repo = new MessageRepoFalso(deAna, deBeto, mioParaAna);
-        var servicio = new MessageService(repo, new UnitOfWorkContador());
+        var servicio = new MessageService(repo, new UserRepoFalso(), new FollowRepoFalso(), new UnitOfWorkContador());
 
         await servicio.MarkAsReadAsync(Yo, Ana);
 
@@ -42,7 +42,7 @@ public class MensajesLeidosTests
     public async Task Si_no_hay_nada_sin_leer_no_se_guarda_nada()
     {
         var unitOfWork = new UnitOfWorkContador();
-        var servicio = new MessageService(new MessageRepoFalso(Mensaje(1, Beto, Yo)), unitOfWork);
+        var servicio = new MessageService(new MessageRepoFalso(Mensaje(1, Beto, Yo)), new UserRepoFalso(), new FollowRepoFalso(), unitOfWork);
 
         await servicio.MarkAsReadAsync(Yo, Ana);
 
@@ -55,7 +55,7 @@ public class MensajesLeidosTests
         var antes = new DateTime(2026, 10, 1, 12, 0, 0, DateTimeKind.Utc);
         var viejo = Mensaje(1, Ana, Yo);
         viejo.ReadAt = antes;
-        var servicio = new MessageService(new MessageRepoFalso(viejo, Mensaje(2, Ana, Yo)), new UnitOfWorkContador());
+        var servicio = new MessageService(new MessageRepoFalso(viejo, Mensaje(2, Ana, Yo)), new UserRepoFalso(), new FollowRepoFalso(), new UnitOfWorkContador());
 
         await servicio.MarkAsReadAsync(Yo, Ana);
 
@@ -66,7 +66,7 @@ public class MensajesLeidosTests
     public async Task Los_remitentes_sin_leer_salen_una_sola_vez()
     {
         var repo = new MessageRepoFalso(Mensaje(1, Ana, Yo), Mensaje(2, Ana, Yo), Mensaje(3, Beto, Ana));
-        var servicio = new MessageService(repo, new UnitOfWorkContador());
+        var servicio = new MessageService(repo, new UserRepoFalso(), new FollowRepoFalso(), new UnitOfWorkContador());
 
         var remitentes = await servicio.GetUnreadSenderIdsAsync(Yo);
 
@@ -80,7 +80,7 @@ public class MensajesLeidosTests
     {
         var paraBeto = Mensaje(1, Ana, Beto);
         var paraMi = Mensaje(2, Ana, Yo);
-        var servicio = new MessageService(new MessageRepoFalso(paraBeto, paraMi), new UnitOfWorkContador());
+        var servicio = new MessageService(new MessageRepoFalso(paraBeto, paraMi), new UserRepoFalso(), new FollowRepoFalso(), new UnitOfWorkContador());
         var identidad = new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, Yo.ToString()) }, "test");
         var controller = new MessagesController(servicio)
         {
