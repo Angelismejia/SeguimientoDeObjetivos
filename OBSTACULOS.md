@@ -262,13 +262,6 @@ su propia cola de detalles:
 
 - En modo oscuro, los gráficos de Chart.js que ya están en pantalla no cambian de
   color al cambiar el tema: toman los colores nuevos la próxima vez que se dibujan.
-- La migración `QuitarTablaStreaksSinUso` hay que aplicarla a mano en Supabase, como
-  todas. No hay apuro ni orden obligatorio: ni el código nuevo ni el viejo leen esa
-  tabla, así que da igual que exista un tiempo más.
-- La migración `AgregarLikesYComentariosEnObjetivos` **sí** hay que aplicarla antes de
-  desplegar: sin esas tablas, el feed de Comunidad (`GET api/objectives/feed`), los
-  likes y los comentarios dan 500. La página no se cae (sigue sirviendo para buscar y
-  seguir personas), pero la actividad sale vacía.
 - Al cumplir un objetivo público se crea una alerta por cada seguidor, cada una con
   su propio guardado. Con pocos seguidores alcanza; con cientos conviene insertarlas
   todas juntas.
@@ -281,3 +274,12 @@ su propia cola de detalles:
   de recordatorios). GitHub puede atrasar esos disparos varios minutos y los
   desactiva si el repo pasa 60 días sin actividad; si eso molesta, cron-job.org puede
   llamar a la misma URL.
+- **Sesiones:** cada token lleva un sello del hash de la contraseña
+  (`SelloDeSesion`) y la API lo vuelve a comprobar en cada petición, así que cambiar
+  o restablecer la contraseña, desactivar o borrar la cuenta cierra todas las
+  sesiones. Cuesta una consulta por clave primaria por petición. En SignalR el token
+  se valida al conectar, así que un chat que ya estaba abierto sigue vivo hasta que
+  se reconecta.
+- **Límite de `/api/auth` por IP:** depende de que `UseForwardedHeaders` lea bien la
+  IP real detrás del proxy de Azure. Si en producción todos los 429 parecen venir
+  de la misma IP, eso es lo primero que hay que revisar.
